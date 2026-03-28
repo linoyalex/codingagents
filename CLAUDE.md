@@ -60,26 +60,66 @@ pnpm build
 
 ## Agent Router
 
-When a task matches one of the patterns below, invoke the corresponding subagent.
-Use the **explicit invocation** syntax: `Use the [agent-name] subagent to [task]`.
+**This project uses a phase-gated pipeline. Invoke agents in order, not ad-hoc.**
+Each phase reads only the output of the previous phase — never the full codebase.
 
-| If the task involves... | Use this agent |
-|------------------------|---------------|
-| Architecture decisions, new modules, service boundaries, ADRs | `architect` |
-| Writing features, bug fixes, refactoring, unit tests | `developer` |
-| Security review, auth flows, PII handling, dependency CVEs | `security-reviewer` |
-| E2E tests, acceptance verification, edge case analysis | `qa` |
-| PR/diff review — **always in a fresh context** | `code-reviewer` |
-| User stories, acceptance criteria, backlog, feature scope | `product-owner` |
-| UI flows, screen states, accessibility, design system | `ux-designer` |
-| README, API docs, runbooks, CHANGELOG, this file | `documentation-specialist` |
+### Pipeline Sequence
 
-### Routing Rules
+```
+Feature request
+    │
+    ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku
+    │  Reads: feature request only
+    │  Writes: docs/prd.md
+    │
+    ▼ Phase 2 — ARCHITECT       [architect]                      model: opus
+    │  Reads: docs/prd.md + CLAUDE.md (arch section only)
+    │  Writes: docs/architecture/ARCH-[feature].md
+    │
+    ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet
+    │  Reads: docs/prd.md + ARCH-[feature].md only (NOT src/)
+    │  Writes: tests/contracts/ + tests/e2e/ (failing shells)
+    │
+    ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus
+    │  Reads: docs/prd.md + ARCH-[feature].md only (NOT src/)
+    │  Writes: docs/security-audit-[feature].md
+    │
+    ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet
+    │  Reads: ARCH-[feature].md + failing test files only
+    │  Writes: src/ (TDD: RED commit → GREEN commit → REFACTOR commit)
+    │
+    ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet
+    │  Reads: git diff only
+    │  Writes: docs/review-[branch].md
+    │
+    ▼ Phase 7 — DOCUMENT        [documentation-specialist]       model: haiku
+       Reads: docs/prd.md + CHANGELOG.md + CLAUDE.md
+       Writes: CHANGELOG.md update + CLAUDE.md conventions update
+```
 
-- **Architect before Developer**: Any feature touching multiple systems → run `architect` first, get ADR committed, then run `developer`.
-- **Security on auth/data**: Any code path touching credentials, payments, or PII → run `security-reviewer` before committing.
-- **Code Reviewer in fresh context**: Never reuse the same session that wrote the code for review.
-- **QA shift left**: Run `qa` against the spec *before* implementation to identify edge cases early.
+### Ad-hoc routing (outside the pipeline)
+
+| Task | Agent | Model |
+|------|-------|-------|
+| Bug fix (no spec needed) | `developer` | sonnet |
+| Security incident / auth change | `security-reviewer` | opus |
+| New dependency approval | `architect` | opus |
+| Accessibility audit | `ux-designer` | sonnet |
+| CLAUDE.md update | `documentation-specialist` | haiku |
+| PR review (always fresh context) | `code-reviewer` | sonnet |
+
+### CI/CD (automated, no interactive session)
+```bash
+# Pre-commit: deterministic, no LLM
+pnpm lint && pnpm typecheck && pnpm test
+
+# On PR: lightweight Haiku scan for secrets in diff only
+claude -p "Scan for hardcoded secrets: $(git diff main...HEAD)" \
+  --model claude-haiku-4-5 --allowedTools "Bash(git diff *)"
+
+# Dependency audit: no LLM
+npm audit --audit-level=high
+```
 
 ---
 
@@ -152,7 +192,55 @@ These are non-negotiable. If a task would require violating one, stop and ask.
 
 ---
 
-## Agent Memory
+## Context & Token Management
+
+### Session rules (all agents must follow)
+- **Start fresh** for each pipeline phase — never carry a prior phase's session forward
+- **60% context = compact now** — run `/compact` before auto-compaction fires; don't wait
+- **10 file limit** — never open more than 10 files in a single session; if you need more, you're doing too much at once
+- **Read only what the phase spec says** — the pipeline section above defines exactly what each agent reads; no agent should expand that scope
+
+### Preventing context loss across compaction
+
+Install the Ruflo hooks to archive conversation turns before compaction and restore
+importance-ranked context at session start:
+
+```bash
+npx ruflo@latest init
+# Then keep only .claude/settings.json hooks config — skip the rest of Ruflo
+```
+
+The hooks to keep in `.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "PreCompact": [{
+      "matcher": "",
+      "hooks": [{"type": "command", "command": "node .claude/helpers/archive-context.js"}]
+    }],
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{"type": "command", "command": "node .claude/helpers/restore-context.js"}]
+    }]
+  }
+}
+```
+
+### Token budget per feature cycle (target)
+| Phase | Model | Target tokens |
+|-------|-------|--------------|
+| 1 Specify | Haiku | ~3K |
+| 2 Architect | Opus | ~8K |
+| 3 Test Design | Sonnet | ~10K |
+| 4 Security Gate | Opus | ~6K |
+| 5 Implement | Sonnet | ~25K |
+| 6 Review | Sonnet | ~8K |
+| 7 Document | Haiku | ~3K |
+| **Total** | | **~63K** |
+
+Compare to an unstructured single-session approach: 200K–400K tokens, Opus throughout.
+
+---
 
 The following agents maintain persistent memory across sessions for this project.
 Their memory files are committed to version control:

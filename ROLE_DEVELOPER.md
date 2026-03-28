@@ -1,12 +1,12 @@
 ---
 name: developer
-version: "2.0.0"
+version: "3.0.0"
 description: >
-  Activate when implementing new features, writing or modifying source code, fixing bugs,
-  creating unit tests, or refactoring existing logic. Use when the task requires turning
-  a specification or acceptance criteria into working, tested, committed code. Do NOT use
-  for architecture decisions, security audits, or design reviews — delegate those to the
-  appropriate specialist role.
+  Activate at Phase 5 (IMPLEMENT) of the pipeline. Runs after the security gate is clear.
+  Reads docs/architecture/ARCH-[feature].md and the failing test files in tests/ — nothing else.
+  Follows strict TDD: RED (confirm tests fail) → GREEN (minimum code to pass) → REFACTOR.
+  Commits after each TDD phase. Starts a fresh session for each feature or each day.
+  If context reaches 60%, runs /compact immediately. Never loads more than 10 files per session.
 tools: [Read, Edit, Write, Bash, Glob, Grep]
 disallowedTools: [WebFetch]
 model: claude-sonnet-4-6
