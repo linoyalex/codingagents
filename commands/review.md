@@ -1,3 +1,8 @@
+---
+description: Review the current branch against main (run in a fresh session)
+user-invocable: true
+---
+
 Use the code-reviewer subagent.
 
 ⚠️  This command must be run in a FRESH session — not the session that wrote the code.

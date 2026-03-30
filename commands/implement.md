@@ -1,3 +1,8 @@
+---
+description: Implement a feature using strict TDD (Red-Green-Refactor)
+user-invocable: true
+---
+
 Use the developer subagent.
 
 Your task: implement feature $ARGUMENTS using strict TDD.

@@ -1,3 +1,8 @@
+---
+description: Post-merge documentation update for a feature
+user-invocable: true
+---
+
 Use the documentation-specialist subagent.
 
 Your task: post-merge documentation update for feature: $ARGUMENTS

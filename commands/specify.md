@@ -1,3 +1,7 @@
+---
+description: Produce a PRD for a feature request
+user-invocable: true
+---
 Use the product-owner subagent and the ux-designer subagent.
 
 Your combined task: produce docs/prd.md for the following feature request:

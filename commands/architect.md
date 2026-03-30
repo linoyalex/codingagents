@@ -1,3 +1,8 @@
+---
+description: Produce an architecture decision record for a feature
+user-invocable: true
+---
+
 Use the architect subagent.
 
 Your task: produce docs/architecture/ARCH-$ARGUMENTS.md

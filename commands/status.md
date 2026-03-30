@@ -1,3 +1,7 @@
+---
+description: Check pipeline status and show where to resume
+user-invocable: true
+---
 Check the current state of the development pipeline and tell me exactly where to resume.
 
 Steps:

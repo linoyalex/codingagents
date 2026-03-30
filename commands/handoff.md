@@ -1,3 +1,8 @@
+---
+description: Create a session handoff note before ending a long session
+user-invocable: true
+---
+
 Before this session ends or context gets too large, create a compact handoff note.
 
 Steps:

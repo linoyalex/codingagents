@@ -1,3 +1,7 @@
+---
+description: Design-time security audit for a feature
+user-invocable: true
+---
 Use the security-reviewer subagent.
 
 Your task: design-time security audit for feature: $ARGUMENTS
