@@ -86,6 +86,32 @@ Maintain in `docs/tech-radar.md`:
 
 Rings: **Adopt** (use freely) → **Trial** (use in non-critical paths) → **Assess** (research only) → **Hold** (do not use)
 
+## Architectural Fitness Functions
+
+Fitness functions are automated checks that verify architectural decisions are being upheld. Define them alongside each ADR so architecture is enforced by CI, not by memory.
+
+| Category | Example fitness function | How to check |
+|----------|------------------------|--------------|
+| **Modularity** | No circular dependencies between modules | `npx madge --circular src/` |
+| **Performance** | Bundle size stays under threshold | `npm run build && du -sh dist/` |
+| **Coupling** | Module A never imports from Module B | `grep -rn "from.*moduleB" src/moduleA/` |
+| **API contract** | Response times under threshold | Integration test with timeout assertion |
+| **Security** | No new `any` types without justification | `grep -rn "as any\|: any" src/ \| wc -l` |
+
+Add to ARCH doc:
+```markdown
+### Fitness Functions
+| Constraint | Check command | Threshold |
+|-----------|--------------|-----------|
+| [No circular deps] | `npx madge --circular src/` | 0 cycles |
+| [Bundle size] | `du -sh dist/` | < 500KB |
+```
+
+Rules:
+- Every ADR that introduces a structural constraint SHOULD have a fitness function
+- Fitness functions run in CI — they are not optional manual checks
+- When a fitness function fails, the ADR documents why the threshold exists and what to do
+
 ## System Design Checklist
 
 - [ ] Service/module boundaries are explicit

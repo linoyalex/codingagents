@@ -1,6 +1,6 @@
 # codingagents
 
-A token-efficient, phase-gated multi-agent development pipeline for Claude Code and other agentic LLMs. Eight specialised role definitions, seven reusable skills, nine slash commands, and three lifecycle hooks that reduce token usage by ~3–4× compared to unstructured single-session coding.
+A token-efficient, phase-gated multi-agent development pipeline for Claude Code and other agentic LLMs. Eight specialised role definitions, eight reusable skills, nine slash commands, and three lifecycle hooks that reduce token usage by ~3–4× compared to unstructured single-session coding.
 
 ---
 
@@ -38,12 +38,13 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 │
 ├── skills/                          ← Reusable execution procedures (HOW)
 │   ├── prd-writing/SKILL.md         ← Story format, AC template, RICE framework
-│   ├── architecture-decision/SKILL.md ← ADR template, decision framework, tech radar
-│   ├── tdd/SKILL.md                 ← RED/GREEN/REFACTOR cycle, coverage rules
-│   ├── security-audit/SKILL.md      ← OWASP Top 10, severity levels, audit template
-│   ├── code-review/SKILL.md         ← Review methodology, finding classification
-│   ├── release-docs/SKILL.md        ← Changelog format, release notes template
-│   └── verification-gate/SKILL.md   ← Phase-specific verification, no-go criteria
+│   ├── architecture-decision/SKILL.md ← ADR template, fitness functions, tech radar
+│   ├── tdd/SKILL.md                 ← RED/GREEN/REFACTOR, property-based testing
+│   ├── security-audit/SKILL.md      ← OWASP Top 10, serverless threats, audit template
+│   ├── structured-logging/SKILL.md  ← Log format, levels, PII rules, security events
+│   ├── code-review/SKILL.md         ← Conventional comments, finding cap, taxonomy
+│   ├── release-docs/SKILL.md        ← Changelog, release notes, process learnings
+│   └── verification-gate/SKILL.md   ← Phase verification, retrospective protocol
 │
 ├── commands/                        ← Slash commands — one per pipeline phase (YAML frontmatter for VS Code)
 │   ├── specify.md                   → /specify [feature description]
@@ -154,12 +155,13 @@ Skills are the key architectural concept in v4. Each skill is a standalone `SKIL
 | Skill | Loaded by | What it contains |
 |-------|-----------|-----------------|
 | `prd-writing` | specify | Story format, acceptance criteria template, RICE prioritisation, screen states |
-| `architecture-decision` | architect | ADR template, ARCH template, decision framework, tech radar categories |
-| `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, test naming, coverage thresholds |
-| `security-audit` | security-gate | OWASP Top 10 checklist, auth verification, data classification, severity levels |
-| `code-review` | review | Review methodology, diff reading, finding classification (must-fix / should-fix / nit) |
-| `release-docs` | document | Changelog format, release notes template, CLAUDE.md update procedure |
-| `verification-gate` | all phases | Phase-specific verification commands, universal checklist, no-go criteria |
+| `architecture-decision` | architect | ADR template, ARCH template, fitness functions, decision framework, tech radar |
+| `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, property-based testing, coverage thresholds |
+| `security-audit` | security-gate | OWASP Top 10 checklist, serverless threat vectors, auth verification, severity levels |
+| `structured-logging` | implement, security-gate | Structured log format, log levels, PII scrubbing, security event requirements |
+| `code-review` | review | Conventional comments format, finding cap, diff reading, feedback taxonomy |
+| `release-docs` | document | Changelog format, release notes template, process learnings, CLAUDE.md updates |
+| `verification-gate` | all phases | Phase-specific verification, universal checklist, no-go criteria, retrospective protocol |
 
 Each command file contains a `Load skill:` directive that tells the agent which skill to read at the start of the phase. The agent reads the skill, executes its procedures, and produces the phase artifact.
 
@@ -222,6 +224,7 @@ The three hook scripts in `hooks/` address the most painful real-world problem: 
 - **v2** — added `disallowedTools`, verifiable DoD with shell commands, `## Constraints` tables, CLAUDE.md router, `memory: project` on Architect and Docs Specialist  
 - **v3** — phase-gated pipeline, model tier assignments, slash commands, lifecycle hooks, token budget documentation
 - **v4** — extracted skills from roles (separation of concerns), YAML frontmatter on all commands for VS Code, standardised output paths (`docs/reviews/`, `docs/security/`), release notes generation in documentation phase, verification-gate skill for all phases
+- **v4.1** — new structured-logging skill (cross-cutting: architect, security, developer, reviewer), retrospective protocol for self-improving feedback loops, conventional comments format in code-review, property-based testing in TDD, architectural fitness functions, serverless/edge threat vectors in security-audit, process learnings in release-docs
 
 ---
 

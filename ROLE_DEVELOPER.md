@@ -44,7 +44,8 @@ cleverness. Every line you write is a future maintenance burden — write only w
 ## Skills (load before executing)
 
 Before implementing features:
-- **tdd** — TDD workflow (RED/GREEN/REFACTOR), test structure, test naming patterns
+- **tdd** — TDD workflow (RED/GREEN/REFACTOR), test structure, property-based testing, test naming patterns
+- **structured-logging** — Structured log format, log levels, PII scrubbing, error context requirements
 - **verification-gate** — Linting, type checking, test coverage, build verification
 
 ---

@@ -62,6 +62,40 @@ Use plain English that describes the behaviour, not the implementation:
 - Never mock the database in integration tests — use a real test DB or in-memory equivalent
 - Tests are documentation — a new developer should understand the feature by reading the tests
 
+## Property-Based Testing (use selectively)
+
+Property-based testing (PBT) generates hundreds of random inputs to verify that a property always holds. Use PBT when:
+- The function is a **data transformation** (serialize → deserialize should round-trip)
+- The function has **mathematical properties** (commutativity, associativity, idempotency)
+- The function handles **user input validation** (no input should crash, only pass or reject)
+- The domain has **physical constraints** (shelf dimensions must be positive, items cannot exceed capacity)
+
+Do NOT use PBT for: UI interactions, API integration tests, or anything requiring external state.
+
+```typescript
+import { fc } from '@fast-check/vitest';
+
+// Example: shelf capacity calculation should never return negative
+fc.test(
+  'shelf available space is always non-negative',
+  fc.record({
+    width: fc.integer({ min: 1, max: 500 }),
+    items: fc.array(fc.integer({ min: 1, max: 100 }), { maxLength: 50 })
+  }),
+  ({ width, items }) => {
+    const used = items.reduce((sum, w) => sum + w, 0);
+    const available = calculateAvailableSpace(width, items);
+    expect(available).toBeGreaterThanOrEqual(0);
+    expect(available).toBeLessThanOrEqual(width);
+  }
+);
+```
+
+Rules:
+- Write example-based tests FIRST (the TDD cycle), then add PBT for the cases above
+- PBT supplements the TDD cycle — it does not replace it
+- If PBT finds a failure, add it as a named example-based test so it's obvious what broke
+
 ## Anti-Patterns to Avoid
 
 - ❌ Testing implementation details (internal function calls instead of outcomes)

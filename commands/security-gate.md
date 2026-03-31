@@ -5,7 +5,8 @@ user-invocable: true
 Use the security-reviewer subagent.
 
 First, load your skills:
-- Read .claude/skills/security-audit/SKILL.md for OWASP checklist, threat model, and audit template
+- Read .claude/skills/security-audit/SKILL.md for OWASP checklist, serverless threats, threat model, and audit template
+- Read .claude/skills/structured-logging/SKILL.md for security event logging requirements and PII scrubbing rules
 - Read .claude/skills/verification-gate/SKILL.md for Phase 4 verification
 
 Your task: design-time security audit for feature: $ARGUMENTS

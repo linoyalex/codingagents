@@ -5,7 +5,8 @@ user-invocable: true
 Use the developer subagent.
 
 First, load your skills:
-- Read .claude/skills/tdd/SKILL.md for the TDD cycle, test structure, and commit protocol
+- Read .claude/skills/tdd/SKILL.md for the TDD cycle, test structure, property-based testing, and commit protocol
+- Read .claude/skills/structured-logging/SKILL.md for structured log format, log levels, and PII rules
 - Read .claude/skills/verification-gate/SKILL.md for Phase 5 verification
 
 Your task: implement feature $ARGUMENTS using strict TDD.

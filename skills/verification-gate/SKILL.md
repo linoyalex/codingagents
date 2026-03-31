@@ -104,3 +104,49 @@ ls release-notes/ | tail -1
 - ❌ Build fails
 - ❌ Linter errors present
 - ❌ Secrets detected in committed code
+
+## Retrospective Protocol (self-improving feedback loop)
+
+After completing any pipeline phase, append a structured retrospective entry. Before starting a phase, read the last 3 retrospectives for that phase to avoid repeating mistakes.
+
+### Write a Retrospective (end of phase)
+
+```bash
+# Create retrospectives directory if it doesn't exist
+mkdir -p .claude/retrospectives
+```
+
+Write to: `.claude/retrospectives/YYYY-MM-DD-{feature}-phase{N}.md`
+
+```markdown
+## Retrospective: [Feature] — Phase [N] ([Phase Name])
+**Date:** YYYY-MM-DD | **Duration:** [approx tokens used or time]
+
+### What Worked
+- [Technique or approach that produced good results]
+
+### What Failed
+- [What went wrong, root cause, and how it was fixed]
+
+### Pattern Discovered
+- [Any reusable insight — e.g., "edge function cold starts cause timeout in integration tests; add retry wrapper"]
+
+### Skill Gap
+- [Anything the skill file should have told you but didn't — this drives skill improvement]
+```
+
+Rules:
+- Keep each retrospective under 20 lines — brevity forces clarity
+- Only record novel findings, not routine successes
+- "What Failed" must include root cause, not just symptoms
+- "Skill Gap" entries are the input for skill file improvements — review these quarterly
+
+### Read Retrospectives (start of phase)
+
+```bash
+# Read the last 3 retrospectives for the current phase
+ls -t .claude/retrospectives/*-phase{N}.md 2>/dev/null | head -3 | xargs cat 2>/dev/null
+# If no retrospectives exist, proceed normally
+```
+
+Apply any relevant patterns or avoid any documented pitfalls before starting work.

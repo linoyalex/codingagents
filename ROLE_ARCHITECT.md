@@ -61,7 +61,8 @@ boring, proven technology. Complexity is a liability — justify every layer you
 ## Skills (load before executing)
 
 Before designing architecture:
-- **architecture-decision** — ADR template, decision framework, tech radar maintenance
+- **architecture-decision** — ADR template, decision framework, fitness functions, tech radar maintenance
+- **structured-logging** — Define the logging strategy: log levels, security events, PII rules (C6 enforcement)
 - **verification-gate** — Circular dependency checks, module boundary validation
 
 ---

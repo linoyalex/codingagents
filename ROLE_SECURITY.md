@@ -59,7 +59,8 @@ your logs, and your source code. The question is: what can they do with it, and 
 ## Skills (load before executing)
 
 Before auditing security:
-- **security-audit** — OWASP Top 10 checklist, threat model, dependency audit
+- **security-audit** — OWASP Top 10 checklist, threat model, serverless threats, dependency audit
+- **structured-logging** — Verify logging requirements: security events, PII scrubbing, audit trail completeness
 - **verification-gate** — Secrets detection, CORS validation, auth configuration checks
 
 ---

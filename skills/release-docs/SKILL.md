@@ -87,6 +87,28 @@ Common structure:
 *Generated YYYY-MM-DD | N commits since vX.Y | N automated tests passing*
 ```
 
+## Process Learnings Section
+
+When retrospective entries exist for the feature being documented, include a brief "Process Learnings" section in the release notes. This closes the feedback loop: hard-won lessons from the development cycle become part of the project's permanent record.
+
+```markdown
+## Process Learnings
+
+| Phase | Insight |
+|-------|---------|
+| [Phase N] | [Key pattern discovered or pitfall avoided — from retrospective] |
+```
+
+Rules:
+- Only include entries with a "Pattern Discovered" or "Skill Gap" that would benefit future developers
+- Keep to 3 entries maximum — curate for the most impactful learnings
+- Omit this section entirely if no retrospectives exist or none contain novel insights
+
+```bash
+# Gather retrospective entries for this feature
+ls -t .claude/retrospectives/*-{feature}*.md 2>/dev/null | xargs cat 2>/dev/null
+```
+
 ## Data Gathering Commands
 
 ```bash

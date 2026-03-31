@@ -99,6 +99,27 @@ APPROVED / APPROVED WITH CONDITIONS / BLOCKED
 [If blocked, list which BLOCKING findings must be resolved]
 ```
 
+## Serverless / Edge Function Threat Vectors
+
+Serverless architectures introduce specific risks beyond the standard OWASP checklist. Evaluate these when the architecture includes serverless or edge functions:
+
+| Threat | What to check |
+|--------|--------------|
+| **Over-permissioned functions** | Each function should have minimum IAM/role scope. No wildcard (`*`) policies. |
+| **Unvalidated event inputs** | Functions triggered by non-HTTP sources (queues, S3, cron) still receive untrusted input — validate it. |
+| **Environment variable leakage** | Secrets in env vars are readable by any code in the function, including dependencies. Audit transitive deps. |
+| **Cold start data leakage** | `/tmp` and global state persist across warm invocations. Never store secrets or PII in function-level state. |
+| **Execution timeout abuse** | Attackers can trigger long-running operations to exhaust concurrency limits. Set aggressive timeouts. |
+| **Shared tenancy risks** | Edge functions run on shared infrastructure. Never assume memory isolation between invocations. |
+
+Verification:
+```bash
+# Check for wildcard permissions in serverless config
+grep -rn "\*" serverless.yml vercel.json netlify.toml 2>/dev/null | grep -i "policy\|role\|permission"
+# Check for secrets in environment variable definitions
+grep -rn "SECRET\|KEY\|TOKEN\|PASSWORD" .env* vercel.json 2>/dev/null | grep -v ".example"
+```
+
 ## Design-Time vs Code-Time Audits
 
 This skill covers **design-time** audits (Phase 4) — reviewing the architecture BEFORE code is written.

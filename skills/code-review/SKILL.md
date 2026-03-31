@@ -56,6 +56,39 @@ git diff main...HEAD | grep -n "as any\|: any"
 | **LOW** | Stylistic preference or minor improvement | Optional |
 | **NIT** | Trivial observation | No action needed |
 
+## Conventional Comments Format
+
+Use this structured format for all findings. It is machine-parseable and enables tracking patterns across reviews.
+
+```
+<label> (<severity>): <subject>
+
+<discussion>
+```
+
+Labels:
+- `issue` — a problem that must be addressed (pairs with BLOCKING/HIGH)
+- `suggestion` — a recommended improvement (pairs with MEDIUM/LOW)
+- `nitpick` — trivial style preference (pairs with NIT)
+- `question` — something unclear that needs explanation, not necessarily a problem
+- `praise` — something done well worth calling out (reinforces good patterns)
+
+Example:
+```
+issue (BLOCKING): Missing auth check on DELETE endpoint
+
+File: src/api/closets.ts:45
+The DELETE handler accepts any authenticated user but doesn't verify ownership.
+A user could delete another user's closet by guessing the ID.
+Recommendation: Add `verifyOwnership(userId, closetId)` before the delete call.
+```
+
+## Output Discipline
+
+- **Cap findings at 7 maximum** — prioritise by severity. Research shows developers stop reading after the first several comments; more than 7 dilutes the signal.
+- Of those 7: include at most 5 issues/suggestions and at least 1 praise (if warranted). Acknowledging good work makes critical feedback more actionable.
+- If more than 7 issues exist, mention the count and focus on the highest-severity ones: "12 findings total; showing the 7 highest priority."
+
 ## Review Document Template
 
 ```markdown

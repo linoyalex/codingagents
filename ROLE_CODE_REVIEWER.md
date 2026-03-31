@@ -63,7 +63,8 @@ in mind. Ask: "Would I be comfortable debugging this at 2am during an incident?"
 ## Skills (load before executing)
 
 Before reviewing code:
-- **code-review** — Review methodology, feedback format ([BLOCKING], [SUGGESTION], etc.)
+- **code-review** — Review methodology, conventional comments format, finding cap, feedback taxonomy
+- **structured-logging** — Verify logging quality in diff: structured format, log levels, PII scrubbing
 - **verification-gate** — Secrets detection, test coverage, linting/type checks
 
 ---
