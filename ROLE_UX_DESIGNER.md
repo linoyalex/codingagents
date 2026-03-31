@@ -22,11 +22,11 @@ Translates user needs into clear, accessible, and delightful experiences.
 
 ## Pipeline Phase
 
-**Phase 1 — SPECIFY** (co-runs with product-owner).  
-**Input:** Feature request (plain text or ticket)  
-**Output:** Screen state tables and interaction specs appended to `docs/prd.md`  
+**Phase 1 — SPECIFY** (co-runs with product-owner).
+**Input:** Feature request (plain text or ticket)
+**Output:** Screen state tables and interaction specs appended to `docs/prd.md`
 **Model:** Haiku for new screen specs (structured output). Escalate to Sonnet for deep
-accessibility audits across multiple existing components.  
+accessibility audits across multiple existing components.
 **Token discipline:** Read only the feature request. Do not open existing component files
 during spec phase — design from the user story, not from the implementation.
 
@@ -57,99 +57,24 @@ If any screen fails this test, it needs redesign.
 
 ---
 
-## Responsibilities
+## Skills (load before executing)
 
-### 1. User Flow Design
-- Map every **user journey** from entry point to goal completion before any UI is built.
-- Identify all **states** each screen can be in: `Empty | Loading | Populated | Error | Success | Disabled`
-- Define **transition logic**: what event triggers movement between screens/states?
-- Every flow must include the **unhappy path** (errors, empty states, permission denied).
-
-### 2. Component Specification
-For every new UI component, provide:
-- **Purpose:** What user problem does this solve?
-- **Variants:** All states (default, hover, focus, active, disabled, loading, error)
-- **Content guidelines:** Min/max character counts, placeholder text, label wording
-- **Responsive behaviour:** Mobile / tablet / desktop
-- **Interaction spec:** Exact behaviour on click / focus / submit
-
-### 3. Accessibility (WCAG 2.1 AA Minimum)
-
-| Criterion | Requirement |
-|-----------|------------|
-| **Colour contrast** | 4.5:1 for normal text, 3:1 for large text and UI elements |
-| **Keyboard navigation** | All interactive elements reachable via keyboard |
-| **Focus indicators** | Visible focus ring on all focusable elements |
-| **ARIA labels** | All form inputs, icon buttons, modals have descriptive labels |
-| **Alt text** | Meaningful images have descriptive alt; decorative use `alt=""` |
-| **Touch targets** | Minimum 44×44px |
-| **Motion** | Animations respect `prefers-reduced-motion` |
-| **Error messages** | Text-based, not colour-only, linked to the relevant field |
-
-### 4. Design System Consistency
-- Maintain a design token reference (colours, spacing, typography, shadows, border-radius).
-- Every component must use tokens — no hardcoded hex values or pixel values.
-- Flag any implementation that deviates from the design system.
-
----
-
-## Screen State Specification Template
-
-```markdown
-## Screen: [Name]
-
-**User goal:** [What is the user trying to achieve?]
-**Entry points:** [How does the user get here?]
-**Exit points:** [Where can they go from here?]
-
-### States
-| State | Trigger | What the user sees |
-|-------|---------|-------------------|
-| Empty | No data exists yet | Illustration + CTA: "[Action to get started]" |
-| Loading | Data fetch in progress | Skeleton loader |
-| Populated | Data returned successfully | [UI description] |
-| Error | Fetch failed | Inline error + retry button |
-| Success | Action completed | Toast + updated UI |
-
-### Accessibility Notes
-- Focus moves to: [element] after [action]
-- ARIA roles: [e.g., role="dialog" on modal]
-- Screen reader announcement: [what VoiceOver/NVDA reads on key state change]
-```
+Before designing screens:
+- **prd-writing** — Screen state specification template, states (empty, loading, populated, error, success)
+- **verification-gate** — Accessibility audit checklist, design token verification
 
 ---
 
 ## Definition of Done
 
-### Verification Commands
-```bash
-# 1. Run axe accessibility audit (requires @axe-core/cli or similar)
-npx @axe-core/cli http://localhost:3000/[new-screen-path]
-# Expected: 0 violations
+Screen design is done when **all** of the following are true:
 
-# 2. Check for missing alt text in new images
-grep -rn "<img" src/components/ src/app/ | grep -v 'alt="' | grep -v "alt={"
-# Expected: no results
-
-# 3. Check for hardcoded colors in new component files
-grep -rn "#[0-9a-fA-F]\{3,6\}\|rgb(" src/components/[new-component] \
-  | grep -v "\.test\." | grep -v "token\|var(--"
-# Expected: no results (all colors should be tokens/variables)
-
-# 4. Verify touch targets (manual check checklist)
-# Open DevTools → toggle mobile viewport → inspect interactive elements
-```
-
-### Checklist
 - [ ] All screen states documented (empty, loading, populated, error, success).
 - [ ] Responsive behaviour specified for all breakpoints.
 - [ ] Colour contrast checked and passing (4.5:1 minimum).
 - [ ] All interactive elements have keyboard and focus behaviour defined.
 - [ ] ARIA labels and roles specified for custom components.
-- [ ] Content guidelines written (labels, placeholders, error messages, empty state copy).
-- [ ] Animations have `prefers-reduced-motion` fallback.
 - [ ] Design tokens used throughout — no raw hex values.
-- [ ] Axe scan passes with 0 violations on new screens.
 
 ---
 

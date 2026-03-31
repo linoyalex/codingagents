@@ -29,17 +29,13 @@ decisions were made. Write for them.
 
 ## Pipeline Phase
 
-**Phase 7 — DOCUMENT.** Runs once after each PR is merged.  
-**Input:** `docs/prd.md` (to understand what changed) + `CHANGELOG.md` + `CLAUDE.md`  
-**Output:** Updated `CHANGELOG.md`; updated `CLAUDE.md` conventions if anything changed  
-**Model:** Haiku for changelog/template updates. Sonnet for complex rewrites.  
+**Phase 7 — DOCUMENT.** Runs once after each PR is merged.
+**Input:** `docs/prd.md` (to understand what changed) + `CHANGELOG.md` + `CLAUDE.md`
+**Output:** Updated `CHANGELOG.md`; updated `CLAUDE.md` conventions if anything changed
+**Model:** Haiku for changelog/template updates. Sonnet for complex rewrites.
 **Token discipline:** Do not read `src/` — the prd.md describes what changed at the right
 level of abstraction. If a convention change requires understanding implementation details,
 read only the specific file that establishes the new pattern.
-
-**Owns `CLAUDE.md`:** Any time a developer, architect, or reviewer establishes a new
-convention mid-pipeline, a note should be left in the PR description. This agent picks
-that up and makes it permanent in `CLAUDE.md` so all future agent sessions inherit it.
 
 ---
 
@@ -63,119 +59,24 @@ guessing. Stale is worse — it actively misleads them.
 
 ---
 
-## Responsibilities
+## Skills (load before executing)
 
-### 1. `CLAUDE.md` — The Agent Onboarding File (Highest Priority)
-This is the most important document in the project. Every Claude Code session starts here.
-
-`CLAUDE.md` must always contain:
-- **Project overview** and tech stack
-- **Exact commands** to install, run, test, lint, and build
-- **Agent Router** — which agent to invoke for each task type
-- **Code conventions** unique to this project
-- **Absolute Constraints** — what agents must never do
-- **Known gotchas** that have tripped up developers before
-- **Architecture notes** and ADR index
-
-`CLAUDE.md` must be updated whenever:
-- A new environment variable is required
-- The setup process changes
-- A new architectural pattern is established
-- A new "gotcha" is discovered
-
-### 2. `README.md` — The Human Entry Point
-- Explain what the project does in 2–3 sentences (non-technical language first).
-- Quick-start guide (clone → install → run).
-- Link to deeper documentation (`docs/` folder).
-- Project structure map.
-- Contribution guide (branch naming, PR process).
-
-### 3. `CHANGELOG.md` — [Keep a Changelog](https://keepachangelog.com) Format
-- Every release gets an entry with date and version.
-- Sections: `Added | Changed | Deprecated | Removed | Fixed | Security`
-- Write for a user, not a developer — describe what changed, not which files were edited.
-
-### 4. API Documentation
-For every public API endpoint:
-```
-Method + path: POST /api/v1/closets
-Auth required: Yes (Bearer token)
-Request body: { name: string (required), description: string (optional) }
-Response 201: { id: string, name: string, createdAt: string }
-Response 400: { error: string, field: string }
-Response 401: { error: "Unauthorized" }
-Example: ...
-```
-
-### 5. Architecture Guides (`docs/architecture/`)
-- Maintain a Mermaid system diagram (version-controllable, renders on GitHub).
-- Document each major subsystem: purpose, inputs, outputs, dependencies.
-- Link all ADRs from the architecture guide.
-
-### 6. Runbooks (`docs/runbooks/`)
-For every recurring operational task:
-```
-Trigger: When is this runbook used?
-Steps: Numbered, copy-pasteable commands
-Expected outcome: How to verify it worked
-Rollback: What to do if it goes wrong
-```
+Before updating documentation:
+- **release-docs** — CHANGELOG.md format (Keep a Changelog), README structure, API docs template
+- **verification-gate** — Broken link detection, orphaned TODO checking, CLAUDE.md validation
 
 ---
 
 ## Definition of Done
 
-### Verification Commands
-```bash
-# 1. CLAUDE.md setup commands actually work (run in a clean shell)
-# Manually execute: the install and dev commands listed in CLAUDE.md
-# Expected: project runs without additional steps
+Documentation updates are complete when:
 
-# 2. No broken internal links in docs
-find docs/ -name "*.md" | xargs grep -h "\[.*\](\./" | grep -o '](\.\/[^)]*' | \
-  sed 's/](\.\///' | while read f; do
-    [ -f "docs/$f" ] || echo "BROKEN LINK: docs/$f"
-  done
-
-# 3. No orphaned TODOs older than 90 days
-git log --follow -p --all --since="90 days ago" -- "**/*.md" | \
-  grep "^+.*TODO" | grep -v "ticket\|issue\|#" | head -20
-# Flag any TODOs without a linked ticket or issue number
-
-# 4. .env.example is current (every variable in .env.example has a description)
-grep -n "^[A-Z_]*=$" .env.example
-# Expected: no results (every variable should have a comment or non-empty description line above it)
-
-# 5. CHANGELOG.md has an entry for the current version
-head -20 CHANGELOG.md
-# Verify most recent version entry matches package.json version
-```
-
-### Checklist
 - [ ] `CLAUDE.md` updated and setup commands verified working.
-- [ ] `README.md` quick-start is accurate and tested on a clean machine.
+- [ ] `README.md` quick-start is accurate.
 - [ ] `CHANGELOG.md` updated through the latest change.
 - [ ] All API endpoints documented and matching implementation.
-- [ ] Architecture diagram reflects current system.
-- [ ] All ADRs committed and linked from architecture guide.
-- [ ] Runbooks exist for all production operations.
 - [ ] No TODOs without linked tickets.
-- [ ] `.env.example` documents all required variables with descriptions.
-- [ ] Persistent memory updated with documentation gaps to address next sprint.
-
----
-
-## Mermaid Diagram Quick Reference
-
-```mermaid
-flowchart TD
-    User -->|Uploads image| API[API Route]
-    API -->|Stores file| Storage[(Object Storage)]
-    API -->|Enqueues job| Queue[Job Queue]
-    Queue -->|Processes| Worker[AI Worker]
-    Worker -->|Writes result| DB[(Database)]
-    Worker -->|Notifies| User
-```
+- [ ] Persistent memory updated with documentation gaps.
 
 ---
 

@@ -22,10 +22,10 @@ against building the wrong thing, no matter how well it's built.
 
 ## Pipeline Phase
 
-**Phase 1 — SPECIFY.** Runs once at the start of each feature cycle.  
-**Input:** Feature request (plain text or ticket)  
-**Output:** `docs/prd.md` (≤150 lines)  
-**Model:** Haiku — this is structured template-filling, not complex reasoning.  
+**Phase 1 — SPECIFY.** Runs once at the start of each feature cycle.
+**Input:** Feature request (plain text or ticket)
+**Output:** `docs/prd.md` (≤150 lines)
+**Model:** Haiku — this is structured template-filling, not complex reasoning.
 **Token discipline:** Read nothing except the feature request. Do not Glob src/. Do not read existing code.
 
 ---
@@ -52,72 +52,11 @@ No ticket enters development without clear answers to three questions:
 
 ---
 
-## Responsibilities
+## Skills (load before executing)
 
-### 1. User Story Definition
-```
-As a [specific persona],
-I want to [take this action],
-So that [I achieve this outcome].
-```
-
-Rules:
-- One story = one user value. Split stories that try to do two things.
-- Stories must be completable in a single sprint (< 5 days of dev work).
-- Stories must be independent — avoid stories blocked by others in the same sprint.
-
-### 2. Acceptance Criteria (AC) in Given/When/Then Format
-```
-Given [a precondition or initial state],
-When [the user performs an action],
-Then [the system produces this observable outcome].
-```
-
-Each AC must be: **Specific** (unambiguous), **Testable** (automatable), **Measurable** (exact counts, states, or outcomes).
-
-### 3. Backlog Prioritisation (RICE Framework)
-
-| Factor | Definition |
-|--------|-----------|
-| **Reach** | How many users affected per quarter? |
-| **Impact** | How much does it move a key metric? (0.25 / 0.5 / 1 / 2 / 3) |
-| **Confidence** | How certain are we? (%) |
-| **Effort** | Person-weeks |
-
-`Score = (Reach × Impact × Confidence) / Effort`
-
-### 4. Feature Validation
-- Walk through every AC with a functional demo or test — not "it looks like it works."
-- Capture any deviation as a new bug story, not a scope change on the original.
-
----
-
-## Story Template
-
-```markdown
-## Story: [Short title]
-
-**Persona:** [Who is this for?]
-**Job to be done:** [What problem does this solve?]
-**Business goal:** [Why does the product need this?]
-
-### User Story
-As a [persona], I want to [action], so that [outcome].
-
-### Acceptance Criteria
-- [ ] Given..., When..., Then...
-- [ ] Given..., When..., Then... (error state)
-- [ ] Given..., When..., Then... (empty state)
-
-### Out of Scope (explicitly excluded)
-- [List what this story does NOT cover]
-
-### Dependencies
-- [Any other stories or external factors]
-
-### RICE Score
-Reach: | Impact: | Confidence: | Effort: | **Score:**
-```
+Before implementing stories:
+- **prd-writing** — Story template, RICE scoring, AC format (Given/When/Then)
+- **verification-gate** — Acceptance criteria traceability, sign-off requirements
 
 ---
 
@@ -125,26 +64,11 @@ Reach: | Impact: | Confidence: | Effort: | **Score:**
 
 A story is done when **all** of the following are true:
 
-### Verification (run manually or request from QA)
-```bash
-# Verify the feature exists and tests pass in staging environment
-# (these commands are environment-specific — fill in for your project)
-
-# 1. Confirm all ACs have corresponding test IDs (traceability matrix)
-# Review: docs/test-reports/[story-id]-traceability.md
-
-# 2. Confirm no P1 or P2 bugs open against this story
-# Review: [backlog tool] filtered by story-id, status != closed, severity = P1|P2
-```
-
-### Checklist
 - [ ] All ACs pass in staging (not just dev).
 - [ ] QA has signed off independently.
 - [ ] No P1 or P2 bugs open against this story.
 - [ ] UX confirmed implementation matches approved design.
-- [ ] Documentation updated if user-facing behaviour changed.
-- [ ] Analytics event verified if applicable.
-- [ ] Out-of-scope items are logged as future stories (not abandoned).
+- [ ] Out-of-scope items are logged as future stories.
 
 ---
 

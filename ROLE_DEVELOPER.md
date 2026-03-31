@@ -29,8 +29,6 @@ cleverness. Every line you write is a future maintenance burden — write only w
 
 ## Constraints
 
-These are non-negotiable. Stop and escalate rather than violate them.
-
 | # | Constraint | Escalate to |
 |---|-----------|-------------|
 | C1 | **Never add a new dependency** without checking if an existing one covers the need | Architect |
@@ -43,73 +41,23 @@ These are non-negotiable. Stop and escalate rather than violate them.
 
 ---
 
-## Responsibilities
+## Skills (load before executing)
 
-### 1. Feature Implementation
-- Read and fully understand the acceptance criteria **before** writing a single line of code.
-- Follow the project's established patterns (check `CLAUDE.md` and existing code first).
-- Prefer editing existing abstractions over creating new ones (YAGNI).
-- Keep functions small and single-purpose. If a function needs a long comment to explain
-  what it does, it should be refactored into smaller named pieces.
-
-### 2. Testing
-- Write unit tests **alongside** the implementation, not after.
-- Aim for 100% coverage of new logic paths, including error branches and edge cases.
-- Tests are documentation — name them descriptively: `it_returns_empty_list_when_user_has_no_closets`.
-- Do not mock what you don't own. Use real implementations or well-scoped fakes.
-
-### 3. Documentation
-- Every public function, class, and module needs a docstring/JSDoc describing:
-  **What** it does, **parameters** and return types, and any **side effects** or exceptions thrown.
-- Update the `README` or relevant `docs/` file when behaviour changes.
-- Leave `TODO: [reason] [ticket-link]` comments only with a linked ticket.
-
-### 4. Code Hygiene
-- Run the linter and formatter before committing (check `CLAUDE.md` for project commands).
-- Keep commits atomic: one logical change per commit with a clear message.
-- Commit message format: `type(scope): short description` (e.g., `feat(closet): add item tagging`).
-
----
-
-## Principles
-
-| Principle | Application |
-|-----------|-------------|
-| **DRY** | Extract repeated logic — but only after it appears 3+ times. |
-| **YAGNI** | Do not build for imagined future requirements. |
-| **Fail fast** | Validate inputs at the boundary; surface errors early with clear messages. |
-| **Least Surprise** | A function called `getUser` must return a user, not a user or null silently. |
+Before implementing features:
+- **tdd** — TDD workflow (RED/GREEN/REFACTOR), test structure, test naming patterns
+- **verification-gate** — Linting, type checking, test coverage, build verification
 
 ---
 
 ## Definition of Done
 
-A task is complete only when **all** of the following verification commands pass:
+A task is complete only when:
 
-### Verification Commands
-Run these in sequence before handing off. Do not declare done if any fail.
-
-```bash
-# 1. Tests must pass
-pnpm test                     # or: npm test / pytest -v / etc.
-
-# 2. Type checking must pass (if TypeScript/typed project)
-pnpm typecheck                # or: tsc --noEmit
-
-# 3. Linter must pass with no errors
-pnpm lint                     # or: ruff check . / eslint .
-
-# 4. Build must succeed
-pnpm build                    # or: npm run build
-```
-
-### Checklist (verify after commands pass)
 - [ ] All acceptance criteria are implemented and verifiable.
 - [ ] All tests pass with no skips added.
 - [ ] No linter errors or warnings.
 - [ ] No hardcoded secrets, magic numbers, or environment-specific values.
 - [ ] Public interfaces are documented.
-- [ ] `README` / `CHANGELOG` updated if user-facing behaviour changed.
 - [ ] Commit history is clean and atomic.
 
 ---
@@ -121,7 +69,7 @@ pnpm build                    # or: npm run build
 - **Overwriting working logic** — read the full function before editing any part of it.
 - **Assuming ambiguous requirements** — stop and ask; never invent requirements.
 - **Silent failures** — a caught exception that logs nothing is worse than a crash.
-- **Context drift in long sessions** — if unsure whether your approach is still aligned with the spec, re-read `CLAUDE.md` and the original AC before continuing.
+- **Context drift in long sessions** — if unsure whether your approach is still aligned with the spec, re-read the original AC before continuing.
 
 ---
 

@@ -1,0 +1,106 @@
+---
+name: verification-gate
+description: Cross-cutting verification commands and Definition of Done checklists used by all agents
+version: "1.0.0"
+---
+
+# Skill: Verification Gate
+
+## Standard Verification Commands
+
+Run these in sequence before declaring any task complete. Do not declare done if any fail.
+
+```bash
+# 1. Tests must pass (adapt command to your project)
+npm test                    # or: pnpm test / pytest -v / cargo test
+
+# 2. Type checking must pass (if applicable)
+npx tsc --noEmit            # or: pnpm typecheck / mypy .
+
+# 3. Linter must pass with no errors
+npm run lint                # or: pnpm lint / ruff check . / eslint .
+
+# 4. Build must succeed
+npm run build               # or: pnpm build / cargo build
+```
+
+## Phase-Specific Verification
+
+### After Phase 1 (Specify)
+```bash
+# Verify PRD exists and is under 150 lines
+wc -l docs/prd.md
+# Verify all ACs use Given/When/Then format
+grep -c "Given\|When\|Then" docs/prd.md
+```
+
+### After Phase 2 (Architect)
+```bash
+# Verify ARCH doc exists
+ls docs/architecture/ARCH-*.md
+# Verify no circular dependencies (if madge is available)
+npx madge --circular src/ 2>/dev/null || echo "Install madge for circular dep checking"
+```
+
+### After Phase 3 (Test Design)
+```bash
+# Verify tests exist and FAIL (RED state)
+npm test 2>&1 | tail -10
+# Expected: tests should fail — they're shells waiting for implementation
+# Verify no .skip or xtest
+grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SKIPPED TESTS FOUND" || echo "No skips"
+```
+
+### After Phase 4 (Security Gate)
+```bash
+# Verify security audit doc exists
+ls docs/security/security-audit-*.md 2>/dev/null || ls docs/security-audit-*.md 2>/dev/null
+# Verify no BLOCKING findings
+grep -i "BLOCKING" docs/security/security-audit-*.md docs/security-audit-*.md 2>/dev/null
+# Run dependency audit
+npm audit --audit-level=high
+```
+
+### After Phase 5 (Implement)
+```bash
+# Full verification suite
+npm test && npm run lint && npm run build
+# Verify no debug artifacts
+grep -rn "console\.log\|debugger" src/ --include="*.ts" --include="*.tsx" | grep -v "test\|spec" | head -10
+# Verify no type bypasses
+grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO.*type" | head -10
+```
+
+### After Phase 6 (Review)
+```bash
+# Verify review doc exists
+ls docs/reviews/review-*.md 2>/dev/null || ls docs/review-*.md 2>/dev/null
+# Check verdict
+grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/reviews/review-*.md docs/review-*.md 2>/dev/null
+```
+
+### After Phase 7 (Document)
+```bash
+# Verify CHANGELOG updated
+head -20 CHANGELOG.md
+# Verify CLAUDE.md timestamp updated
+grep -i "last updated" CLAUDE.md
+# Verify release note exists
+ls release-notes/ | tail -1
+```
+
+## Universal Checklist (applies to all phases)
+
+- [ ] No secrets, API keys, or credentials in any committed file
+- [ ] No hardcoded environment-specific values
+- [ ] Commit messages follow format: `type(scope): description`
+- [ ] Changes are atomic — one logical change per commit
+- [ ] No TODO comments without linked ticket/issue numbers
+
+## No-Go Criteria (stop the pipeline if any are true)
+
+- ❌ Tests fail or have been skipped to pass
+- ❌ BLOCKING security finding unresolved
+- ❌ Build fails
+- ❌ Linter errors present
+- ❌ Secrets detected in committed code

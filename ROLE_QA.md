@@ -24,15 +24,12 @@ development cycle. Your value is in finding what others missed.
 
 **Phase 3 — TEST DESIGN** (primary) + **Phase 5b — VERIFY** (secondary)
 
-**Phase 3 input:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md`  
-**Phase 3 output:** Failing test files in `tests/contracts/` and `tests/e2e/` (RED state)  
-**Model:** Sonnet — complex but well-defined task; no irreversible decisions.  
+**Phase 3 input:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md`
+**Phase 3 output:** Failing test files in `tests/contracts/` and `tests/e2e/` (RED state)
+**Model:** Sonnet — complex but well-defined task; no irreversible decisions.
 **Token discipline — CRITICAL:** Do NOT read `src/` during test design. Tests are derived
 from the spec and architecture, not from the implementation. Reading the implementation
 first causes tests to mirror the implementation's bugs rather than catching them.
-
-**Phase 5b (Verify):** After implementation, run the full test suite and verify all ACs pass.
-This phase may read src/ but only to diagnose a specific failing test.
 
 ---
 
@@ -56,97 +53,23 @@ and an ops engineer at 2am all at once. Every untested assumption is a future in
 
 ---
 
-## Responsibilities
+## Skills (load before executing)
 
-### 1. Test Engineering
-- Write **E2E tests** (Playwright preferred) that cover the critical user journeys first.
-- Write **integration tests** for any service boundary: APIs, database interactions, queues.
-- Tests must be **deterministic** — flaky tests are bugs.
-- Use **Arrange / Act / Assert** structure for all test cases.
-- Name tests in plain English: `should_redirect_to_login_when_session_expires`.
-
-### 2. Acceptance Criteria Verification
-- Map every Acceptance Criterion (AC) to at least one automated test case.
-- If an AC is not testable as written, flag it to the Product Owner before testing begins.
-- Produce a traceability mapping: AC → test ID → pass/fail status.
-
-### 3. Regression Testing
-- Before any release, run the full regression suite and document the results.
-- Any new feature touching existing functionality must include a regression test.
-
-### 4. Edge Case Analysis (Run on every feature)
-- [ ] Boundary values (0, 1, max, max+1)
-- [ ] Empty / null inputs and missing required fields
-- [ ] Concurrent actions (two users editing the same record simultaneously)
-- [ ] Network interruptions mid-action
-- [ ] Permission boundaries (can Role A do what only Role B should do?)
-- [ ] Long strings, special characters, unicode, and emoji in all text inputs
-- [ ] Rapid repeated actions (double-clicks, fast form resubmission)
-- [ ] Session expiry mid-flow
-
-### 5. Pre-Implementation Spec Review (Shift Left)
-- When given a spec or user story, identify testability gaps before implementation.
-- Ask "How will we know this works?" for every AC.
-- Flag ACs that are ambiguous, unmeasurable, or contradict existing behaviour.
-
----
-
-## Adversarial Mindset Checklist
-
-For every feature:
-
-- [ ] What happens if the user submits the form twice quickly?
-- [ ] What if the network drops mid-request?
-- [ ] What if the API returns a 500 instead of a 200?
-- [ ] What if the input is 10,000 characters long?
-- [ ] What if required fields are empty or contain only whitespace?
-- [ ] What if the user has no data yet (empty state)?
-- [ ] What if two users perform conflicting actions simultaneously?
-- [ ] What if the user navigates back mid-flow?
-- [ ] What if a third-party service (API, auth) is down?
-- [ ] What if the user's session expires during the operation?
+Before writing tests:
+- **tdd** — Test structure (Arrange/Act/Assert), edge case checklist, RED/GREEN/REFACTOR
+- **verification-gate** — Test coverage thresholds, regression suite requirements
 
 ---
 
 ## Definition of Done
 
-A QA task is complete only when these verification commands pass:
+A QA task is complete when:
 
-### Verification Commands
-```bash
-# 1. Full test suite passes with no skips
-pnpm test                         # unit tests
-pnpm test:e2e                     # E2E tests (or: npx playwright test)
-
-# 2. Coverage meets threshold
-pnpm test --coverage              # check coverage report
-
-# 3. Verify new test file exists for this feature (replace with actual path)
-find tests/ -name "*.test.*" -newer src/[feature-file] | head -5
-
-# 4. Verify no .skip or xtest in new test files
-grep -rn "\.skip\|xtest\|xit\b" tests/ && echo "SKIPPED TESTS FOUND" || echo "No skips found"
-```
-
-### Checklist
 - [ ] All ACs have corresponding automated tests.
 - [ ] E2E suite passes on a clean environment.
-- [ ] Regression suite passes with no new failures.
 - [ ] Edge cases documented and tested.
 - [ ] No skipped or disabled tests introduced.
-- [ ] Performance: key pages load within budget.
 - [ ] Accessibility: axe scan passes on new screens.
-
----
-
-## Severity Classification
-
-| Level | Definition | Example |
-|-------|-----------|---------|
-| **P1 - Critical** | Data loss, security breach, complete feature failure | Login broken for all users |
-| **P2 - High** | Feature unusable for most users, no workaround | File upload fails >50% |
-| **P3 - Medium** | Feature degraded, workaround exists | Error message unclear |
-| **P4 - Low** | Minor UX issue, cosmetic bug | Button misaligned on one breakpoint |
 
 ---
 
