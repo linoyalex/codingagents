@@ -1,6 +1,6 @@
 # codingagents
 
-A token-efficient, phase-gated multi-agent development pipeline for Claude Code and other agentic LLMs. Eight specialised role definitions, nine slash commands, and three lifecycle hooks that reduce token usage by ~3–4× compared to unstructured single-session coding.
+A token-efficient, phase-gated multi-agent development pipeline for Claude Code and other agentic LLMs. Eight specialised role definitions, seven reusable skills, nine slash commands, and three lifecycle hooks that reduce token usage by ~3–4× compared to unstructured single-session coding.
 
 ---
 
@@ -8,13 +8,13 @@ A token-efficient, phase-gated multi-agent development pipeline for Claude Code 
 
 A complete system for structuring AI-assisted software development around a seven-phase pipeline. Each phase runs in its own isolated context, reads only the output of the previous phase, and uses the cheapest model capable of the task. The result: roughly **63K tokens per feature cycle** instead of the typical 200K–400K from ad-hoc sessions.
 ```
-Phase 1  SPECIFY        product-owner + ux-designer   → docs/prd.md             (Haiku)
-Phase 2  ARCHITECT      architect                      → docs/architecture/       (Opus)
-Phase 3  TEST DESIGN    qa                             → tests/ failing shells    (Sonnet)
-Phase 4  SECURITY GATE  security-reviewer              → docs/security-audit      (Opus)
-Phase 5  IMPLEMENT      developer                      → src/ via TDD             (Sonnet)
-Phase 6  REVIEW         code-reviewer (fresh context)  → docs/review              (Sonnet)
-Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + CLAUDE.md   (Haiku)
+Phase 1  SPECIFY        product-owner + ux-designer   → docs/prd.md              (Haiku)
+Phase 2  ARCHITECT      architect                      → docs/architecture/        (Opus)
+Phase 3  TEST DESIGN    qa                             → tests/ failing shells     (Sonnet)
+Phase 4  SECURITY GATE  security-reviewer              → docs/security/            (Opus)
+Phase 5  IMPLEMENT      developer                      → src/ via TDD              (Sonnet)
+Phase 6  REVIEW         code-reviewer (fresh context)  → docs/reviews/             (Sonnet)
+Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-notes (Haiku)
 ```
 
 **Core principle:** Agents pass files, not conversation history. Each phase produces one compact artifact. The next phase reads only that artifact — not the full codebase, not the prior conversation.
@@ -36,7 +36,16 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + CLAUDE.md
 ├── ROLE_SECURITY.md                 ← Phase 4 — Opus, design-time audit
 ├── ROLE_UX_DESIGNER.md              ← Phase 1 — Haiku, screen states + flows
 │
-├── commands/                        ← Slash commands — one per pipeline phase
+├── skills/                          ← Reusable execution procedures (HOW)
+│   ├── prd-writing/SKILL.md         ← Story format, AC template, RICE framework
+│   ├── architecture-decision/SKILL.md ← ADR template, decision framework, tech radar
+│   ├── tdd/SKILL.md                 ← RED/GREEN/REFACTOR cycle, coverage rules
+│   ├── security-audit/SKILL.md      ← OWASP Top 10, severity levels, audit template
+│   ├── code-review/SKILL.md         ← Review methodology, finding classification
+│   ├── release-docs/SKILL.md        ← Changelog format, release notes template
+│   └── verification-gate/SKILL.md   ← Phase-specific verification, no-go criteria
+│
+├── commands/                        ← Slash commands — one per pipeline phase (YAML frontmatter for VS Code)
 │   ├── specify.md                   → /specify [feature description]
 │   ├── architect.md                 → /architect [feature-name]
 │   ├── test-design.md               → /test-design [feature-name]
@@ -62,20 +71,26 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + CLAUDE.md
 mkdir -p .claude/agents
 cp ROLE_*.md .claude/agents/
 
-# 2. Copy commands to .claude/commands/
+# 2. Copy skills to .claude/skills/
+cp -r skills/ .claude/skills/
+
+# 3. Copy commands to .claude/commands/
 mkdir -p .claude/commands
 cp commands/*.md .claude/commands/
 
-# 3. Copy hooks to .claude/helpers/ and config to .claude/
+# 4. Copy hooks to .claude/helpers/ and config to .claude/
 mkdir -p .claude/helpers
 cp hooks/archive-context.js hooks/restore-context.js hooks/checkpoint.js .claude/helpers/
 cp hooks/settings.json .claude/settings.json
 
-# 4. Copy CLAUDE.md to your project root and fill in your stack details
+# 5. Copy CLAUDE.md to your project root and fill in your stack details
 cp CLAUDE.md ./CLAUDE.md
 
-# 5. Commit
-git add .claude/ CLAUDE.md && git commit -m "chore: add multi-agent pipeline"
+# 6. Create output directories for pipeline artifacts
+mkdir -p docs/architecture docs/security docs/reviews
+
+# 7. Commit
+git add .claude/ CLAUDE.md docs/ && git commit -m "chore: add multi-agent pipeline"
 ```
 
 ---
@@ -128,6 +143,43 @@ claude                          # start Claude Code
 
 ---
 
+## Skills: separation of concerns
+
+Skills are the key architectural concept in v4. Each skill is a standalone `SKILL.md` file containing reusable execution procedures — the **HOW** of a task. Roles define the **WHO** (identity, constraints, model tier), and commands define the **WHEN** (which phase to trigger). This separation gives you three benefits:
+
+1. **Token efficiency** — roles are slim (~100 lines). Skills are loaded on demand only when a command invokes them, so a Phase 1 session never pays for Phase 5 procedures.
+2. **Independent improvement** — you can refine a skill's templates or checklists without touching any role definition. Skills evolve at their own pace.
+3. **Reusability** — the same `tdd` skill works whether invoked by the developer role, a CI script, or a different project entirely.
+
+| Skill | Loaded by | What it contains |
+|-------|-----------|-----------------|
+| `prd-writing` | specify | Story format, acceptance criteria template, RICE prioritisation, screen states |
+| `architecture-decision` | architect | ADR template, ARCH template, decision framework, tech radar categories |
+| `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, test naming, coverage thresholds |
+| `security-audit` | security-gate | OWASP Top 10 checklist, auth verification, data classification, severity levels |
+| `code-review` | review | Review methodology, diff reading, finding classification (must-fix / should-fix / nit) |
+| `release-docs` | document | Changelog format, release notes template, CLAUDE.md update procedure |
+| `verification-gate` | all phases | Phase-specific verification commands, universal checklist, no-go criteria |
+
+Each command file contains a `Load skill:` directive that tells the agent which skill to read at the start of the phase. The agent reads the skill, executes its procedures, and produces the phase artifact.
+
+---
+
+## Slash command frontmatter
+
+All command files include YAML frontmatter for VS Code Claude extension compatibility:
+
+```yaml
+---
+description: Write a PRD from a feature request (Phase 1)
+user-invocable: true
+---
+```
+
+The `description` field appears in VS Code's command palette, and `user-invocable: true` registers the command as a slash command accessible from the editor.
+
+---
+
 ## Token antipatterns this system prevents
 
 | Antipattern | Typical cost | This system's fix |
@@ -137,6 +189,7 @@ claude                          # start Claude Code
 | Developer reads entire codebase before coding | +30K tokens | Developer reads ARCH doc + test files only |
 | Code reviewer opens every file in changed modules | +40K tokens | Reviewer reads `git diff` only |
 | Opus for changelogs and template fills | 15× markup | Haiku for all mechanical/structured tasks |
+| Every role carries full procedure docs | +20K tokens/session | Skills loaded on demand; roles are ~100 lines |
 | Silent context loss on auto-compaction | Loses history | PreCompact hook archives before compaction |
 
 ---
@@ -168,11 +221,16 @@ The three hook scripts in `hooks/` address the most painful real-world problem: 
 - **v1** — initial Gemini-drafted role definitions  
 - **v2** — added `disallowedTools`, verifiable DoD with shell commands, `## Constraints` tables, CLAUDE.md router, `memory: project` on Architect and Docs Specialist  
 - **v3** — phase-gated pipeline, model tier assignments, slash commands, lifecycle hooks, token budget documentation
+- **v4** — extracted skills from roles (separation of concerns), YAML frontmatter on all commands for VS Code, standardised output paths (`docs/reviews/`, `docs/security/`), release notes generation in documentation phase, verification-gate skill for all phases
 
 ---
 
 ## Contributing
 
-Fill in the **Extension Points** section at the bottom of each role file with your project's specific stack, conventions, and forbidden patterns. The more specific those sections, the less correction you'll need on agent outputs.
+There are three levels of customisation, from lowest effort to most impactful:
 
-The `CLAUDE.md` at your project root is the highest-leverage file in the system — every agent session starts by reading it. Keep it current using the `/document` command after each feature merge.
+**1. Extension Points in roles** — fill in the `## Extension Points` section at the bottom of each role file with your project's specific stack, conventions, and forbidden patterns. The more specific those sections, the less correction you'll need on agent outputs.
+
+**2. Skill refinement** — each `SKILL.md` contains templates, checklists, and procedures. Editing a skill immediately improves every agent that references it. For example, adding your project's lint rules to `skills/tdd/SKILL.md` means every `/implement` session automatically follows them.
+
+**3. CLAUDE.md** — the highest-leverage file in the system. Every agent session starts by reading it. Keep it current using the `/document` command after each feature merge.
