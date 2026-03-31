@@ -22,12 +22,16 @@ Rules:
 
   Step 2 GREEN:
     Write the minimum code to make tests pass (no over-engineering)
-    Run tests + lint + typecheck (must be clean)
-    Commit: "feat: $ARGUMENTS GREEN — all tests passing"
+    Run tests → must pass
+    Run lint + typecheck → fix ALL errors before proceeding:
+      npm run lint -- --fix    # auto-fix what's safe
+      npx tsc --noEmit         # type errors require manual fix
+      If lint errors remain after --fix, fix them manually now — do not defer to REFACTOR
+    Commit: "feat: $ARGUMENTS GREEN — all tests passing, lint clean"
 
   Step 3 REFACTOR:
     Clean up without changing behaviour
-    Run tests (confirm still passing)
+    Run tests + lint + typecheck (confirm all still passing and clean)
     Commit: "refactor: $ARGUMENTS cleanup"
 
 Context discipline:

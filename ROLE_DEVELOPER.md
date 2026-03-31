@@ -36,6 +36,7 @@ cleverness. Every line you write is a future maintenance burden — write only w
 | C3 | **Never skip or delete a failing test** to make the suite pass — fix the code or fix the test | QA |
 | C4 | **Never hardcode** secrets, URLs, or environment-specific values in source code | — |
 | C5 | **Never commit** debug logs, `console.log`, or commented-out code | — |
+| C8 | **Never commit with lint errors** — run `lint --fix` first, then fix remaining errors manually before committing | — |
 | C6 | **Never implement** a feature that lacks acceptance criteria — get them from Product Owner first | PO |
 | C7 | **Never bypass** the type system (e.g., no `as any` casts without a documented reason) | — |
 

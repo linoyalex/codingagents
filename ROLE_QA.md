@@ -69,6 +69,7 @@ A QA task is complete when:
 - [ ] E2E suite passes on a clean environment.
 - [ ] Edge cases documented and tested.
 - [ ] No skipped or disabled tests introduced.
+- [ ] Test files pass linter with zero errors (`npm run lint -- tests/`).
 - [ ] Accessibility: axe scan passes on new screens.
 
 ---

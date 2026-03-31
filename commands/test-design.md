@@ -18,6 +18,8 @@ Rules:
 - Tests must FAIL when run right now (RED state — no implementation exists yet)
 - Cover: one test per AC, one error/empty state per screen, one permission boundary check
 - Follow test naming conventions from the tdd skill
+- Run linter on test files before committing: `npm run lint -- tests/`
+  Fix any lint errors — test files must be lint-clean even in RED state
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
 
