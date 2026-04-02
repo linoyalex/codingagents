@@ -192,6 +192,53 @@ These are non-negotiable. If a task would require violating one, stop and ask.
 
 ---
 
+## Phase Handoff Protocol
+
+Every agent must write `.claude/handoff.json` at the end of its phase. This is the canonical
+contract between pipeline phases — the next agent reads it at session start.
+
+### Required fields
+- `feature` — feature name or ID
+- `phase` — pipeline phase number (1-7)
+- `goal` — what the next phase should accomplish (one sentence)
+- `scope` — what is in scope for the next phase
+- `relevant_files` — file paths the next agent should read first
+- `acceptance_criteria` — AC IDs the next phase must satisfy
+- `verification_commands` — commands to verify the next phase's output
+
+### Optional fields
+- `constraints` — hard constraints the next phase must respect
+- `known_risks` — open questions or risks for the next phase
+- `produced_by` — agent role that produced this handoff
+- `timestamp` — ISO 8601 timestamp
+
+The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js` Stop hook
+validates handoff presence; `restore-context.js` loads it as primary context at session start.
+
+---
+
+## Memory & Instruction Governance
+
+### What belongs where
+
+| Content type | Location | Loaded | Max size |
+|---|---|---|---|
+| Project conventions, agent routing, absolute constraints | `CLAUDE.md` | Always (every session) | ~250 lines |
+| Reusable procedures (TDD, code review, security audit) | `skills/*.md` | On demand (by commands) | ~100 lines each |
+| Phase-specific context for the next agent | `.claude/handoff.json` | At session start (by hook) | ~50 lines |
+| Per-feature briefs and acceptance criteria | `docs/prd.md`, `docs/architecture/` | By phase spec | No hard limit |
+| Agent memory (patterns, decisions, tech radar) | `.claude/agent-memory/` | By agent on demand | ~100 lines each |
+| Cross-agent memory (settled decisions, codebase map, process) | `docs/memory/` | At session start (via bootstrap) | ~50 lines each |
+
+### Rules
+- Do not duplicate information across locations. If it's in a skill, don't repeat it in CLAUDE.md.
+- CLAUDE.md must stay under ~250 lines. If it grows beyond this, extract content to skills or handoff packets.
+- Skills are loaded on demand by commands, not always-loaded. Do not paste skill content into CLAUDE.md.
+- Handoff packets are ephemeral — overwritten each phase. Do not store permanent knowledge in them.
+- Review memory files quarterly. Remove entries that are no longer relevant or that duplicate what's in code.
+
+---
+
 ## Context & Token Management
 
 ### Session rules (all agents must follow)

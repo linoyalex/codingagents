@@ -99,4 +99,20 @@ A code review is complete when:
 # - Automated checks already in CI (don't re-review): linting, type-check, unit tests
 # - Areas requiring extra scrutiny: e.g. src/auth/, src/payments/
 # - Known tech debt (handle with care): e.g. legacy auth module
+
+## Phase Handoff
+
+At the end of your phase, write `.claude/handoff.json` with:
+- `feature`: the feature name from the PRD or brief
+- `phase`: your pipeline phase number (6)
+- `goal`: what the next agent should accomplish
+- `scope`: what is in scope for the next phase
+- `relevant_files`: the files you produced that the next agent should read
+- `acceptance_criteria`: the ACs that carry forward
+- `verification_commands`: commands to verify the next phase's output
+- `known_risks`: any open questions or risks
+- `produced_by`: "code-reviewer"
+- `timestamp`: current ISO 8601 timestamp
+
+This is mandatory. The Stop hook validates its presence.
 ```

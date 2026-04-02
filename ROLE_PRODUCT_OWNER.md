@@ -97,4 +97,20 @@ A story is done when **all** of the following are true:
 # - Analytics platform: e.g. Mixpanel, PostHog, Amplitude
 # - Staging URL for validation: e.g. https://staging.myapp.com
 # - DoD additions: e.g. legal review required for any new data collection
+
+## Phase Handoff
+
+At the end of your phase, write `.claude/handoff.json` with:
+- `feature`: the feature name from the PRD or brief
+- `phase`: your pipeline phase number (1)
+- `goal`: what the next agent should accomplish
+- `scope`: what is in scope for the next phase
+- `relevant_files`: the files you produced that the next agent should read
+- `acceptance_criteria`: the ACs that carry forward
+- `verification_commands`: commands to verify the next phase's output
+- `known_risks`: any open questions or risks
+- `produced_by`: "product-owner"
+- `timestamp`: current ISO 8601 timestamp
+
+This is mandatory. The Stop hook validates its presence.
 ```

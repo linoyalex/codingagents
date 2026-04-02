@@ -1,0 +1,8 @@
+# codingagents runtime artifacts
+.claude/context-archive/
+.claude/pipeline-checkpoint.json
+.claude/handoff-note.md
+.claude/handoff.json
+.claude/token-usage.jsonl
+.claude/.session-state.json
+codex/reviews/

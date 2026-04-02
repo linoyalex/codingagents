@@ -102,4 +102,20 @@ An architectural task is complete when:
 # - ADR location: docs/decisions/
 # - Forbidden patterns: e.g. no direct DB access from UI components
 # - Required patterns: e.g. all external calls go through a service layer
+
+## Phase Handoff
+
+At the end of your phase, write `.claude/handoff.json` with:
+- `feature`: the feature name from the PRD or brief
+- `phase`: your pipeline phase number (2)
+- `goal`: what the next agent should accomplish
+- `scope`: what is in scope for the next phase
+- `relevant_files`: the files you produced that the next agent should read
+- `acceptance_criteria`: the ACs that carry forward
+- `verification_commands`: commands to verify the next phase's output
+- `known_risks`: any open questions or risks
+- `produced_by`: "architect"
+- `timestamp`: current ISO 8601 timestamp
+
+This is mandatory. The Stop hook validates its presence.
 ```

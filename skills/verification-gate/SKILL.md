@@ -95,8 +95,50 @@ grep -i "last updated" CLAUDE.md
 ls release-notes/ | tail -1
 ```
 
+## Handoff Validation (applies to all phases)
+
+After completing any phase, verify the handoff artifact:
+
+```bash
+# Verify handoff.json exists
+test -f .claude/handoff.json && echo "✓ handoff.json exists" || echo "⚠ handoff.json missing"
+
+# Full schema validation (matches the Stop hook's enforcement)
+node -e "
+  const h = require('./.claude/handoff.json');
+  const errors = [];
+
+  // Required fields
+  const req = ['feature','phase','goal','scope','relevant_files','acceptance_criteria','verification_commands'];
+  const missing = req.filter(f => !(f in h));
+  if (missing.length) errors.push('Missing fields: ' + missing.join(', '));
+
+  // Type checks
+  if (typeof h.feature !== 'string' || !h.feature.length) errors.push('feature must be a non-empty string');
+  if (typeof h.phase !== 'number' || !Number.isInteger(h.phase) || h.phase < 1 || h.phase > 7) errors.push('phase must be integer 1-7');
+  if (typeof h.goal !== 'string' || !h.goal.length) errors.push('goal must be a non-empty string');
+  if (typeof h.scope !== 'string' || !h.scope.length) errors.push('scope must be a non-empty string');
+  if (!Array.isArray(h.relevant_files)) errors.push('relevant_files must be an array');
+  if (!Array.isArray(h.acceptance_criteria)) errors.push('acceptance_criteria must be an array');
+  if (!Array.isArray(h.verification_commands)) errors.push('verification_commands must be an array');
+  if (h.constraints !== undefined && !Array.isArray(h.constraints)) errors.push('constraints must be an array');
+  if (h.known_risks !== undefined && !Array.isArray(h.known_risks)) errors.push('known_risks must be an array');
+
+  // No unexpected properties
+  const allowed = ['feature','phase','goal','scope','constraints','relevant_files','acceptance_criteria','verification_commands','known_risks','produced_by','timestamp'];
+  const unexpected = Object.keys(h).filter(k => !allowed.includes(k));
+  if (unexpected.length) errors.push('Unexpected properties: ' + unexpected.join(', '));
+
+  if (errors.length) { console.log('⚠ Validation failed:'); errors.forEach(e => console.log('  -', e)); process.exit(1); }
+  else { console.log('✓ Schema validation passed | Feature:', h.feature, '| Phase:', h.phase); }
+"
+```
+
+This is a **blocking** gate — do not proceed to the next phase without a valid `.claude/handoff.json`.
+
 ## Universal Checklist (applies to all phases)
 
+- [ ] `.claude/handoff.json` exists and passes schema validation
 - [ ] No secrets, API keys, or credentials in any committed file
 - [ ] No hardcoded environment-specific values
 - [ ] Commit messages follow format: `type(scope): description`
@@ -105,6 +147,7 @@ ls release-notes/ | tail -1
 
 ## No-Go Criteria (stop the pipeline if any are true)
 
+- ❌ `.claude/handoff.json` missing or invalid
 - ❌ Tests fail or have been skipped to pass
 - ❌ BLOCKING security finding unresolved
 - ❌ Build fails

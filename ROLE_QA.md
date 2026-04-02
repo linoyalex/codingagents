@@ -95,4 +95,20 @@ A QA task is complete when:
 # - Browser targets: e.g. Chrome, Firefox, Safari mobile
 # - Performance budget: e.g. LCP < 2.5s, TTI < 3.5s
 # - Accessibility standard: WCAG 2.1 AA
+
+## Phase Handoff
+
+At the end of your phase, write `.claude/handoff.json` with:
+- `feature`: the feature name from the PRD or brief
+- `phase`: your pipeline phase number (3)
+- `goal`: what the next agent should accomplish
+- `scope`: what is in scope for the next phase
+- `relevant_files`: the files you produced that the next agent should read
+- `acceptance_criteria`: the ACs that carry forward
+- `verification_commands`: commands to verify the next phase's output
+- `known_risks`: any open questions or risks
+- `produced_by`: "qa"
+- `timestamp`: current ISO 8601 timestamp
+
+This is mandatory. The Stop hook validates its presence.
 ```

@@ -60,6 +60,36 @@ your-project/
 
 ## Setup (one-time)
 
+### Automated setup (recommended)
+
+```bash
+# From your target project root:
+bash /path/to/codingagents/init.sh
+
+# With Codex review layer:
+bash /path/to/codingagents/init.sh --codex
+```
+
+This copies all roles, commands, skills, hooks, schemas, and configuration in one step.
+It creates the directory structure, updates `.gitignore`, and writes a version file.
+
+After running, edit `CLAUDE.md` to fill in your project-specific sections.
+
+### Upgrading from v4.1
+
+```bash
+# From your target project root:
+bash /path/to/codingagents/upgrade.sh
+
+# With Codex review layer:
+bash /path/to/codingagents/upgrade.sh --codex
+```
+
+This backs up your current `.claude/` directory, replaces framework files,
+and preserves project-specific configuration. See the console output for details.
+
+### Manual setup (if you prefer)
+
 ```bash
 # 1. Copy all ROLE_*.md files to .claude/agents/
 mkdir -p .claude/agents
@@ -78,7 +108,11 @@ cp hooks/checkpoint.js .claude/helpers/
 # 4. Copy settings.json to .claude/
 cp hooks/settings.json .claude/settings.json
 
-# 5. Copy CLAUDE.md to project root and fill in your project details
+# 5. Copy schemas
+mkdir -p .claude/schemas
+cp schemas/*.json .claude/schemas/
+
+# 6. Copy CLAUDE.md to project root and fill in your project details
 cp CLAUDE.md ./CLAUDE.md
 # Edit: project overview, stack, commands, conventions, constraints, gotchas
 

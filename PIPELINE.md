@@ -9,6 +9,12 @@ not the full conversation, not the codebase, not every role definition. This is 
 biggest driver of token efficiency. A 200-line handoff file costs 2K tokens. A full
 conversation history costs 100K+.
 
+The canonical handoff artifact is `.claude/handoff.json` — a machine-readable contract
+between phases. Each agent writes it at the end of its phase; the next agent reads it at
+session start. The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js`
+Stop hook validates its presence, and `restore-context.js` loads it as primary context for
+fresh sessions.
+
 The second principle: **Opus only for irreversible decisions.** Architecture and security
 choices are hard to undo. Code is easy to rewrite. Model cost should match decision reversibility.
 
@@ -286,6 +292,52 @@ claude -p "Scan this diff for any hardcoded secrets: $(git diff main...HEAD)" \
   --model claude-haiku-4-5 \
   --allowedTools "Bash(git diff *)"
 ```
+
+---
+
+## Baseline Metrics
+
+Before making changes to the pipeline, capture these metrics across 1-2 feature cycles to establish a true baseline. All metrics are logged automatically to `.claude/token-usage.jsonl` when token tracking hooks are installed.
+
+### What to measure
+
+| Metric | How to capture | Why it matters |
+|---|---|---|
+| Total tokens per feature cycle | Sum all JSONL entries for the feature (per phase and aggregate) | Validates whether the ~63K target is being met |
+| Retry overhead | Count iterations > 1 per phase; sum their token costs separately | Shows rework cost distinct from first-pass quality |
+| Wall-clock latency per phase | `duration_seconds` field in each JSONL entry | Identifies slow phases that may need model/effort changes |
+| Verification pass rate | `verification_passed` field — percentage of phases passing tests/lint on first run | Low pass rate signals spec or test quality issues upstream |
+| Handoff size | Token count of context passed between phases (handoff.json + any addenda) | Large handoffs erode the token savings from phase isolation |
+| Escaped defects | Issues found in later phases that should have been caught earlier | Signals which phase gates need strengthening |
+
+### Budget targets
+
+| Phase | Model | Token budget (first pass) |
+|---|---|---|
+| 1 – Specify | Haiku | ~3K |
+| 2 – Architect | Opus | ~8K |
+| 3 – Test Design | Sonnet | ~10K |
+| 4 – Security Gate | Opus | ~6K |
+| 5 – Implement | Sonnet | ~25K |
+| 6 – Review | Sonnet | ~8K |
+| 7 – Document | Haiku | ~3K |
+| **First-pass total** | | **~63K** |
+| **Retry allowance** | | **~20K** |
+| **Combined target** | | **~83K** |
+
+Per-phase budgets apply to iteration 1 only. Retries are tracked but not individually capped. If retry overhead consistently exceeds the allowance, the fix is upstream (better specs, better test design), not downstream.
+
+### Codex review layer (optional, additive)
+
+| Review checkpoint | Token budget |
+|---|---|
+| Code review (initial) | ~4-6K |
+| Test design review (after code review validated) | ~3-4K |
+| Architecture review (after test design validated) | ~3-4K |
+| PRD review (after architecture validated) | ~2-3K |
+| **Full ceiling** | **~12-17K** |
+
+The initial Codex budget is ~4-6K (code review only). The full ceiling applies only after all checkpoints are activated and validated.
 
 ---
 

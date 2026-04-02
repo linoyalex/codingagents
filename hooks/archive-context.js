@@ -3,6 +3,7 @@
  * archive-context.js
  * Runs via PreCompact hook before Claude auto-compacts the context window.
  * Scores and saves the highest-value conversation turns to a JSON archive.
+ * Logs a token usage snapshot before compaction.
  *
  * Install: place at .claude/helpers/archive-context.js
  */
@@ -12,6 +13,8 @@ const path = require('path');
 
 const ARCHIVE_DIR = path.join(process.cwd(), '.claude', 'context-archive');
 const ARCHIVE_FILE = path.join(ARCHIVE_DIR, 'turns.json');
+const TOKEN_LOG = path.join(process.cwd(), '.claude', 'token-usage.jsonl');
+const SESSION_STATE_FILE = path.join(process.cwd(), '.claude', '.session-state.json');
 const MAX_ARCHIVED_TURNS = 50;
 
 const IMPORTANCE_SIGNALS = [
@@ -29,7 +32,58 @@ function scoreText(text) {
   );
 }
 
+function logTokenSnapshot() {
+  let sessionState = {};
+  if (fs.existsSync(SESSION_STATE_FILE)) {
+    try {
+      sessionState = JSON.parse(fs.readFileSync(SESSION_STATE_FILE, 'utf8'));
+    } catch { /* use defaults */ }
+  }
+
+  const startTime = sessionState.startTime || Date.now();
+  const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+
+  const entry = {
+    timestamp: new Date().toISOString(),
+    feature: sessionState.feature || 'unknown',
+    phase: 'unknown',
+    agent: sessionState.agent || 'unknown',
+    model: sessionState.model || 'unknown',
+    iteration: 0,
+    cycle: 'full',
+    input_tokens: 0,
+    output_tokens: 0,
+    total_tokens: 0,
+    cache_read_tokens: 0,
+    duration_seconds: durationSeconds,
+    verification_passed: null,
+    token_source: 'estimated',
+    entry_type: 'snapshot',
+  };
+
+  // Try to read token stats from environment if available
+  if (process.env.CLAUDE_CODE_INPUT_TOKENS) {
+    entry.input_tokens = parseInt(process.env.CLAUDE_CODE_INPUT_TOKENS, 10) || 0;
+    entry.output_tokens = parseInt(process.env.CLAUDE_CODE_OUTPUT_TOKENS, 10) || 0;
+    entry.total_tokens = entry.input_tokens + entry.output_tokens;
+    entry.cache_read_tokens = parseInt(process.env.CLAUDE_CODE_CACHE_READ_TOKENS, 10) || 0;
+    entry.token_source = 'api';
+  }
+
+  try {
+    const dir = path.dirname(TOKEN_LOG);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(TOKEN_LOG, JSON.stringify(entry) + '\n');
+    console.log(`[token-tracking] Pre-compaction snapshot logged`);
+  } catch (err) {
+    console.error(`[token-tracking] Snapshot failed (non-blocking): ${err.message}`);
+  }
+}
+
 async function main() {
+  // Log token snapshot before compaction
+  logTokenSnapshot();
+
   let input = '';
   if (!process.stdin.isTTY) {
     for await (const chunk of process.stdin) {

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Handoff",
+  "description": "Machine-readable handoff artifact passed between pipeline phases. Lives at .claude/handoff.json in target projects.",
+  "type": "object",
+  "required": ["feature", "phase", "goal", "scope", "relevant_files", "acceptance_criteria", "verification_commands"],
+  "properties": {
+    "feature": {
+      "type": "string",
+      "description": "Feature name or identifier. Used to disambiguate handoffs in multi-feature workflows."
+    },
+    "phase": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7,
+      "description": "Pipeline phase that produced this handoff (1=specify, 2=architect, 3=test-design, 4=security, 5=implement, 6=review, 7=document)."
+    },
+    "goal": {
+      "type": "string",
+      "description": "What the next phase should accomplish. One sentence."
+    },
+    "scope": {
+      "type": "string",
+      "description": "What is in scope for the next phase. Be explicit about boundaries."
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Hard constraints the next phase must respect (e.g. 'no new dependencies', 'must support offline mode')."
+    },
+    "relevant_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "File paths the next phase should read. These are the ONLY files the next agent should open initially."
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Acceptance criteria IDs (e.g. 'AC-1', 'AC-2') that the next phase must satisfy."
+    },
+    "verification_commands": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Commands to run to verify the next phase's output (e.g. 'pnpm test', 'pnpm lint')."
+    },
+    "known_risks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Known risks or open questions for the next phase to be aware of."
+    },
+    "produced_by": {
+      "type": "string",
+      "description": "Agent role that produced this handoff (e.g. 'architect', 'qa')."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when this handoff was written."
+    }
+  },
+  "additionalProperties": false
+}
