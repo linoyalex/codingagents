@@ -47,6 +47,8 @@ Start with `review-code` only.
 
 Use `codex/templates/review-brief.json` as the compact packet.
 
+These reviewer files are prompt instructions, not auto-registered Codex agents. In a fresh Codex session, explicitly point Codex at the reviewer file you want to use.
+
 Recommended prompt:
 
 ```text
@@ -57,6 +59,12 @@ Use file:line evidence and give a merge recommendation.
 If .claude/handoff.json exists, use it only for AC and risk context.
 Write the result to codex/reviews/review-code-[feature].md.
 ```
+
+For a fresh project install, read these files first:
+
+1. `docs/memory/session-bootstrap.md`
+2. `docs/memory/codex-rules.md`
+3. `codex/README.md`
 
 ## Logging Usage
 

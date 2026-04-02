@@ -86,7 +86,7 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 ├── .gitignore-template              ← Runtime artifact patterns for target projects
 │
 ├── docs/                            ← Shared design docs, cross-agent memory, and repo-specific instructions
-│   ├── CLAUDE.md                        ← Framework development instructions (NOT copied to target projects)
+│   ├── CLAUDE.md                        ← Framework development instructions (repo-local only)
 │   ├── design/
 │   │   ├── v5-implementation-record.md  ← What shipped in v5 (implementation reference)
 │   │   └── vnext-recommendations.md     ← What's left for vNext (Tier 2/3 + stretch goals)
@@ -122,7 +122,7 @@ bash /path/to/codingagents/init.sh
 bash /path/to/codingagents/init.sh --codex
 ```
 
-This copies all roles, commands, skills, hooks, schemas, and configuration in one step. It creates the directory structure, updates `.gitignore` with runtime artifact patterns, and writes a version file.
+This copies all roles, commands, skills, hooks, schemas, shared `docs/design` and `docs/memory` context, and configuration in one step. It creates the directory structure, updates `.gitignore` with runtime artifact patterns, and writes a version file.
 
 After running, edit `CLAUDE.md` to fill in your project-specific sections.
 
@@ -133,7 +133,7 @@ bash /path/to/codingagents/upgrade.sh          # pipeline only
 bash /path/to/codingagents/upgrade.sh --codex   # pipeline + Codex review layer
 ```
 
-This backs up `.claude/` before replacing framework files. CLAUDE.md is not touched — review it manually for new sections (Phase Handoff Protocol, Memory & Instruction Governance).
+This backs up `.claude/` before replacing framework files. It also refreshes the shared `docs/design/` and `docs/memory/` files used by fresh sessions. `CLAUDE.md` is not touched — review it manually for new sections (Phase Handoff Protocol, Memory & Instruction Governance).
 
 ### Manual setup
 

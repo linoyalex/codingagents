@@ -39,6 +39,8 @@ mkdir -p "$TARGET_DIR/.claude/helpers"
 mkdir -p "$TARGET_DIR/.claude/schemas"
 mkdir -p "$TARGET_DIR/.claude/context-archive"
 mkdir -p "$TARGET_DIR/docs/architecture"
+mkdir -p "$TARGET_DIR/docs/design"
+mkdir -p "$TARGET_DIR/docs/memory"
 mkdir -p "$TARGET_DIR/docs/security"
 mkdir -p "$TARGET_DIR/docs/reviews"
 
@@ -73,6 +75,15 @@ cp "$SCRIPT_DIR/hooks/settings.json" "$TARGET_DIR/.claude/settings.json"
 # Copy schemas
 cp -r "$SCRIPT_DIR/schemas/"* "$TARGET_DIR/.claude/schemas/" 2>/dev/null || true
 echo "  Copied hooks, settings, and schemas"
+
+# Copy shared memory and design docs used by fresh sessions
+if [ -d "$SCRIPT_DIR/docs/design" ]; then
+  cp "$SCRIPT_DIR"/docs/design/*.md "$TARGET_DIR/docs/design/" 2>/dev/null || true
+fi
+if [ -d "$SCRIPT_DIR/docs/memory" ]; then
+  cp "$SCRIPT_DIR"/docs/memory/*.md "$TARGET_DIR/docs/memory/" 2>/dev/null || true
+fi
+echo "  Copied shared design and memory docs"
 
 # --- CLAUDE.md (prompt before overwrite) ---
 echo "[6/7] Setting up CLAUDE.md..."
