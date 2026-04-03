@@ -8,13 +8,13 @@ A token-efficient, phase-gated multi-agent development pipeline for Claude Code 
 
 A complete system for structuring AI-assisted software development around a seven-phase pipeline. Each phase runs in its own isolated context, reads only the output of the previous phase, and uses the cheapest model capable of the task. The result: roughly **63K tokens per feature cycle** instead of the typical 200K–400K from ad-hoc sessions.
 ```
-Phase 1  SPECIFY        product-owner + ux-designer   → docs/prd.md              (Haiku)
-Phase 2  ARCHITECT      architect                      → docs/architecture/        (Opus)
-Phase 3  TEST DESIGN    qa                             → tests/ failing shells     (Sonnet)
-Phase 4  SECURITY GATE  security-reviewer              → docs/security/            (Opus)
-Phase 5  IMPLEMENT      developer                      → src/ via TDD              (Sonnet)
-Phase 6  REVIEW         code-reviewer (fresh context)  → docs/reviews/             (Sonnet)
-Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-notes (Haiku)
+Phase 1  SPECIFY        product-owner + ux-designer   → docs/features/<feature>/prd.md           (Haiku)
+Phase 2  ARCHITECT      architect                      → docs/features/<feature>/architecture.md  (Opus)
+Phase 3  TEST DESIGN    qa                             → tests/ failing shells                    (Sonnet)
+Phase 4  SECURITY GATE  security-reviewer              → docs/features/<feature>/security-audit.md (Opus)
+Phase 5  IMPLEMENT      developer                      → src/ via TDD                             (Sonnet)
+Phase 6  REVIEW         code-reviewer (fresh context)  → docs/features/<feature>/review.md         (Sonnet)
+Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-notes                 (Haiku)
 ```
 
 **Core principle:** Agents pass files, not conversation history. Each phase produces one compact artifact. The next phase reads only that artifact — not the full codebase, not the prior conversation.
@@ -87,8 +87,8 @@ cp hooks/settings.json .claude/settings.json
 # 5. Copy CLAUDE.md to your project root and fill in your stack details
 cp CLAUDE.md ./CLAUDE.md
 
-# 6. Create output directories for pipeline artifacts
-mkdir -p docs/architecture docs/security docs/reviews
+# 6. Create output directory for pipeline artifacts
+mkdir -p docs/features docs/decisions
 
 # 7. Commit
 git add .claude/ CLAUDE.md docs/ && git commit -m "chore: add multi-agent pipeline"
@@ -102,8 +102,8 @@ claude                          # start Claude Code
 
 /status                         # always run first — shows where you are
 
-/specify Add user auth flow     # Phase 1 — writes docs/prd.md (~3K tokens, Haiku)
-/architect user-auth            # Phase 2 — writes ARCH doc (~8K tokens, Opus)
+/specify Add user auth flow     # Phase 1 — writes docs/features/user-auth/prd.md (~3K tokens, Haiku)
+/architect user-auth            # Phase 2 — writes architecture doc (~8K tokens, Opus)
 /test-design user-auth          # Phase 3 — writes failing tests (~10K tokens, Sonnet)
 /security-gate user-auth        # Phase 4 — writes security audit (~6K tokens, Opus)
 /implement user-auth            # Phase 5 — TDD red/green/refactor (~25K tokens, Sonnet)

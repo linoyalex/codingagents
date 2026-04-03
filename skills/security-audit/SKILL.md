@@ -79,7 +79,7 @@ npm audit --audit-level=high
 ```markdown
 ## Security Audit: [Feature Name]
 **Date:** YYYY-MM-DD | **Auditor:** security-reviewer agent
-**Inputs:** docs/prd.md + docs/architecture/ARCH-[feature].md
+**Inputs:** docs/features/<feature>/prd.md + docs/features/<feature>/architecture.md
 
 ### Summary
 [1-2 sentence overall assessment]

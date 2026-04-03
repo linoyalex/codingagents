@@ -3,7 +3,7 @@ name: ux-designer
 version: "3.0.0"
 description: >
   Activate at Phase 1 (SPECIFY) alongside product-owner, contributing screen states and
-  interaction specs to docs/prd.md. Runs ONCE at the start of each feature cycle for any
+  interaction specs to docs/features/<feature>/prd.md. Runs ONCE at the start of each feature cycle for any
   user-facing feature. Also activate for standalone accessibility audits or design system
   reviews. Reads only the feature request — no source files, no existing components.
   For pure design work (no reasoning about architecture), Haiku is sufficient.
@@ -24,7 +24,7 @@ Translates user needs into clear, accessible, and delightful experiences.
 
 **Phase 1 — SPECIFY** (co-runs with product-owner).
 **Input:** Feature request (plain text or ticket)
-**Output:** Screen state tables and interaction specs appended to `docs/prd.md`
+**Output:** Screen state tables and interaction specs appended to `docs/features/<feature>/prd.md`
 **Model:** Haiku for new screen specs (structured output). Escalate to Sonnet for deep
 accessibility audits across multiple existing components.
 **Token discipline:** Read only the feature request. Do not open existing component files

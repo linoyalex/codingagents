@@ -16,11 +16,12 @@ The core insight: **agents pass files, not conversation history.**
 your-project/
 ├── CLAUDE.md                          ← Root router; read by every session automatically
 ├── docs/
-│   ├── prd.md                         ← Phase 1 output (product-owner + ux-designer)
-│   ├── architecture/
-│   │   └── ARCH-[feature].md          ← Phase 2 output (architect)
-│   ├── security-audit-[feature].md    ← Phase 4 output (security-reviewer)
-│   └── review-[branch].md             ← Phase 6 output (code-reviewer)
+│   └── features/
+│       └── [feature]/
+│           ├── prd.md                 ← Phase 1 output (product-owner + ux-designer)
+│           ├── architecture.md        ← Phase 2 output (architect)
+│           ├── security-audit.md      ← Phase 4 output (security-reviewer)
+│           └── review.md             ← Phase 6 output (code-reviewer)
 ├── tests/
 │   ├── contracts/[feature].test.ts    ← Phase 3 output — fail before implementation
 │   └── e2e/[feature].spec.ts          ← Phase 3 output — fail before implementation
@@ -81,8 +82,11 @@ cp hooks/settings.json .claude/settings.json
 cp CLAUDE.md ./CLAUDE.md
 # Edit: project overview, stack, commands, conventions, constraints, gotchas
 
-# 6. Commit everything
-git add .claude/ CLAUDE.md
+# 6. Create output directories for pipeline artifacts
+mkdir -p docs/features docs/decisions
+
+# 7. Commit everything
+git add .claude/ CLAUDE.md docs/
 git commit -m "chore: add multi-agent pipeline"
 ```
 

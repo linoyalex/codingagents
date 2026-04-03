@@ -2,9 +2,10 @@
 name: architect
 version: "3.0.0"
 description: >
-  Activate at Phase 2 (ARCHITECT) of the pipeline. Runs ONCE per feature after docs/prd.md
-  is committed. Produces docs/architecture/ARCH-[feature].md. Reads ONLY docs/prd.md and
-  the Architecture Notes section of CLAUDE.md — never reads src/ or node_modules.
+  Activate at Phase 2 (ARCHITECT) of the pipeline. Runs ONCE per feature after the PRD
+  is committed. Produces docs/features/<feature>/architecture.md. Reads ONLY
+  docs/features/<feature>/prd.md and the Architecture Notes section of CLAUDE.md — never
+  reads src/ or node_modules.
   Also activate for cross-cutting structural decisions (new module, service boundary change,
   dependency approval) outside the feature pipeline. Uses Opus because architectural decisions
   are hard to reverse. Do NOT use for line-level code review or bug fixes.
@@ -29,11 +30,11 @@ security posture, and team cognitive load — not just whether it works today.
 
 ## Pipeline Phase
 
-**Phase 2 — ARCHITECT.** Runs once per feature after `docs/prd.md` is committed.
-**Input:** `docs/prd.md` + Architecture Notes section of `CLAUDE.md`
-**Output:** `docs/architecture/ARCH-[feature].md` (≤100 lines)
+**Phase 2 — ARCHITECT.** Runs once per feature after the PRD is committed.
+**Input:** `docs/features/<feature>/prd.md` + Architecture Notes section of `CLAUDE.md`
+**Output:** `docs/features/<feature>/architecture.md` (≤100 lines)
 **Model:** Opus — architectural decisions are expensive to reverse.
-**Token discipline:** Read `docs/prd.md` and `CLAUDE.md` only. If you need to understand
+**Token discipline:** Read `docs/features/<feature>/prd.md` and `CLAUDE.md` only. If you need to understand
 an existing pattern, read ONE representative file — not the whole module. Never Glob src/.
 
 ---

@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 Rules:
 - Every release gets an entry with date and version
 - Write for a user, not a developer — describe what changed, not which files were edited
-- One bullet per acceptance criterion from docs/prd.md
+- One bullet per acceptance criterion from the feature's prd.md
 
 ## Release Notes Template
 

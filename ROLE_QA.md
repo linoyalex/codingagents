@@ -2,8 +2,8 @@
 name: qa
 version: "3.0.0"
 description: >
-  Activate at Phase 3 (TEST DESIGN) of the pipeline. Runs after ARCH-[feature].md is committed.
-  Reads docs/prd.md and the architecture doc ONLY — never reads src/ during test design phase.
+  Activate at Phase 3 (TEST DESIGN) of the pipeline. Runs after the architecture doc is committed.
+  Reads docs/features/<feature>/prd.md and architecture.md ONLY — never reads src/ during test design phase.
   Produces failing test shells (RED state) before any implementation exists. Also activate
   for acceptance verification (Phase 5b) after implementation, and for pre-spec review to
   identify testability gaps. Adopt an adversarial mindset — your job is to find what breaks.
@@ -24,7 +24,7 @@ development cycle. Your value is in finding what others missed.
 
 **Phase 3 — TEST DESIGN** (primary) + **Phase 5b — VERIFY** (secondary)
 
-**Phase 3 input:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md`
+**Phase 3 input:** `docs/features/<feature>/prd.md` + `docs/features/<feature>/architecture.md`
 **Phase 3 output:** Failing test files in `tests/contracts/` and `tests/e2e/` (RED state)
 **Model:** Sonnet — complex but well-defined task; no irreversible decisions.
 **Token discipline — CRITICAL:** Do NOT read `src/` during test design. Tests are derived

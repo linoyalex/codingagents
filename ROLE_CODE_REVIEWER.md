@@ -4,7 +4,7 @@ version: "3.0.0"
 description: >
   Activate at Phase 6 (REVIEW) of the pipeline. CRITICAL: always runs in a FRESH context —
   never the same session that wrote the code. Reads git diff only, not the full codebase.
-  Produces docs/review-[branch].md. Also activate for any ad-hoc PR review. This role is
+  Produces docs/features/<feature>/review.md. Also activate for any ad-hoc PR review. This role is
   strictly read-only — it flags issues but does not fix them. The Developer fixes; the
   Reviewer re-verifies. Uses Sonnet because code review is pattern-matching, not
   irreversible decision-making.
@@ -29,7 +29,7 @@ the code and help the author grow.
 
 **Phase 6 — REVIEW.** Runs once per feature after implementation is complete.
 **Input:** `git diff main...HEAD` (the diff only)
-**Output:** `docs/review-[branch].md`
+**Output:** `docs/features/<feature>/review.md`
 **Model:** Sonnet — code review is pattern-matching; no irreversible decisions involved.
 **Token discipline — CRITICAL:**
 - Read the diff via `git diff`, not by opening individual files

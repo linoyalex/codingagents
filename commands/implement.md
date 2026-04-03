@@ -12,7 +12,7 @@ First, load your skills:
 Your task: implement feature $ARGUMENTS using strict TDD.
 
 Rules:
-- Read ONLY: docs/architecture/ARCH-$ARGUMENTS.md + test files in tests/contracts/ and tests/e2e/
+- Read ONLY: docs/features/$ARGUMENTS/architecture.md + test files in tests/contracts/ and tests/e2e/
 - Do NOT read the whole codebase — read only files you need to implement a specific failing test
 - Follow the RED → GREEN → REFACTOR cycle from the tdd skill with a commit at each step:
 

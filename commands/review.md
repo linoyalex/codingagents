@@ -17,10 +17,10 @@ Rules:
 - Run: git diff main...HEAD (read the diff, not individual files)
 - If a finding requires context, open that ONE file — not its whole module
 - Run the Quick Automated Checks from the code-review skill
-- Write findings to docs/reviews/review-$ARGUMENTS.md using the Review Document Template from the skill
+- Write findings to docs/features/$ARGUMENTS/review.md using the Review Document Template from the skill
 - Run Phase 6 verification from verification-gate skill
 
-Commit docs/reviews/review-$ARGUMENTS.md with message: "review: $ARGUMENTS findings"
+Commit docs/features/$ARGUMENTS/review.md with message: "review: $ARGUMENTS findings"
 
 After committing, print one of:
 - "Phase 6 complete — APPROVED. Next: /document $ARGUMENTS (after merge)"

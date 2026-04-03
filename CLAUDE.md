@@ -70,30 +70,30 @@ Feature request
     │
     ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku
     │  Reads: feature request only
-    │  Writes: docs/prd.md
+    │  Writes: docs/features/<feature>/prd.md
     │
     ▼ Phase 2 — ARCHITECT       [architect]                      model: opus
-    │  Reads: docs/prd.md + CLAUDE.md (arch section only)
-    │  Writes: docs/architecture/ARCH-[feature].md
+    │  Reads: docs/features/<feature>/prd.md + CLAUDE.md (arch section only)
+    │  Writes: docs/features/<feature>/architecture.md
     │
     ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet
-    │  Reads: docs/prd.md + ARCH-[feature].md only (NOT src/)
+    │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
     │  Writes: tests/contracts/ + tests/e2e/ (failing shells)
     │
     ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus
-    │  Reads: docs/prd.md + ARCH-[feature].md only (NOT src/)
-    │  Writes: docs/security-audit-[feature].md
+    │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
+    │  Writes: docs/features/<feature>/security-audit.md
     │
     ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet
-    │  Reads: ARCH-[feature].md + failing test files only
+    │  Reads: docs/features/<feature>/architecture.md + failing test files only
     │  Writes: src/ (TDD: RED commit → GREEN commit → REFACTOR commit)
     │
     ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet
     │  Reads: git diff only
-    │  Writes: docs/review-[branch].md
+    │  Writes: docs/features/<feature>/review.md
     │
     ▼ Phase 7 — DOCUMENT        [documentation-specialist]       model: haiku
-       Reads: docs/prd.md + CHANGELOG.md + CLAUDE.md
+       Reads: docs/features/<feature>/prd.md + CHANGELOG.md + CLAUDE.md
        Writes: CHANGELOG.md update + CLAUDE.md conventions update
 ```
 

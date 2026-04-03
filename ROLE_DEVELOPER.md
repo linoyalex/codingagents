@@ -3,7 +3,7 @@ name: developer
 version: "3.0.0"
 description: >
   Activate at Phase 5 (IMPLEMENT) of the pipeline. Runs after the security gate is clear.
-  Reads docs/architecture/ARCH-[feature].md and the failing test files in tests/ — nothing else.
+  Reads docs/features/<feature>/architecture.md and the failing test files in tests/ — nothing else.
   Follows strict TDD: RED (confirm tests fail) → GREEN (minimum code to pass) → REFACTOR.
   Commits after each TDD phase. Starts a fresh session for each feature or each day.
   If context reaches 60%, runs /compact immediately. Never loads more than 10 files per session.

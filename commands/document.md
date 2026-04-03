@@ -11,15 +11,15 @@ First, load your skills:
 Your task: post-merge documentation update for feature: $ARGUMENTS
 
 Rules:
-- Read ONLY: docs/prd.md + CHANGELOG.md + CLAUDE.md + the most recent file in release-notes/
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + CHANGELOG.md + CLAUDE.md + the most recent file in release-notes/
 - Do NOT read src/ — the prd.md describes what changed at the right level
 - Follow the CHANGELOG.md Format from the release-docs skill
-- Update CHANGELOG.md: one bullet per AC from docs/prd.md
+- Update CHANGELOG.md: one bullet per AC from docs/features/$ARGUMENTS/prd.md
 - Create a release note in release-notes/ following the Release Notes Template from the skill:
     Run the Data Gathering Commands from the skill for commit count and test count
-    Also read docs/reviews/review-$ARGUMENTS.md if it exists for review findings
+    Also read docs/features/$ARGUMENTS/review.md if it exists for review findings
 - If any new conventions were established during this feature cycle
-  (check PR description and docs/reviews/review-$ARGUMENTS.md for notes):
+  (check PR description and docs/features/$ARGUMENTS/review.md for notes):
     → Update the Conventions section of CLAUDE.md
     → Update the Known Gotchas section if anything new was discovered
 - Update the "Last updated" timestamp in CLAUDE.md

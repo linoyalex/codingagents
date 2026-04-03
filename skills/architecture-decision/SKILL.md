@@ -1,6 +1,6 @@
 ---
 name: architecture-decision
-description: Produce Architecture Decision Records and ARCH-[feature].md documents
+description: Produce Architecture Decision Records and feature architecture documents
 version: "1.0.0"
 ---
 
@@ -40,7 +40,7 @@ version: "1.0.0"
 - Follow-up actions: ...
 ```
 
-## ARCH-[feature].md Template (keep under 100 lines)
+## architecture.md Template (keep under 100 lines)
 
 ```markdown
 ## Architecture: [Feature Name]

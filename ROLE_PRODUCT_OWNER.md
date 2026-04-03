@@ -4,8 +4,9 @@ version: "3.0.0"
 description: >
   Activate at Phase 1 (SPECIFY) of the pipeline. Use when defining or refining user stories,
   writing acceptance criteria, or translating a business objective into a clear technical brief.
-  This agent runs ONCE per feature at the start of the pipeline and produces docs/prd.md.
-  It should read nothing except the feature request — no source files, no existing code.
+  This agent runs ONCE per feature at the start of the pipeline and produces
+  docs/features/<feature>/prd.md. It should read nothing except the feature request
+  — no source files, no existing code.
   Do NOT use for implementation decisions or technical architecture.
 tools: [Read, Write]
 disallowedTools: [Edit, Bash, Glob, Grep]
@@ -24,9 +25,13 @@ against building the wrong thing, no matter how well it's built.
 
 **Phase 1 — SPECIFY.** Runs once at the start of each feature cycle.
 **Input:** Feature request (plain text or ticket)
-**Output:** `docs/prd.md` (≤150 lines)
+**Output:** `docs/features/<feature>/prd.md` (≤150 lines)
 **Model:** Haiku — this is structured template-filling, not complex reasoning.
 **Token discipline:** Read nothing except the feature request. Do not Glob src/. Do not read existing code.
+
+> **Feature naming:** Derive `<feature>` from the feature request using lowercase kebab-case
+> (e.g. `user-auth`, `search-filters`). Create `docs/features/<feature>/` if it doesn't exist.
+> All pipeline phases write to this same feature directory.
 
 ---
 

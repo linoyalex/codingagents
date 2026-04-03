@@ -11,7 +11,7 @@ First, load your skills:
 Your task: write failing test shells for feature: $ARGUMENTS
 
 Rules:
-- Read ONLY: docs/prd.md + docs/architecture/ARCH-$ARGUMENTS.md
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
 - Do NOT read src/ — tests must be derived from the spec, not the implementation
 - Write contract tests to: tests/contracts/$ARGUMENTS.test.ts
 - Write E2E tests to: tests/e2e/$ARGUMENTS.spec.ts

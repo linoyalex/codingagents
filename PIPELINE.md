@@ -17,20 +17,25 @@ choices are hard to undo. Code is easy to rewrite. Model cost should match decis
 ## The Pipeline
 
 ```
-Phase 1: SPECIFY       [product-owner, ux-designer] → docs/prd.md
+Phase 1: SPECIFY       [product-owner, ux-designer] → docs/features/<feature>/prd.md
          ↓
-Phase 2: ARCHITECT     [architect]                  → docs/architecture/ARCH.md
+Phase 2: ARCHITECT     [architect]                  → docs/features/<feature>/architecture.md
          ↓
 Phase 3: TEST DESIGN   [qa]                         → tests/ (contract + E2E shells)
          ↓
-Phase 4: SECURITY GATE [security-reviewer]          → docs/security-audit.md
+Phase 4: SECURITY GATE [security-reviewer]          → docs/features/<feature>/security-audit.md
          ↓
 Phase 5: IMPLEMENT     [developer] × N              → src/ (TDD: red → green → refactor)
          ↓
-Phase 6: REVIEW        [code-reviewer]              → docs/review-[branch].md
+Phase 6: REVIEW        [code-reviewer]              → docs/features/<feature>/review.md
          ↓
 Phase 7: DOCUMENT      [documentation-specialist]   → CLAUDE.md, CHANGELOG.md updated
 ```
+
+**Feature naming convention:** `<feature>` is a lowercase kebab-case name derived from the
+feature request (e.g. `user-auth`, `search-filters`). Phase 1 creates the directory
+`docs/features/<feature>/`; all subsequent phases write to the same directory. This groups
+every artifact for a feature in one browsable location.
 
 **Models by phase:**
 | Phase | Model | Why |
@@ -54,17 +59,17 @@ Phase 7: DOCUMENT      [documentation-specialist]   → CLAUDE.md, CHANGELOG.md 
 **Model:** `claude-haiku-4-5`  
 **Trigger:** New feature request or user story  
 **Reads:** Nothing except the feature request  
-**Produces:** `docs/prd.md`
+**Produces:** `docs/features/<feature>/prd.md`
 
 ```bash
 # Invoke
 claude --model claude-haiku-4-5 \
   "Use the product-owner subagent to write a PRD for: [feature description].
    Then use the ux-designer subagent to add screen states.
-   Write the output to docs/prd.md"
+   Write the output to docs/features/<feature>/prd.md"
 ```
 
-**`docs/prd.md` format (keep under 150 lines):**
+**`prd.md` format (keep under 150 lines):**
 ```markdown
 ## Feature: [Name]
 **Phase:** Specify | Date: YYYY-MM-DD
@@ -94,22 +99,22 @@ As a [persona], I want [action], so that [outcome].
 ## Phase 2: ARCHITECT
 **Agent:** `architect`  
 **Model:** `claude-opus-4-6`  
-**Trigger:** After `docs/prd.md` is committed  
-**Reads:** `docs/prd.md` + `CLAUDE.md` (Architecture Notes section only)  
-**Produces:** `docs/architecture/ARCH-[feature].md`
+**Trigger:** After `docs/features/<feature>/prd.md` is committed  
+**Reads:** `docs/features/<feature>/prd.md` + `CLAUDE.md` (Architecture Notes section only)  
+**Produces:** `docs/features/<feature>/architecture.md`
 
 ```bash
 claude --model claude-opus-4-6 \
-  "Use the architect subagent. Read docs/prd.md and CLAUDE.md.
-   Produce docs/architecture/ARCH-[feature].md.
+  "Use the architect subagent. Read docs/features/<feature>/prd.md and CLAUDE.md.
+   Produce docs/features/<feature>/architecture.md.
    Do not read any source files — design only."
 ```
 
-**Critical token constraint for Architect:** Read `docs/prd.md` and `CLAUDE.md` only.
+**Critical token constraint for Architect:** Read `docs/features/<feature>/prd.md` and `CLAUDE.md` only.
 Do not `Glob` the entire codebase. If you need to understand an existing pattern, read
 one representative file, not all files.
 
-**`ARCH-[feature].md` format (keep under 100 lines):**
+**`architecture.md` format (keep under 100 lines):**
 ```markdown
 ## Architecture: [Feature Name]
 **ADR:** ADR-[N] | Date: YYYY-MM-DD
@@ -138,13 +143,13 @@ one representative file, not all files.
 ## Phase 3: TEST DESIGN
 **Agent:** `qa`  
 **Model:** `claude-sonnet-4-6`  
-**Trigger:** After `ARCH-[feature].md` is committed  
-**Reads:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md` only  
+**Trigger:** After `docs/features/<feature>/architecture.md` is committed  
+**Reads:** `docs/features/<feature>/prd.md` + `docs/features/<feature>/architecture.md` only  
 **Produces:** Shell test files with failing tests (RED state)
 
 ```bash
 claude --model claude-sonnet-4-6 \
-  "Use the qa subagent. Read docs/prd.md and docs/architecture/ARCH-[feature].md.
+  "Use the qa subagent. Read docs/features/<feature>/prd.md and docs/features/<feature>/architecture.md.
    Write contract tests and E2E test shells that will FAIL until the feature is implemented.
    Put contract tests in tests/contracts/[feature].test.ts
    Put E2E tests in tests/e2e/[feature].spec.ts
@@ -168,13 +173,13 @@ prevents the test suite from mirroring the implementation's bugs.
 **Agent:** `security-reviewer`  
 **Model:** `claude-opus-4-6`  
 **Trigger:** Before implementation begins (design-time audit)  
-**Reads:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md` only  
-**Produces:** `docs/security-audit-[feature].md`
+**Reads:** `docs/features/<feature>/prd.md` + `docs/features/<feature>/architecture.md` only  
+**Produces:** `docs/features/<feature>/security-audit.md`
 
 ```bash
 claude --model claude-opus-4-6 \
-  "Use the security-reviewer subagent. Read docs/prd.md and docs/architecture/ARCH-[feature].md.
-   Produce docs/security-audit-[feature].md.
+  "Use the security-reviewer subagent. Read docs/features/<feature>/prd.md and docs/features/<feature>/architecture.md.
+   Produce docs/features/<feature>/security-audit.md.
    Do not read src/ — audit the design, not the implementation."
 ```
 
@@ -192,7 +197,7 @@ A second, shorter code-time security scan runs automatically in CI (see `hooks/`
 **Agent:** `developer`  
 **Model:** `claude-sonnet-4-6`  
 **Trigger:** After security audit is committed with no BLOCKING findings  
-**Reads:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md` + the failing test files  
+**Reads:** `docs/features/<feature>/architecture.md` + the failing test files  
 **Produces:** Working implementation that makes all tests pass
 
 ```bash
@@ -200,7 +205,7 @@ A second, shorter code-time security scan runs automatically in CI (see `hooks/`
 claude --model claude-sonnet-4-6 \
   "Use the developer subagent. Your goal: make all tests in
    tests/contracts/[feature].test.ts and tests/e2e/[feature].spec.ts pass.
-   Read docs/architecture/ARCH-[feature].md for design constraints.
+   Read docs/features/<feature>/architecture.md for design constraints.
    Follow TDD: run the tests first (RED), implement minimally to make them pass (GREEN),
    then refactor for clarity (REFACTOR). Commit after each phase."
 ```
@@ -226,14 +231,14 @@ REFACTOR: Clean up → tests still pass → commit "refactor: [feature] cleanup"
 **Model:** `claude-sonnet-4-6`  
 **CRITICAL:** Fresh context — new session, not the session that wrote the code  
 **Reads:** `git diff main...HEAD` (the diff only, not the full codebase)  
-**Produces:** `docs/review-[branch].md`
+**Produces:** `docs/features/<feature>/review.md`
 
 ```bash
 # In a new Claude Code session
 claude --model claude-sonnet-4-6 \
   "Use the code-reviewer subagent. Run: git diff main...HEAD
    Review only the changed files.
-   Write your findings to docs/review-[branch].md"
+   Write your findings to docs/features/<feature>/review.md"
 ```
 
 **Token rule:** Code Reviewer reads the diff via `git diff`, not by opening every file.
@@ -245,13 +250,13 @@ If a finding requires understanding context, read that one file — not the modu
 **Agent:** `documentation-specialist`  
 **Model:** `claude-haiku-4-5`  
 **Trigger:** After PR is merged  
-**Reads:** `docs/prd.md` + `CHANGELOG.md` + `CLAUDE.md`  
+**Reads:** `docs/features/<feature>/prd.md` + `CHANGELOG.md` + `CLAUDE.md`  
 **Produces:** Updated `CHANGELOG.md`, updated `CLAUDE.md` if conventions changed
 
 ```bash
 claude --model claude-haiku-4-5 \
   "Use the documentation-specialist subagent.
-   Read docs/prd.md to understand what changed.
+   Read docs/features/<feature>/prd.md to understand what changed.
    Update CHANGELOG.md with the new entry.
    If any new conventions were established, update the Conventions section of CLAUDE.md.
    Do not read src/."
@@ -289,7 +294,7 @@ claude -p "Scan this diff for any hardcoded secrets: $(git diff main...HEAD)" \
 | Antipattern | Token cost | Fix |
 |-------------|-----------|-----|
 | One long session for whole feature | 200K–400K | Phase-gate into 7 short sessions |
-| Architect reads all of `src/` | +50K per read | Architect reads only `CLAUDE.md` + `prd.md` |
+| Architect reads all of `src/` | +50K per read | Architect reads only `CLAUDE.md` + feature `prd.md` |
 | Developer reads every existing file before coding | +30K | Developer reads architecture doc + test files only |
 | Code Reviewer opens all files in changed modules | +40K | Reviewer reads `git diff` only |
 | Using Opus for mechanical tasks (formatting, changelog) | 5× cost | Use Haiku for deterministic/template tasks |

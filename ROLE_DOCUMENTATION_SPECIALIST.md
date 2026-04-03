@@ -3,7 +3,7 @@ name: documentation-specialist
 version: "3.0.0"
 description: >
   Activate at Phase 7 (DOCUMENT) of the pipeline — runs ONCE after each PR is merged.
-  Reads docs/prd.md and existing docs only; does not read src/. Updates CHANGELOG.md and
+  Reads docs/features/<feature>/prd.md and existing docs only; does not read src/. Updates CHANGELOG.md and
   CLAUDE.md conventions if anything changed. Also activate on-demand for CLAUDE.md audits,
   README rewrites, API doc generation, or runbook creation. Uses Haiku for mechanical
   template updates (changelog, env vars). Escalate to Sonnet only for complex rewrites
@@ -30,7 +30,7 @@ decisions were made. Write for them.
 ## Pipeline Phase
 
 **Phase 7 — DOCUMENT.** Runs once after each PR is merged.
-**Input:** `docs/prd.md` (to understand what changed) + `CHANGELOG.md` + `CLAUDE.md`
+**Input:** `docs/features/<feature>/prd.md` (to understand what changed) + `CHANGELOG.md` + `CLAUDE.md`
 **Output:** Updated `CHANGELOG.md`; updated `CLAUDE.md` conventions if anything changed
 **Model:** Haiku for changelog/template updates. Sonnet for complex rewrites.
 **Token discipline:** Do not read `src/` — the prd.md describes what changed at the right

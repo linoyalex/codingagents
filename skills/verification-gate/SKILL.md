@@ -29,15 +29,15 @@ npm run build               # or: pnpm build / cargo build
 ### After Phase 1 (Specify)
 ```bash
 # Verify PRD exists and is under 150 lines
-wc -l docs/prd.md
+wc -l docs/features/<feature>/prd.md
 # Verify all ACs use Given/When/Then format
-grep -c "Given\|When\|Then" docs/prd.md
+grep -c "Given\|When\|Then" docs/features/<feature>/prd.md
 ```
 
 ### After Phase 2 (Architect)
 ```bash
-# Verify ARCH doc exists
-ls docs/architecture/ARCH-*.md
+# Verify architecture doc exists
+ls docs/features/<feature>/architecture.md
 # Verify no circular dependencies (if madge is available)
 npx madge --circular src/ 2>/dev/null || echo "Install madge for circular dep checking"
 ```
@@ -54,9 +54,9 @@ grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SK
 ### After Phase 4 (Security Gate)
 ```bash
 # Verify security audit doc exists
-ls docs/security/security-audit-*.md 2>/dev/null || ls docs/security-audit-*.md 2>/dev/null
+ls docs/features/*/security-audit.md 2>/dev/null
 # Verify no BLOCKING findings
-grep -i "BLOCKING" docs/security/security-audit-*.md docs/security-audit-*.md 2>/dev/null
+grep -i "BLOCKING" docs/features/*/security-audit.md 2>/dev/null
 # Run dependency audit
 npm audit --audit-level=high
 ```
@@ -74,9 +74,9 @@ grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO
 ### After Phase 6 (Review)
 ```bash
 # Verify review doc exists
-ls docs/reviews/review-*.md 2>/dev/null || ls docs/review-*.md 2>/dev/null
+ls docs/features/*/review.md 2>/dev/null
 # Check verdict
-grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/reviews/review-*.md docs/review-*.md 2>/dev/null
+grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/features/*/review.md 2>/dev/null
 ```
 
 ### After Phase 7 (Document)

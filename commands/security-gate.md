@@ -12,7 +12,7 @@ First, load your skills:
 Your task: design-time security audit for feature: $ARGUMENTS
 
 Rules:
-- Read ONLY: docs/prd.md + docs/architecture/ARCH-$ARGUMENTS.md
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
 - Do NOT read src/ — audit the design, not the code
 - Follow the Security Audit Document Template from the security-audit skill
 - Classify every finding using the severity levels from the skill: BLOCKING / HIGH / MEDIUM / LOW / INFO
@@ -21,7 +21,7 @@ Rules:
 Run: npm audit --audit-level=high
 Include output in your report.
 
-Write findings to: docs/security/security-audit-$ARGUMENTS.md
+Write findings to: docs/features/$ARGUMENTS/security-audit.md
 Run Phase 4 verification from verification-gate skill.
 Commit with message: "security: design-time audit $ARGUMENTS"
 

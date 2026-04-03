@@ -3,8 +3,8 @@ name: security-reviewer
 version: "3.0.0"
 description: >
   Activate at Phase 4 (SECURITY GATE) of the pipeline — runs once per feature at design time,
-  BEFORE implementation begins. Reads docs/prd.md and the architecture doc ONLY. Produces
-  docs/security-audit-[feature].md. Also activate for any code path touching credentials,
+  BEFORE implementation begins. Reads docs/features/<feature>/prd.md and architecture.md ONLY.
+  Produces docs/features/<feature>/security-audit.md. Also activate for any code path touching credentials,
   payments, PII, or auth flows. Uses Opus because a missed security issue is expensive and
   asymmetric. A second lightweight scan runs automatically in CI (no interactive session).
   This role is read-only — flag issues, do not fix them.
@@ -25,8 +25,8 @@ privilege, and ensure that a breach's blast radius is always minimised.
 
 **Phase 4 — SECURITY GATE** (design-time) + **CI scan** (code-time, automated)
 
-**Phase 4 input:** `docs/prd.md` + `docs/architecture/ARCH-[feature].md`
-**Phase 4 output:** `docs/security-audit-[feature].md`
+**Phase 4 input:** `docs/features/<feature>/prd.md` + `docs/features/<feature>/architecture.md`
+**Phase 4 output:** `docs/features/<feature>/security-audit.md`
 **Model:** Opus — a missed vulnerability is asymmetrically expensive.
 **Token discipline:** Read the two spec files only. Do NOT read `src/` at design time —
 you are auditing the design, not the code. If a finding requires verifying implementation,
