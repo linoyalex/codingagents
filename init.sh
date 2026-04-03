@@ -2,8 +2,9 @@
 # init.sh — Set up a target project with codingagents pipeline
 #
 # Usage:
-#   bash /path/to/codingagents/init.sh           # Core pipeline only
-#   bash /path/to/codingagents/init.sh --codex    # Core pipeline + Codex review layer
+#   bash /path/to/codingagents/init.sh                    # Core pipeline only
+#   bash /path/to/codingagents/init.sh --codex             # Core pipeline + Codex review layer
+#   bash /path/to/codingagents/init.sh --codex --verbose   # With full trace output
 #
 # Run from the root of the target project.
 # Idempotent: safe to run multiple times. Overwrites framework files,
@@ -14,21 +15,36 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(pwd)"
 WITH_CODEX=false
+VERBOSE=false
 VERSION="v5"
 VERSION_FILE="$TARGET_DIR/.claude/.codingagents-version"
 
 for arg in "$@"; do
   case "$arg" in
     --codex) WITH_CODEX=true ;;
+    --verbose) VERBOSE=true ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
 
+# Enable trace mode for verbose output
+if [ "$VERBOSE" = true ]; then
+  set -x
+fi
+
+log_verbose() {
+  if [ "$VERBOSE" = true ]; then
+    echo "  [verbose] $*"
+  fi
+}
+
 # --- Component version helpers ---
 get_component_version() {
-  local component="$1"
+  local component="$1" line=""
   [ -f "$VERSION_FILE" ] || return 0
-  grep "^${component}=" "$VERSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]'
+  line=$(grep "^${component}=" "$VERSION_FILE" 2>/dev/null || true)
+  [ -n "$line" ] && echo "${line#*=}" | tr -d '[:space:]'
+  return 0
 }
 
 set_component_version() {
@@ -53,6 +69,9 @@ echo "Source:  $SCRIPT_DIR"
 echo "Target:  $TARGET_DIR"
 echo "Version: $VERSION"
 echo "Codex:   $WITH_CODEX"
+echo "Verbose: $VERBOSE"
+log_verbose "VERSION_FILE=$VERSION_FILE"
+log_verbose "Existing version file: $(cat "$VERSION_FILE" 2>/dev/null || echo 'not found')"
 echo ""
 
 # --- Create directory structure ---
@@ -135,11 +154,15 @@ echo "  Updated .gitignore with runtime artifact patterns"
 
 # --- Track core version ---
 set_component_version "core" "$VERSION"
+log_verbose "Wrote core=$VERSION to version file"
 
 # --- Codex (optional) ---
 if [ "$WITH_CODEX" = true ]; then
   echo ""
   echo "[codex] Copying Codex review layer..."
+  log_verbose "Source codex dir: $SCRIPT_DIR/codex/"
+  log_verbose "Source codex contents: $(ls "$SCRIPT_DIR/codex/" 2>/dev/null || echo 'MISSING')"
+  log_verbose "Target codex dir: $TARGET_DIR/codex/"
   mkdir -p "$TARGET_DIR/codex/reviewers"
   mkdir -p "$TARGET_DIR/codex/templates"
   mkdir -p "$TARGET_DIR/codex/reviews"
@@ -170,7 +193,11 @@ if [ "$WITH_CODEX" = true ]; then
   done
 
   set_component_version "codex" "$VERSION"
+  log_verbose "Wrote codex=$VERSION to version file"
+  log_verbose "Codex files installed: $(ls "$TARGET_DIR/codex/" 2>/dev/null || echo 'NONE')"
   echo "  Codex review layer installed."
+else
+  log_verbose "WITH_CODEX=$WITH_CODEX — skipping codex install"
 fi
 
 echo ""

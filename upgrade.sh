@@ -2,8 +2,9 @@
 # upgrade.sh — Upgrade an existing project to the latest codingagents version
 #
 # Usage:
-#   bash /path/to/codingagents/upgrade.sh           # Upgrade core pipeline only
-#   bash /path/to/codingagents/upgrade.sh --codex    # Upgrade core + install/upgrade Codex
+#   bash /path/to/codingagents/upgrade.sh                    # Upgrade core pipeline only
+#   bash /path/to/codingagents/upgrade.sh --codex             # Upgrade core + install/upgrade Codex
+#   bash /path/to/codingagents/upgrade.sh --codex --verbose   # With full trace output
 #
 # Components are tracked independently. Running with --codex on a project
 # already at the current core version will skip core and install Codex only.
@@ -16,21 +17,36 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(pwd)"
 WITH_CODEX=false
+VERBOSE=false
 NEW_VERSION="v5"
 VERSION_FILE="$TARGET_DIR/.claude/.codingagents-version"
 
 for arg in "$@"; do
   case "$arg" in
     --codex) WITH_CODEX=true ;;
+    --verbose) VERBOSE=true ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
 
+# Enable trace mode for verbose output
+if [ "$VERBOSE" = true ]; then
+  set -x
+fi
+
+log_verbose() {
+  if [ "$VERBOSE" = true ]; then
+    echo "  [verbose] $*"
+  fi
+}
+
 # --- Component version helpers ---
 get_component_version() {
-  local component="$1"
+  local component="$1" line=""
   [ -f "$VERSION_FILE" ] || return 0
-  grep "^${component}=" "$VERSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]'
+  line=$(grep "^${component}=" "$VERSION_FILE" 2>/dev/null || true)
+  [ -n "$line" ] && echo "${line#*=}" | tr -d '[:space:]'
+  return 0
 }
 
 set_component_version() {
@@ -60,6 +76,13 @@ if [ -z "$CURRENT_CORE" ]; then
   echo "No core version found. Assuming $CURRENT_CORE."
 fi
 
+log_verbose "VERSION_FILE=$VERSION_FILE"
+log_verbose "Existing version file: $(cat "$VERSION_FILE" 2>/dev/null || echo 'not found')"
+log_verbose "CURRENT_CORE=$CURRENT_CORE"
+log_verbose "CURRENT_CODEX=$CURRENT_CODEX"
+log_verbose "WITH_CODEX=$WITH_CODEX"
+log_verbose "codex dir exists: $([ -d "$TARGET_DIR/codex/reviewers" ] && echo 'yes' || echo 'no')"
+
 CORE_NEEDS_UPGRADE=false
 CODEX_NEEDS_INSTALL=false
 
@@ -70,8 +93,15 @@ fi
 if [ "$WITH_CODEX" = true ]; then
   if [ -z "$CURRENT_CODEX" ] || [ "$CURRENT_CODEX" != "$NEW_VERSION" ]; then
     CODEX_NEEDS_INSTALL=true
+  # Version file says installed, but directory is missing — reinstall
+  elif [ ! -d "$TARGET_DIR/codex/reviewers" ]; then
+    CODEX_NEEDS_INSTALL=true
+    echo "Note: codex=$CURRENT_CODEX in version file but codex/ directory is missing. Will reinstall."
   fi
 fi
+
+log_verbose "CORE_NEEDS_UPGRADE=$CORE_NEEDS_UPGRADE"
+log_verbose "CODEX_NEEDS_INSTALL=$CODEX_NEEDS_INSTALL"
 
 if [ "$CORE_NEEDS_UPGRADE" = false ] && [ "$CODEX_NEEDS_INSTALL" = false ]; then
   echo "All requested components are at version $NEW_VERSION. Nothing to upgrade."
@@ -220,32 +250,49 @@ if [ "$CODEX_NEEDS_INSTALL" = true ]; then
   fi
 
   echo "[codex] Installing Codex review layer..."
+  log_verbose "Source codex dir: $SCRIPT_DIR/codex/"
+  log_verbose "Source codex contents: $(ls "$SCRIPT_DIR/codex/" 2>/dev/null || echo 'MISSING')"
+  log_verbose "Target codex dir: $TARGET_DIR/codex/"
   mkdir -p "$TARGET_DIR/codex/reviewers"
   mkdir -p "$TARGET_DIR/codex/templates"
   mkdir -p "$TARGET_DIR/codex/reviews"
 
   if [ -d "$SCRIPT_DIR/codex/reviewers" ]; then
     cp "$SCRIPT_DIR"/codex/reviewers/*.md "$TARGET_DIR/codex/reviewers/" 2>/dev/null || true
+    log_verbose "Copied reviewers: $(ls "$TARGET_DIR/codex/reviewers/" 2>/dev/null)"
+  else
+    log_verbose "WARNING: Source codex/reviewers/ does not exist at $SCRIPT_DIR/codex/reviewers"
   fi
 
   if [ -d "$SCRIPT_DIR/codex/templates" ]; then
     cp "$SCRIPT_DIR"/codex/templates/* "$TARGET_DIR/codex/templates/" 2>/dev/null || true
+    log_verbose "Copied templates: $(ls "$TARGET_DIR/codex/templates/" 2>/dev/null)"
+  else
+    log_verbose "WARNING: Source codex/templates/ does not exist at $SCRIPT_DIR/codex/templates"
   fi
 
   for script in log-usage.sh report-usage.sh; do
     if [ -f "$SCRIPT_DIR/codex/$script" ]; then
       cp "$SCRIPT_DIR/codex/$script" "$TARGET_DIR/codex/$script"
       chmod +x "$TARGET_DIR/codex/$script"
+      log_verbose "Copied and chmod +x: $script"
+    else
+      log_verbose "WARNING: $SCRIPT_DIR/codex/$script not found"
     fi
   done
 
   for doc in README.md fresh-context-playbook.md; do
     if [ -f "$SCRIPT_DIR/codex/$doc" ]; then
       cp "$SCRIPT_DIR/codex/$doc" "$TARGET_DIR/codex/$doc"
+      log_verbose "Copied doc: $doc"
+    else
+      log_verbose "WARNING: $SCRIPT_DIR/codex/$doc not found"
     fi
   done
 
   set_component_version "codex" "$NEW_VERSION"
+  log_verbose "Wrote codex=$NEW_VERSION to version file"
+  log_verbose "Codex files installed: $(ls "$TARGET_DIR/codex/" 2>/dev/null || echo 'NONE')"
   echo "  Codex review layer installed at $NEW_VERSION."
 fi
 
