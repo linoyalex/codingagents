@@ -15,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(pwd)"
 WITH_CODEX=false
 VERSION="v5"
+VERSION_FILE="$TARGET_DIR/.claude/.codingagents-version"
 
 for arg in "$@"; do
   case "$arg" in
@@ -22,6 +23,30 @@ for arg in "$@"; do
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
+
+# --- Component version helpers ---
+get_component_version() {
+  local component="$1"
+  [ -f "$VERSION_FILE" ] || return 0
+  grep "^${component}=" "$VERSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '[:space:]'
+}
+
+set_component_version() {
+  local component="$1" version="$2"
+  mkdir -p "$(dirname "$VERSION_FILE")"
+  if [ -f "$VERSION_FILE" ] && grep -q "^${component}=" "$VERSION_FILE" 2>/dev/null; then
+    sed -i '' "s/^${component}=.*/${component}=${version}/" "$VERSION_FILE"
+  else
+    echo "${component}=${version}" >> "$VERSION_FILE"
+  fi
+}
+
+# Migrate legacy single-line version file
+if [ -f "$VERSION_FILE" ] && ! grep -q "=" "$VERSION_FILE" 2>/dev/null; then
+  LEGACY_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
+  echo "core=$LEGACY_VERSION" > "$VERSION_FILE"
+  echo "Migrated legacy version file (was: $LEGACY_VERSION)"
+fi
 
 echo "=== codingagents init ==="
 echo "Source:  $SCRIPT_DIR"
@@ -108,8 +133,8 @@ else
 fi
 echo "  Updated .gitignore with runtime artifact patterns"
 
-# --- Version file ---
-echo "$VERSION" > "$TARGET_DIR/.claude/.codingagents-version"
+# --- Track core version ---
+set_component_version "core" "$VERSION"
 
 # --- Codex (optional) ---
 if [ "$WITH_CODEX" = true ]; then
@@ -144,12 +169,14 @@ if [ "$WITH_CODEX" = true ]; then
     fi
   done
 
+  set_component_version "codex" "$VERSION"
   echo "  Codex review layer installed."
 fi
 
 echo ""
 echo "=== Done ==="
-echo "Version $VERSION installed to $TARGET_DIR"
+echo "Installed components:"
+cat "$VERSION_FILE"
 echo ""
 echo "Next steps:"
 echo "  1. Edit CLAUDE.md to fill in project-specific sections"
