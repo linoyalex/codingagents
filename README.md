@@ -24,7 +24,7 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 ## What's new in v5
 
-- **Structured handoffs** — `.claude/handoff.json` replaces free-form markdown handoffs. Schema-validated by the Stop hook as a blocking gate.
+- **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases (each phase must write it before completion). Schema-validated by the Stop hook as a blocking gate. For human session resumability, use `/session-note` separately.
 - **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution. Retry cycles are tracked separately from first-pass costs.
 - **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits to prevent context bloat.
 - **Deployment tooling** — `init.sh` and `upgrade.sh` replace the manual 6-step copy process. Version tracking via `.claude/.codingagents-version`.
@@ -68,7 +68,7 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 │   ├── review.md                    → /review [feature-name]
 │   ├── document.md                  → /document [feature-name]
 │   ├── status.md                    → /status
-│   └── handoff.md                   → /handoff
+│   └── session-note.md              → /session-note
 │
 ├── schemas/                         ← Schema definitions
 │   └── handoff.schema.json          ← Handoff artifact schema (copied to target projects)
@@ -218,7 +218,7 @@ Use `codex/report-usage.sh` to generate reports from the JSONL log.
 |------|-----|
 | Fresh session per pipeline phase | Prevents prior context from polluting the current task |
 | `/compact` at 60% context | Auto-compaction loses context silently — manual is safer |
-| `/handoff` before ending a long session | Writes a note the next session can read to resume |
+| `/session-note` before ending a long session | Writes a human-readable note for resuming work (not a pipeline handoff) |
 | `/status` at the start of each session | Detects pipeline phase from handoff or file existence, prints next action |
 | Never load more than 10 files per session | More than 10 means you're doing too much at once — split the task |
 | Write `.claude/handoff.json` at end of phase | Blocking gate — Stop hook validates and rejects if missing |
