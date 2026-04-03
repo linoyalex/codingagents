@@ -52,11 +52,14 @@ grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SK
 ```
 
 ### After Phase 4 (Security Gate)
+
+> Replace `<feature>` below with the current feature slug (e.g. `user-auth`).
+
 ```bash
-# Verify security audit doc exists
-ls docs/features/*/security-audit.md 2>/dev/null
-# Verify no BLOCKING findings
-grep -i "BLOCKING" docs/features/*/security-audit.md 2>/dev/null
+# Verify security audit doc exists for THIS feature
+ls docs/features/<feature>/security-audit.md
+# Verify no BLOCKING findings for THIS feature
+grep -i "BLOCKING" docs/features/<feature>/security-audit.md
 # Run dependency audit
 npm audit --audit-level=high
 ```
@@ -72,11 +75,14 @@ grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO
 ```
 
 ### After Phase 6 (Review)
+
+> Replace `<feature>` below with the current feature slug (e.g. `user-auth`).
+
 ```bash
-# Verify review doc exists
-ls docs/features/*/review.md 2>/dev/null
-# Check verdict
-grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/features/*/review.md 2>/dev/null
+# Verify review doc exists for THIS feature
+ls docs/features/<feature>/review.md
+# Check verdict for THIS feature
+grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/features/<feature>/review.md
 ```
 
 ### After Phase 7 (Document)
