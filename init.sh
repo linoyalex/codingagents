@@ -38,11 +38,8 @@ mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.claude/helpers"
 mkdir -p "$TARGET_DIR/.claude/schemas"
 mkdir -p "$TARGET_DIR/.claude/context-archive"
-mkdir -p "$TARGET_DIR/docs/architecture"
-mkdir -p "$TARGET_DIR/docs/design"
-mkdir -p "$TARGET_DIR/docs/memory"
-mkdir -p "$TARGET_DIR/docs/security"
-mkdir -p "$TARGET_DIR/docs/reviews"
+mkdir -p "$TARGET_DIR/docs/features"
+mkdir -p "$TARGET_DIR/docs/decisions"
 
 # --- Copy roles ---
 echo "[2/7] Copying role files..."
@@ -76,14 +73,7 @@ cp "$SCRIPT_DIR/hooks/settings.json" "$TARGET_DIR/.claude/settings.json"
 cp -r "$SCRIPT_DIR/schemas/"* "$TARGET_DIR/.claude/schemas/" 2>/dev/null || true
 echo "  Copied hooks, settings, and schemas"
 
-# Copy shared memory and design docs used by fresh sessions
-if [ -d "$SCRIPT_DIR/docs/design" ]; then
-  cp "$SCRIPT_DIR"/docs/design/*.md "$TARGET_DIR/docs/design/" 2>/dev/null || true
-fi
-if [ -d "$SCRIPT_DIR/docs/memory" ]; then
-  cp "$SCRIPT_DIR"/docs/memory/*.md "$TARGET_DIR/docs/memory/" 2>/dev/null || true
-fi
-echo "  Copied shared design and memory docs"
+echo "  Created docs directories (features, decisions) for project use"
 
 # --- CLAUDE.md (prompt before overwrite) ---
 echo "[6/7] Setting up CLAUDE.md..."
@@ -153,11 +143,6 @@ if [ "$WITH_CODEX" = true ]; then
       cp "$SCRIPT_DIR/codex/$doc" "$TARGET_DIR/codex/$doc"
     fi
   done
-
-  # Add codex runtime artifacts to .gitignore
-  if ! grep -qF "codex/reviews/" "$TARGET_DIR/.gitignore" 2>/dev/null; then
-    echo "codex/reviews/" >> "$TARGET_DIR/.gitignore"
-  fi
 
   echo "  Codex review layer installed."
 fi

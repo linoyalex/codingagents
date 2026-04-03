@@ -326,9 +326,13 @@ function main() {
     process.exit(1);
   }
 
-  // Handoff is valid — use its phase number deterministically, fall back to heuristic only if phase unknown
-  const phase = phaseFromHandoff(handoffResult.handoff) || detectPhase();
+  // Artifact-based detection is primary; handoff provides attribution (feature, produced_by)
+  // Only fall back to handoff phase if no artifacts are found (phase 0)
+  const artifactPhase = detectPhase();
   const feature = handoffResult.handoff.feature;
+  const phase = (artifactPhase.phase > 0)
+    ? { ...artifactPhase, feature }
+    : (phaseFromHandoff(handoffResult.handoff) || artifactPhase);
 
   console.log(`[handoff] ✓ handoff.json valid for feature: ${feature} (phase ${handoffResult.handoff.phase})`);
 

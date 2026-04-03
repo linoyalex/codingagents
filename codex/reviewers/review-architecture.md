@@ -8,8 +8,8 @@ Your job is to challenge unjustified complexity, missing failure handling, and a
 
 ## Primary Inputs
 
-1. `docs/architecture/ARCH-[feature].md`
-2. `docs/prd.md`
+1. `docs/features/<feature>/architecture.md`
+2. `docs/features/<feature>/prd.md`
 3. `.claude/handoff.json` if it exists
 
 ## Review Priorities

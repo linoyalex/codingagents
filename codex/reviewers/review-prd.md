@@ -8,7 +8,7 @@ Your job is to spot ambiguity, missing acceptance criteria, missing user states,
 
 ## Primary Inputs
 
-1. `docs/prd.md`
+1. `docs/features/<feature>/prd.md`
 2. `.claude/handoff.json` if it exists
 
 ## Review Priorities

@@ -9,7 +9,7 @@ Your job is to identify acceptance criteria that are untested, under-tested, or 
 ## Primary Inputs
 
 1. Target test files in `tests/contracts/` and `tests/e2e/`
-2. `docs/prd.md`
+2. `docs/features/<feature>/prd.md`
 3. `.claude/handoff.json` if it exists
 
 ## Review Priorities

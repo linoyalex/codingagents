@@ -59,25 +59,25 @@ Review git diff main...HEAD with findings-first output.
 Prioritize correctness, security, and missing tests.
 Use file:line evidence and give a merge recommendation.
 If .claude/handoff.json exists, use it only for AC and risk context.
-Write the result to codex/reviews/review-code-[feature].md.
+Write the result to codex/reviews/review-code-<feature>.md.
 ```
 
 ### B) Fresh test-design review
 
 ```text
 Use codex/reviewers/review-test-design.md.
-Review tests/contracts/ and tests/e2e/ against docs/prd.md.
+Review tests/contracts/ and tests/e2e/ against docs/features/<feature>/prd.md.
 Map each finding to an AC. Prioritize missing boundary and negative cases.
-Write the result to codex/reviews/review-test-design-[feature].md.
+Write the result to codex/reviews/review-test-design-<feature>.md.
 ```
 
 ### C) Fresh architecture review
 
 ```text
 Use codex/reviewers/review-architecture.md.
-Review docs/architecture/ARCH-[feature].md against docs/prd.md.
+Review docs/features/<feature>/architecture.md against docs/features/<feature>/prd.md.
 Focus on unjustified complexity, missing failure modes, and dependency risks.
-Write the result to codex/reviews/review-architecture-[feature].md.
+Write the result to codex/reviews/review-architecture-<feature>.md.
 ```
 
 ## 6) Keep token use low in practice

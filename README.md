@@ -283,8 +283,8 @@ Codex acts as an independent verification layer — a second model's perspective
 ```
 Claude Pipeline (builds)            Codex Review Layer (challenges)
 ────────────────────────            ────────────────────────────────
-Phase 1 → docs/prd.md         ───→  Codex: review-prd
-Phase 2 → ARCH doc             ───→  Codex: review-architecture
+Phase 1 → prd.md               ───→  Codex: review-prd
+Phase 2 → architecture.md      ───→  Codex: review-architecture
 Phase 3 → failing tests        ───→  Codex: review-test-design
 Phase 5 → src/ changes         ───→  Codex: review-code
 ```
@@ -328,9 +328,9 @@ Then inspect totals:
 
 | Reviewer | Reads | Add after |
 |---|---|---|
-| `codex/reviewers/review-test-design.md` | `tests/contracts/`, `tests/e2e/`, `docs/prd.md` | Code review validated |
-| `codex/reviewers/review-architecture.md` | `docs/architecture/ARCH-[feature].md`, `docs/prd.md` | Test design review validated |
-| `codex/reviewers/review-prd.md` | `docs/prd.md` | Architecture review validated |
+| `codex/reviewers/review-test-design.md` | `tests/contracts/`, `tests/e2e/`, `docs/features/<feature>/prd.md` | Code review validated |
+| `codex/reviewers/review-architecture.md` | `docs/features/<feature>/architecture.md`, `docs/features/<feature>/prd.md` | Test design review validated |
+| `codex/reviewers/review-prd.md` | `docs/features/<feature>/prd.md` | Architecture review validated |
 
 Keep each Codex run scoped to one artifact and one review file. If findings flow back into the Claude pipeline, cap the injected summary at 500 tokens.
 
