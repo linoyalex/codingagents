@@ -20,6 +20,7 @@ Your task: produce docs/features/$ARGUMENTS/architecture.md
 
 Rules:
 - Read ONLY: docs/features/$ARGUMENTS/prd.md + the Architecture Notes section of CLAUDE.md
+  (If the repo has a docs/CLAUDE.md, read that file for project-specific architecture context instead of the root template)
 - If you need to understand an existing pattern, read ONE representative file — not a whole module
 - Never Glob src/
 - Follow the architecture.md Template from the architecture-decision skill

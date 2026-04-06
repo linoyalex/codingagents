@@ -51,10 +51,20 @@ function restoreFromHandoff() {
   if (!fs.existsSync(HANDOFF_FILE)) return null;
 
   try {
-    const handoff = JSON.parse(fs.readFileSync(HANDOFF_FILE, 'utf8'));
+    const raw = fs.readFileSync(HANDOFF_FILE, 'utf8');
+    let handoff;
+    try {
+      handoff = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error(`[restore-context] error: malformed handoff.json — ${parseErr.message}`);
+      return null;
+    }
 
     // Validate minimum required fields
-    if (!handoff.goal || !handoff.relevant_files) return null;
+    if (!handoff.goal || !handoff.relevant_files) {
+      console.error('[restore-context] error: invalid handoff.json — missing required fields (goal, relevant_files)');
+      return null;
+    }
 
     let output = '## Handoff from previous phase\n\n';
     output += `**Feature:** ${handoff.feature || 'unknown'}\n`;
@@ -93,7 +103,8 @@ function restoreFromHandoff() {
 
     output += '---\n';
     return { output, feature: handoff.feature, phase: handoff.phase };
-  } catch {
+  } catch (err) {
+    console.error(`[restore-context] error: failed to read handoff.json — ${err.message}`);
     return null;
   }
 }

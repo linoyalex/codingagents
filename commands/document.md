@@ -20,6 +20,7 @@ Your task: post-merge documentation update for feature: $ARGUMENTS
 
 Rules:
 - Read ONLY: docs/features/$ARGUMENTS/prd.md + CHANGELOG.md + CLAUDE.md + the most recent file in release-notes/
+  (If the repo has a docs/CLAUDE.md, read and update that file for project-specific conventions instead of the root template)
 - Do NOT read src/ — the prd.md describes what changed at the right level
 - Follow the CHANGELOG.md Format from the release-docs skill
 - Update CHANGELOG.md: one bullet per AC from docs/features/$ARGUMENTS/prd.md
