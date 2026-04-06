@@ -4,10 +4,8 @@
 
 ## Decision
 
-The dogfood run is a **process validation**, not a code feature. No new modules,
-services, or abstractions are introduced. The existing pipeline machinery (checkpoint.js,
-restore-context.js, handoff.json, phase commands) is exercised against itself to surface
-bugs. Five architectural decisions govern how this works.
+The dogfood run is a **process validation**, not a code feature. The existing pipeline
+machinery is exercised against itself to surface bugs. Five decisions govern how this works.
 
 ---
 
@@ -24,26 +22,39 @@ the install script itself.
 
 **Decision:** Agents read `docs/CLAUDE.md` for framework-development context. The root
 `CLAUDE.md` is the consumer template and must not be treated as the governing instruction
-file during dogfood. Phase 2 (architect) and Phase 7 (documentation) agents must confirm
-they loaded `docs/CLAUDE.md` by referencing its header in their output.
+file during dogfood.
 
-**Enforcement:** restore-context.js already loads both files. Agent prompts (ROLE_*.md)
-must include the line: "For framework development, use docs/CLAUDE.md as primary context."
+**Prerequisite fixes (before dogfood validates AC6):**
+1. Update `commands/architect.md` and `commands/document.md` to reference `docs/CLAUDE.md`
+   instead of generic `CLAUDE.md` when running in a repo that has both files.
+2. Claude Code auto-loads both files already — no change to restore-context.js needed for
+   loading. The gap is in the command prompts, not the hook.
+
+**Rejected:** Adding CLAUDE.md routing logic to restore-context.js. Reason: overreach for
+a hook; the correct fix is in the command prompt text.
 
 ## AD3 -- Handoff Flow
 
-**Decision:** Standard handoff.json lifecycle, no modifications. Each phase writes
-`.claude/handoff.json`; checkpoint.js validates schema on Stop; restore-context.js loads
-it on SessionStart. The dogfood feature name is `invariants-audit` (ISS-001).
+**Decision:** Standard handoff.json lifecycle with one prerequisite fix:
 
-**Token log:** checkpoint.js appends to `.claude/token-usage.jsonl` (one JSON line per
-phase). Post-run aggregation uses a shell one-liner, not a new tool.
+`restore-context.js` currently returns `null` silently on malformed JSON or missing
+fields (lines 53-57). This violates AC4 which requires error logging and agent
+notification. **Before dogfooding**, add stderr diagnostic output when handoff parsing
+fails, so the next agent sees the failure reason.
+
+checkpoint.js validates schema on Stop (outbound gate). restore-context.js loads on
+SessionStart (inbound). The dogfood feature name is `invariants-audit` (ISS-001).
 
 ## AD4 -- Token Tracking
 
-**Decision:** After all 7 phases, aggregate `.claude/token-usage.jsonl` via shell one-liner.
-Output to `docs/features/dogfood-pipeline/token-report.md`. Variance > 20% triggers backlog entry (AC9).
-A dedicated reporting tool was rejected as premature.
+**Decision:** After all 7 phases, aggregate `.claude/token-usage.jsonl` using
+`codex/report-usage.sh` (which already exists and reads the budget table from root
+`CLAUDE.md` lines 276-286). Output to `docs/features/dogfood-pipeline/token-report.md`.
+Variance > 20% per phase triggers backlog entry (AC9).
+
+**Budget source:** Root `CLAUDE.md` is authoritative — it contains the only budget table
+in the repo. This is correct: the budget targets are part of the consumer-facing pipeline
+spec, not framework-specific.
 
 ## AD5 -- Bug Logging
 
@@ -53,43 +64,32 @@ the feature directory. No new tracking system; the backlog is the system of reco
 
 ---
 
-## Data Model Changes
+## Data Model / API Changes
 
-None. This is a process feature.
+None. This is a process feature — no new tables, fields, or endpoints.
 
-## API Contract
+## Prerequisite Framework Fixes
 
-None. No new endpoints.
-
-## Module Boundaries
-
-| Component | Owner | Role in Dogfood |
-|-----------|-------|-----------------|
-| `hooks/checkpoint.js` | framework | Validates handoff, logs tokens (unchanged) |
-| `hooks/restore-context.js` | framework | Loads handoff at session start (unchanged) |
-| `schemas/handoff.schema.json` | framework | Schema for handoff validation (unchanged) |
-| `docs/features/invariants-audit/` | dogfood run | Receives phase artifacts (prd, arch, tests, etc.) |
-| `docs/features/dogfood-pipeline/` | ISS-005 | Meta-feature: this architecture doc, token report |
-| `docs/issues/backlog.md` | shared | Receives bug entries from dogfood phases |
-
-No new modules. No code changes to existing modules.
+These scoped changes must land before dogfood validates AC4 and AC6:
+1. `hooks/restore-context.js`: log to stderr on malformed handoff instead of silent `null`
+2. `commands/architect.md` + `commands/document.md`: reference `docs/CLAUDE.md` for repos with both files
 
 ## Failure Modes
 
 | Failure | Detection | Response |
 |---------|-----------|----------|
 | init.sh fails on own repo | AC1 check fails; `.claude/` incomplete | Fix init.sh before proceeding |
-| handoff.json invalid between phases | checkpoint.js logs error, blocks (AC4) | Fix handoff in failing phase, re-run |
-| Agent loads root CLAUDE.md instead of docs/ | Phase output references consumer template | Agent re-runs with correct scoping prompt |
+| handoff.json invalid between phases | checkpoint.js blocks outbound (Stop hook) | Fix handoff in failing phase, re-run |
+| handoff.json corrupted after checkpoint | restore-context.js must log to stderr (prereq fix) | Agent sees error; re-run previous phase |
+| Agent loads root CLAUDE.md instead of docs/ | Command prompts must reference docs/CLAUDE.md (prereq fix) | Agent re-runs with corrected command |
 | Token log missing or malformed | Aggregation script errors | Manual token count from session metadata |
 | Bug not logged to backlog | Post-run audit of phase notes vs backlog | Retroactively add missed entries |
 
 ## Fitness Functions
 
 1. **Handoff continuity:** Every phase N handoff.json must have `phase: N` and valid schema.
-2. **Artifact isolation:** After phase 3, `docs/features/invariants-audit/` contains only
-   spec docs (no src/ artifacts). Verified by `ls` check.
-3. **Token budget:** Per-phase variance vs CLAUDE.md budget table stays under 20%.
+2. **Artifact isolation:** After phase 3, `docs/features/invariants-audit/` contains only spec docs.
+3. **Token budget:** Per-phase variance vs root `CLAUDE.md` budget table (lines 276-286) stays under 20%.
 4. **Bug capture rate:** Every framework issue noted in phase output has a backlog entry.
 
 ## Rejected Alternatives
