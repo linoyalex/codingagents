@@ -62,6 +62,89 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 
 ---
 
+## Code Conventions
+
+### Must Follow
+- Shell scripts use `set -euo pipefail`
+- Skills stay under ~100 lines
+- Commands include YAML frontmatter (`description`, `user-invocable: true`)
+- Roles include version number, pipeline phase, model spec, allowed/disallowed tools, and DoD
+- All JSON schemas use draft-07 with `additionalProperties: false`
+- Hook scripts must exit non-zero to block (checkpoint.js) or zero to proceed silently
+- No hardcoded absolute paths in any framework file — use relative paths from project root
+
+### Naming
+- Roles: `ROLE_UPPER_SNAKE.md` (e.g. `ROLE_CODE_REVIEWER.md`)
+- Skills: `skills/kebab-case/SKILL.md` (e.g. `skills/security-audit/SKILL.md`)
+- Commands: `commands/kebab-case.md` (e.g. `commands/security-gate.md`)
+- Feature artifacts: `docs/features/kebab-case/` (e.g. `docs/features/invariants-audit/`)
+- Test fixtures: `tests/fixtures/kebab-case/` matching the component they test
+
+### Folder Structure
+```
+ROLE_*.md             # Source role definitions (copied to .claude/agents/ by init.sh)
+commands/             # Source command files (copied to .claude/commands/ by init.sh)
+skills/               # Source skill files (copied to .claude/skills/ by init.sh)
+hooks/                # Source hook scripts (copied to .claude/helpers/ by init.sh)
+schemas/              # Source schemas (copied to .claude/schemas/ by init.sh)
+docs/
+├── design/           # Design proposals and implementation records
+├── features/         # Per-feature pipeline artifacts (prd, architecture, review, etc.)
+├── issues/           # Backlog management (see skills/backlog-management/SKILL.md)
+│   ├── backlog.md    # Open ticket index
+│   ├── in-progress.md
+│   ├── closed.md
+│   └── tickets/      # Full ticket details
+└── memory/           # Cross-agent shared context
+tests/
+├── node/             # Node.js test files (run with node --test)
+├── fixtures/         # Test fixture data
+├── test-install-scripts.sh
+└── test-command-contracts.sh
+```
+
+---
+
+## Architecture Notes
+
+### Core abstraction: WHO / WHAT / HOW
+
+| Layer | Files | Purpose |
+|-------|-------|---------|
+| **WHO** (Roles) | `ROLE_*.md` | Identity, constraints, model tier, allowed tools |
+| **WHAT** (Commands) | `commands/*.md` | Phase trigger, what to read, what to produce, verification |
+| **HOW** (Skills) | `skills/*/SKILL.md` | Reusable procedures, templates, checklists |
+
+Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands orchestrate a phase.
+
+### Phase contract: handoff.json
+
+`handoff.json` is the machine-readable contract between pipeline phases. Each phase writes it; the next phase reads it. Schema: `schemas/handoff.schema.json`. Validated by `checkpoint.js` (Stop hook) as a blocking gate.
+
+### Hooks lifecycle
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `checkpoint.js` | Stop | Validates handoff.json, logs tokens, detects phase, writes pipeline-checkpoint.json |
+| `restore-context.js` | SessionStart | Loads handoff.json as primary context for fresh sessions |
+| `archive-context.js` | PreCompact | Archives conversation turns before context compaction |
+
+### ADR Index
+- [Dogfood proposal](design/dogfood-proposal.md) — using codingagents to develop codingagents
+
+---
+
+## Known Gotchas
+
+- `checkpoint.js` detects pipeline phase from file existence (`docs/features/<feature>/prd.md` → Phase 1 complete). Pre-existing files in `docs/` outside `features/` do not interfere.
+- Commands reference installed skill paths (`.claude/skills/...`), not source paths (`skills/...`). The installed copies must exist for slash commands to work.
+- `docs/CLAUDE.md` is auto-loaded by Claude Code alongside root `CLAUDE.md`. This file contains framework-specific instructions; root `CLAUDE.md` is the consumer template.
+- Root `CLAUDE.md` has placeholder comments (`<!-- e.g. ... -->`) that must stay as guidance for target projects. Do not fill them in with codingagents-specific content.
+- `settings.json` (hooks) and `settings.local.json` (permissions) are merged by Claude Code. Installing hooks via `init.sh` does not overwrite permissions.
+- The backlog system uses index files + individual ticket files. Status changes cost ~2 lines across 2 index files. See `skills/backlog-management/SKILL.md`.
+
+---
+
 ## When modifying the template CLAUDE.md
 
 The root `CLAUDE.md` is a template that `init.sh` copies to target projects. When editing it:
