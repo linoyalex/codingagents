@@ -4,7 +4,7 @@ user-invocable: true
 ---
 Check the current state of the development pipeline and tell me exactly where to resume.
 
-Note: pipeline state comes from checkpoint.json and handoff.json (machine contracts).
+Note: pipeline state comes from .claude/pipeline-checkpoint.json and .claude/handoff.json (machine contracts).
 The optional .claude/session-note.md is a human-readable session summary — read it for
 context if it exists, but do not use it as a source of pipeline phase truth.
 

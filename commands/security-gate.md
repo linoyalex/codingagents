@@ -9,6 +9,14 @@ First, load your skills:
 - Read .claude/skills/structured-logging/SKILL.md for security event logging requirements and PII scrubbing rules
 - Read .claude/skills/verification-gate/SKILL.md for Phase 4 verification
 
+Session requirement: This phase must run in a fresh session. If you are
+continuing from a previous phase, end this session and start a new one.
+
+Model: This phase should run with claude-opus-4-6.
+
+First, read .claude/handoff.json. If it references a different feature or
+unexpected phase, warn the user before proceeding.
+
 Your task: design-time security audit for feature: $ARGUMENTS
 
 Rules:
@@ -25,6 +33,14 @@ Write findings to: docs/features/$ARGUMENTS/security-audit.md
 Run Phase 4 verification from verification-gate skill.
 Commit with message: "security: design-time audit $ARGUMENTS"
 
-After committing, print one of:
-- "Phase 4 complete — NO BLOCKING findings. Next: /implement $ARGUMENTS"
-- "Phase 4 BLOCKED — resolve BLOCKING findings before implementing"
+If there are NO BLOCKING findings, write .claude/handoff.json with:
+  feature: $ARGUMENTS, phase: 4, goal: "Implement feature using strict TDD",
+  scope: "Phase 5 implementation only", relevant_files: ["docs/features/$ARGUMENTS/architecture.md", "tests/contracts/$ARGUMENTS.test.ts", "tests/e2e/$ARGUMENTS.spec.ts"],
+  acceptance_criteria: [from the PRD], verification_commands: ["npm test"],
+  produced_by: "security-reviewer", timestamp: current ISO 8601
+Then print: "Phase 4 complete — NO BLOCKING findings. Next: /implement $ARGUMENTS"
+
+If there ARE BLOCKING findings, do NOT write a new handoff.json — the existing
+handoff from the test-design phase remains valid. The pipeline must stop here
+until all BLOCKING findings are resolved and /security-gate is re-run.
+Then print: "Phase 4 BLOCKED — resolve BLOCKING findings before implementing. Re-run /security-gate $ARGUMENTS after fixes."

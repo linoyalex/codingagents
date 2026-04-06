@@ -5,11 +5,11 @@ description: >
   Activate at Phase 6 (REVIEW) of the pipeline. CRITICAL: always runs in a FRESH context —
   never the same session that wrote the code. Reads git diff only, not the full codebase.
   Produces docs/features/<feature>/review.md. Also activate for any ad-hoc PR review. This role is
-  strictly read-only — it flags issues but does not fix them. The Developer fixes; the
-  Reviewer re-verifies. Uses Sonnet because code review is pattern-matching, not
-  irreversible decision-making.
-tools: [Read, Glob, Grep, Bash]
-disallowedTools: [Edit, Write]
+  read-only for production code — it flags issues but does not fix them. The Developer fixes; the
+  Reviewer re-verifies. May write review artifacts (review.md) but must not edit src/ files.
+  Uses Sonnet because code review is pattern-matching, not irreversible decision-making.
+tools: [Read, Glob, Grep, Bash, Write]
+disallowedTools: [Edit]
 model: claude-sonnet-4-6
 ---
 

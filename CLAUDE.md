@@ -93,8 +93,8 @@ Feature request
     │  Writes: docs/features/<feature>/review.md
     │
     ▼ Phase 7 — DOCUMENT        [documentation-specialist]       model: haiku
-       Reads: docs/features/<feature>/prd.md + CHANGELOG.md + CLAUDE.md
-       Writes: CHANGELOG.md update + CLAUDE.md conventions update
+       Reads: docs/features/<feature>/prd.md + CHANGELOG.md + CLAUDE.md + latest release-notes/
+       Writes: CHANGELOG.md update + release-notes/ entry + CLAUDE.md conventions update
 ```
 
 ### Ad-hoc routing (outside the pipeline)
@@ -226,7 +226,7 @@ validates handoff presence; `restore-context.js` loads it as primary context at 
 | Project conventions, agent routing, absolute constraints | `CLAUDE.md` | Always (every session) | ~250 lines |
 | Reusable procedures (TDD, code review, security audit) | `skills/*.md` | On demand (by commands) | ~100 lines each |
 | Phase-specific context for the next agent | `.claude/handoff.json` | At session start (by hook) | ~50 lines |
-| Per-feature briefs and acceptance criteria | `docs/prd.md`, `docs/architecture/` | By phase spec | No hard limit |
+| Per-feature briefs and acceptance criteria | `docs/features/<feature>/prd.md`, `docs/features/<feature>/architecture.md` | By phase spec | No hard limit |
 | Agent memory (patterns, decisions, tech radar) | `.claude/agent-memory/` | By agent on demand | ~100 lines each |
 | Cross-agent memory (settled decisions, codebase map, process) | `docs/memory/` | At session start (via bootstrap) | ~50 lines each |
 

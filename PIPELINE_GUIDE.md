@@ -256,14 +256,15 @@ If a finding requires understanding context, read that one file — not the modu
 **Agent:** `documentation-specialist`  
 **Model:** `claude-haiku-4-5`  
 **Trigger:** After PR is merged  
-**Reads:** `docs/features/<feature>/prd.md` + `CHANGELOG.md` + `CLAUDE.md`  
-**Produces:** Updated `CHANGELOG.md`, updated `CLAUDE.md` if conventions changed
+**Reads:** `docs/features/<feature>/prd.md` + `CHANGELOG.md` + `CLAUDE.md` + latest `release-notes/`  
+**Produces:** Updated `CHANGELOG.md`, `release-notes/` entry, updated `CLAUDE.md` if conventions changed
 
 ```bash
 claude --model claude-haiku-4-5 \
   "Use the documentation-specialist subagent.
    Read docs/features/<feature>/prd.md to understand what changed.
    Update CHANGELOG.md with the new entry.
+   Create a release note in release-notes/ following the Release Notes Template.
    If any new conventions were established, update the Conventions section of CLAUDE.md.
    Do not read src/."
 ```
@@ -332,10 +333,11 @@ Per-phase budgets apply to iteration 1 only. Retries are tracked but not individ
 | Review checkpoint | Token budget |
 |---|---|
 | Code review (initial) | ~4-6K |
+| Security review (after code review or before merge) | ~4-6K |
 | Test design review (after code review validated) | ~3-4K |
 | Architecture review (after test design validated) | ~3-4K |
 | PRD review (after architecture validated) | ~2-3K |
-| **Full ceiling** | **~12-17K** |
+| **Full ceiling** | **~16-23K** |
 
 The initial Codex budget is ~4-6K (code review only). The full ceiling applies only after all checkpoints are activated and validated.
 

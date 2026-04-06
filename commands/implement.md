@@ -9,6 +9,14 @@ First, load your skills:
 - Read .claude/skills/structured-logging/SKILL.md for structured log format, log levels, and PII rules
 - Read .claude/skills/verification-gate/SKILL.md for Phase 5 verification
 
+Session requirement: This phase must run in a fresh session. If you are
+continuing from a previous phase, end this session and start a new one.
+
+Model: This phase should run with claude-sonnet-4-6.
+
+First, read .claude/handoff.json. If it references a different feature or
+unexpected phase, warn the user before proceeding.
+
 Your task: implement feature $ARGUMENTS using strict TDD.
 
 Rules:
@@ -38,5 +46,13 @@ Context discipline:
 - If context reaches 60%: run /compact immediately
 - If you need to read more than 10 files: split the task
 
-After all three commits, run Phase 5 verification from verification-gate skill, then print:
-"Phase 5 complete. Next: /review (in a NEW session)"
+After all three commits, run Phase 5 verification from verification-gate skill.
+
+Then write .claude/handoff.json with:
+  feature: $ARGUMENTS, phase: 5, goal: "Diff-based code review in fresh context",
+  scope: "Phase 6 review only", relevant_files: ["docs/features/$ARGUMENTS/architecture.md", "docs/features/$ARGUMENTS/prd.md"],
+  acceptance_criteria: [from the PRD], verification_commands: ["git diff main...HEAD", "ls docs/features/$ARGUMENTS/review.md"],
+  produced_by: "developer", timestamp: current ISO 8601
+
+Then print:
+"Phase 5 complete. Next: /review $ARGUMENTS (in a NEW session)"

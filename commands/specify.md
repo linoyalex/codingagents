@@ -12,6 +12,11 @@ Your combined task: produce a PRD for the following feature request:
 
 $ARGUMENTS
 
+Session requirement: This phase must run in a fresh session. If you are
+continuing from a previous phase, end this session and start a new one.
+
+Model: This phase should run with claude-haiku-4-5.
+
 Rules:
 - First, derive a short feature slug from the request using lowercase kebab-case
   (e.g. "Add user auth flow" → "user-auth", "Search filters for dashboard" → "search-filters")
@@ -23,7 +28,13 @@ Rules:
 - Follow the PRD Document Template from the prd-writing skill
 - Keep the output under 150 lines
 - Run Phase 1 verification from verification-gate skill
-- Commit docs/features/<feature>/prd.md when done with message: "spec: [feature name] PRD"
+- Commit docs/features/<feature-slug>/prd.md when done with message: "spec: [feature name] PRD"
 
-After committing, print:
+After committing, write .claude/handoff.json with:
+  feature: <feature-slug>, phase: 1, goal: "Produce architecture decision record",
+  scope: "Phase 2 architecture only", relevant_files: ["docs/features/<feature-slug>/prd.md"],
+  acceptance_criteria: [from the PRD], verification_commands: ["ls docs/features/<feature-slug>/architecture.md"],
+  produced_by: "product-owner", timestamp: current ISO 8601
+
+Then print:
 "Phase 1 complete. Next: /architect [feature-name]"

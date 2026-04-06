@@ -1,0 +1,17 @@
+{
+  "feature": "user-auth",
+  "phase": 3,
+  "goal": "Run a design-time security review.",
+  "scope": "Only the feature docs are in scope.",
+  "relevant_files": [
+    "docs/features/user-auth/prd.md",
+    "docs/features/user-auth/architecture.md"
+  ],
+  "acceptance_criteria": [
+    "AC-1"
+  ],
+  "verification_commands": [
+    "pnpm test"
+  ],
+  "timestamp": "2026-04-05T12:00:00.000Z"
+}

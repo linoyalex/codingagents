@@ -7,9 +7,10 @@ description: >
   Produces docs/features/<feature>/security-audit.md. Also activate for any code path touching credentials,
   payments, PII, or auth flows. Uses Opus because a missed security issue is expensive and
   asymmetric. A second lightweight scan runs automatically in CI (no interactive session).
-  This role is read-only — flag issues, do not fix them.
-tools: [Read, Grep, Glob, Bash]
-disallowedTools: [Edit, Write]
+  This role is read-only for production code — flag issues, do not fix them.
+  May write review artifacts (security-audit.md) but must not edit src/ files.
+tools: [Read, Grep, Glob, Bash, Write]
+disallowedTools: [Edit]
 model: claude-opus-4-6
 ---
 

@@ -8,6 +8,14 @@ First, load your skills:
 - Read .claude/skills/tdd/SKILL.md for test structure, naming, and coverage rules
 - Read .claude/skills/verification-gate/SKILL.md for Phase 3 verification
 
+Session requirement: This phase must run in a fresh session. If you are
+continuing from a previous phase, end this session and start a new one.
+
+Model: This phase should run with claude-sonnet-4-6.
+
+First, read .claude/handoff.json. If it references a different feature or
+unexpected phase, warn the user before proceeding.
+
 Your task: write failing test shells for feature: $ARGUMENTS
 
 Rules:
@@ -23,5 +31,11 @@ Rules:
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
 
-After committing, print:
+After committing, write .claude/handoff.json with:
+  feature: $ARGUMENTS, phase: 3, goal: "Design-time security audit",
+  scope: "Phase 4 security gate only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
+  acceptance_criteria: [from the PRD], verification_commands: ["ls docs/features/$ARGUMENTS/security-audit.md"],
+  produced_by: "qa", timestamp: current ISO 8601
+
+Then print:
 "Phase 3 complete. Next: /security-gate $ARGUMENTS"

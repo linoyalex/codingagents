@@ -1,0 +1,18 @@
+{
+  "feature": "user-auth",
+  "phase": 2,
+  "goal": "Write failing tests for the approved architecture.",
+  "scope": "Contract tests and E2E shells for the user-auth feature.",
+  "relevant_files": [
+    "docs/features/user-auth/prd.md",
+    "docs/features/user-auth/architecture.md"
+  ],
+  "acceptance_criteria": [
+    "AC-1",
+    "AC-2"
+  ],
+  "verification_commands": [
+    "pnpm test",
+    "pnpm lint"
+  ]
+}

@@ -58,8 +58,12 @@ grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SK
 ```bash
 # Verify security audit doc exists for THIS feature
 ls docs/features/<feature>/security-audit.md
-# Verify no BLOCKING findings for THIS feature
-grep -i "BLOCKING" docs/features/<feature>/security-audit.md
+# Verify no BLOCKING severity findings for THIS feature
+# Matches both heading format (#### BLOCKING:) and list format (- BLOCKING:)
+if grep -qiE "(^#{1,6}\s+\[?BLOCKING\]?\s*:)|(^\s*-\s+\[?BLOCKING\]?\s*:)" docs/features/<feature>/security-audit.md; then
+  echo "BLOCKING findings present — pipeline must stop"
+  exit 1
+fi
 # Run dependency audit
 npm audit --audit-level=high
 ```
@@ -81,8 +85,11 @@ grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO
 ```bash
 # Verify review doc exists for THIS feature
 ls docs/features/<feature>/review.md
-# Check verdict for THIS feature
-grep -i "verdict\|APPROVE\|REQUEST_CHANGES" docs/features/<feature>/review.md
+# Verify review verdict is not REQUEST_CHANGES for THIS feature
+if grep -qi "REQUEST.CHANGES" docs/features/<feature>/review.md; then
+  echo "Review verdict is REQUEST_CHANGES — address findings before proceeding"
+  exit 1
+fi
 ```
 
 ### After Phase 7 (Document)
