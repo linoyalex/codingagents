@@ -24,6 +24,8 @@ Rules:
 - If you need to understand an existing pattern, read ONE representative file — not a whole module
 - Never Glob src/
 - Follow the architecture.md Template from the architecture-decision skill
+- Include the architecture skill's reliability fields: decision confidence, revisit trigger, rollback/fallback, and trust boundaries when relevant
+- If a key architectural assumption is still ambiguous, record it explicitly instead of smoothing it over
 - Output must be under 100 lines
 - Run Phase 2 verification from verification-gate skill
 - Commit when done with message: "arch: $ARGUMENTS architecture decision record"

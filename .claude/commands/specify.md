@@ -26,6 +26,8 @@ Rules:
 - product-owner writes: User Story, Acceptance Criteria (Given/When/Then), Out of Scope
 - ux-designer adds: Screen States table (Empty / Loading / Populated / Error / Success per screen)
 - Follow the PRD Document Template from the prd-writing skill
+- Front-load the clearest success signal and observable outcomes; do not hide critical behavior in vague prose
+- If the request is ambiguous, capture assumptions or dependencies explicitly instead of inventing hidden policy
 - Keep the output under 150 lines
 - Run Phase 1 verification from verification-gate skill
 - Commit docs/features/<feature-slug>/prd.md when done with message: "spec: [feature name] PRD"

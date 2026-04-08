@@ -1,20 +1,28 @@
 ---
 name: architecture-decision
 description: Produce Architecture Decision Records and feature architecture documents
-version: "1.0.0"
+version: "1.2.0"
 ---
 
 # Skill: Architecture Decision Records
 
+## Top Rules
+
+- Make one primary architectural decision easier to implement and review.
+- Put revisit triggers and rollback or fallback behavior next to the decision.
+- Document trust boundaries for any user- or AI-generated input that crosses system boundaries.
+- Prefer at most three fitness functions in a feature architecture doc.
+- If the feature still contains multiple unresolved decisions, split them instead of forcing one large document.
+
 ## Decision Evaluation Framework
 
-| Criterion | Questions to ask |
-|-----------|-----------------|
-| **Understandability** | Can a new engineer reason about this without a long explanation? |
-| **Changeability** | How expensive is it to replace or modify this in 18 months? |
-| **Operability** | Is it observable, debuggable, and deployable without heroics? |
-| **Security posture** | Does it follow least privilege? What's the blast radius of a breach? |
-| **Cost** | What is the compute, egress, and human-hours cost at 10x load? |
+| Criterion | Question |
+|-----------|----------|
+| Understandability | Can a new engineer reason about this quickly? |
+| Changeability | How expensive is replacement in 12-18 months? |
+| Operability | Is it observable and debuggable without heroics? |
+| Security posture | What is the blast radius if this fails or is abused? |
+| Cost | What changes at 10x load or team size? |
 
 ## ADR Template
 
@@ -23,6 +31,10 @@ version: "1.0.0"
 
 **Status:** Proposed | Accepted | Deprecated
 **Date:** YYYY-MM-DD
+**Decision confidence:** high | medium | low
+**Superseded by:** ADR-[N] | N/A
+**Revisit when:** [specific trigger]
+**Rollback / Fallback:** [how to recover if this decision fails]
 
 **Context:**
 [What problem are we solving? What constraints exist?]
@@ -40,14 +52,23 @@ version: "1.0.0"
 - Follow-up actions: ...
 ```
 
-## architecture.md Template (keep under 100 lines)
+## architecture.md Template
 
 ```markdown
 ## Architecture: [Feature Name]
 **ADR:** ADR-[N] | Date: YYYY-MM-DD
 
 ### Decision
-[What approach, in 2–3 sentences]
+[What approach, in 2-3 sentences]
+
+### Decision Confidence
+[high | medium | low]
+
+### Revisit When
+[specific trigger that would change this decision]
+
+### Rollback / Fallback
+[how the team backs out or recovers if this design fails]
 
 ### Data Model Changes
 [New fields/tables only]
@@ -58,66 +79,34 @@ version: "1.0.0"
 ### Module Boundaries
 [Which module owns what, what it must NOT cross into]
 
+### Trust Boundaries
+| Input / boundary | Validation | Forbidden sink / unsafe use |
+|------------------|------------|-----------------------------|
+| [user or AI field] | [rule] | [where it must never go] |
+
 ### Failure Modes
 [What happens when each external dependency fails]
+
+### Fitness Functions
+1. [highest-value architectural check]
 
 ### Rejected Alternatives
 1. [Option] — rejected because [reason]
 ```
 
-## Tech Stack Evaluation Criteria
+## Dependency Gate
 
-Before approving any new dependency, evaluate against:
-- **Maturity**: How long has it been maintained? Active contributors?
-- **Bundle size**: What does it add to the client payload?
-- **Security history**: Any published CVEs? How fast were they patched?
-- **Alignment**: Does the existing stack already cover this need?
-- **Escape hatch**: How hard is it to remove if we change our mind?
+Before approving any new dependency, evaluate:
+- Need: what exact gap does it close?
+- Existing alternative: can the current stack solve this already?
+- Removal cost: how hard is it to back out later?
+- Security posture: known CVEs, risky defaults, or supply-chain concerns?
+- Operational impact: what does it add to debugging, deploys, or runtime complexity?
 
-## Tech Radar Format
+## Final Checklist
 
-Maintain in `docs/tech-radar.md`:
-
-| Technology | Ring | Last reviewed | Notes |
-|-----------|------|---------------|-------|
-| React 19 | Adopt | YYYY-MM-DD | Core framework |
-| [Library] | Trial | YYYY-MM-DD | Evaluating for [use case] |
-| [Library] | Hold | YYYY-MM-DD | Replaced by [alternative] |
-
-Rings: **Adopt** (use freely) → **Trial** (use in non-critical paths) → **Assess** (research only) → **Hold** (do not use)
-
-## Architectural Fitness Functions
-
-Fitness functions are automated checks that verify architectural decisions are being upheld. Define them alongside each ADR so architecture is enforced by CI, not by memory.
-
-| Category | Example fitness function | How to check |
-|----------|------------------------|--------------|
-| **Modularity** | No circular dependencies between modules | `npx madge --circular src/` |
-| **Performance** | Bundle size stays under threshold | `npm run build && du -sh dist/` |
-| **Coupling** | Module A never imports from Module B | `grep -rn "from.*moduleB" src/moduleA/` |
-| **API contract** | Response times under threshold | Integration test with timeout assertion |
-| **Security** | No new `any` types without justification | `grep -rn "as any\|: any" src/ \| wc -l` |
-
-Add to ARCH doc:
-```markdown
-### Fitness Functions
-| Constraint | Check command | Threshold |
-|-----------|--------------|-----------|
-| [No circular deps] | `npx madge --circular src/` | 0 cycles |
-| [Bundle size] | `du -sh dist/` | < 500KB |
-```
-
-Rules:
-- Every ADR that introduces a structural constraint SHOULD have a fitness function
-- Fitness functions run in CI — they are not optional manual checks
-- When a fitness function fails, the ADR documents why the threshold exists and what to do
-
-## System Design Checklist
-
-- [ ] Service/module boundaries are explicit
-- [ ] Data ownership is clear (one module owns each entity)
-- [ ] No circular dependencies between layers
-- [ ] Integration points documented (APIs, queues, shared state)
-- [ ] Failure modes defined for every external dependency
-- [ ] Rollback strategy documented
-- [ ] Observability: logging and health checks from day one
+- [ ] Boundaries and ownership are explicit
+- [ ] Failure modes are documented
+- [ ] Revisit trigger and rollback are documented
+- [ ] Trust boundaries are documented where relevant
+- [ ] Fitness functions cover only the highest-value constraints

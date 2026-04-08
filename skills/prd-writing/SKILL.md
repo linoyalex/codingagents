@@ -1,64 +1,63 @@
 ---
 name: prd-writing
 description: Write Product Requirement Documents with user stories, acceptance criteria, and screen states
-version: "1.0.0"
+version: "1.2.0"
 ---
 
 # Skill: PRD Writing
 
+## Top Rules
+
+- Front-load the success signal: a downstream agent should know what "done" looks like without guessing.
+- If the request is ambiguous, record the assumption or dependency explicitly instead of inventing hidden policy.
+- Acceptance criteria must describe observable outcomes, not preferred implementation.
+- Keep the PRD under 150 lines and focused on one user value.
+
 ## User Story Format
 
-```
+```text
 As a [specific persona],
 I want to [take this action],
 So that [I achieve this outcome].
 ```
 
 Rules:
-- One story = one user value. Split stories that try to do two things.
-- Stories must be completable in a single sprint (< 5 days of dev work).
-- Stories must be independent — avoid stories blocked by others in the same sprint.
+- One story = one user value.
+- Split stories that try to do two independent things.
+- Keep the scope small enough for one sprint.
 
 ## Acceptance Criteria Format (Given/When/Then)
 
-```
+```text
 Given [a precondition or initial state],
 When [the user performs an action],
 Then [the system produces this observable outcome].
 ```
 
-Each AC must be: **Specific** (unambiguous), **Testable** (automatable), **Measurable** (exact counts, states, or outcomes).
+Every feature must include:
+- one happy-path AC
+- one error-state AC
+- one empty-state AC
 
-Every feature MUST include at least:
-- One happy-path AC
-- One error-state AC
-- One empty-state AC
+Every AC should:
+- be specific, testable, and measurable
+- describe a user-visible or system-visible result
+- name exact artifacts or state changes when downstream phases depend on them
 
-## RICE Prioritisation Framework
+## Screen States
 
-| Factor | Definition |
-|--------|-----------|
-| **Reach** | How many users affected per quarter? |
-| **Impact** | How much does it move a key metric? (0.25 / 0.5 / 1 / 2 / 3) |
-| **Confidence** | How certain are we? (%) |
-| **Effort** | Person-weeks |
-
-`Score = (Reach × Impact × Confidence) / Effort`
-
-## Screen States Table (UX Designer contribution)
-
-Every screen must define all five states:
+Use this table for every important screen or workflow checkpoint:
 
 | Screen | Empty | Loading | Populated | Error | Success |
 |--------|-------|---------|-----------|-------|---------|
 | [Name] | What shows when no data exists | Skeleton/spinner | Normal view | What the user sees on failure | Confirmation state |
 
 Rules:
-- Never use color alone to indicate status — always pair with text or icon
-- Touch targets: minimum 44×44px
-- Every screen must answer in 5 seconds: where am I, what can I do, what should I do next
+- Never use color alone to indicate status.
+- Touch targets should be at least 44x44px.
+- The user should know where they are, what they can do, and what to do next within 5 seconds.
 
-## PRD Document Template (keep under 150 lines)
+## PRD Template
 
 ```markdown
 ## Feature: [Name]
@@ -73,15 +72,15 @@ As a [persona], I want [action], so that [outcome].
 - [ ] Given..., When..., Then... (empty state)
 
 ### Screen States
-| Screen | Empty | Loading | Populated | Error |
-|--------|-------|---------|-----------|-------|
-| [Name] | ...   | ...     | ...       | ...   |
+| Screen | Empty | Loading | Populated | Error | Success |
+|--------|-------|---------|-----------|-------|---------|
+| [Name] | ...   | ...     | ...       | ...   | ... |
 
 ### Out of Scope
 - [Explicit exclusions]
 
 ### Dependencies
-- [Any blockers or prerequisites]
+- [Any blockers, assumptions, or prerequisites]
 
 ### RICE Score
 Reach: | Impact: | Confidence: | Effort: | **Score:**
@@ -92,10 +91,10 @@ Reach: | Impact: | Confidence: | Effort: | **Score:**
 - No P1/P2 bugs open
 ```
 
-## Story Validation Checklist
+## Validation Checklist
 
-- [ ] Every AC is testable by a QA engineer
+- [ ] Every AC is automatable by QA
 - [ ] Error and empty states are covered
-- [ ] No solution-framing ("I want a dropdown") — only goal-framing ("I want to select my preference")
-- [ ] Scope is clear — out-of-scope items are listed explicitly
-- [ ] Story is independent and completable in one sprint
+- [ ] No solution-framing unless implementation is itself the requirement
+- [ ] Ambiguities are captured as assumptions or dependencies
+- [ ] The PRD gives downstream phases enough detail to avoid improvising outputs

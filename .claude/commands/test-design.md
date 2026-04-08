@@ -24,7 +24,9 @@ Rules:
 - Write contract tests to: tests/contracts/$ARGUMENTS.test.ts
 - Write E2E tests to: tests/e2e/$ARGUMENTS.spec.ts
 - Tests must FAIL when run right now (RED state — no implementation exists yet)
+- Use the TDD skill's reliability rules: identify happy, edge, and misuse/abuse cases when relevant, and make sure the first RED failure is for the intended reason
 - Cover: one test per AC, one error/empty state per screen, one permission boundary check
+- Name the primary production-wiring test seam in the test plan or top-of-file comments so implementation knows which test proves the feature is wired correctly
 - Follow test naming conventions from the tdd skill
 - Run linter on test files before committing: `npm run lint -- tests/`
   Fix any lint errors — test files must be lint-clean even in RED state
