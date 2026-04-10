@@ -55,18 +55,28 @@ test('core skills preserve the structural reliability anchors added by ISS-010',
   assert.match(verification, /^## No-Go Criteria$/m);
 });
 
-test('paired commands stay aligned with the refreshed skill expectations', () => {
+test('paired commands reference ISS-010 reliability concepts (structural, not phrase-bound)', () => {
   const specify = read('commands/specify.md');
   const architect = read('commands/architect.md');
   const testDesign = read('commands/test-design.md');
   const implement = read('commands/implement.md');
 
-  assert.match(specify, /capture assumptions or dependencies explicitly/i);
-  assert.match(architect, /decision confidence, revisit trigger, rollback\/fallback, and trust boundaries/i);
-  assert.match(testDesign, /misuse\/abuse cases when relevant/i);
-  assert.match(testDesign, /primary production-wiring test seam/i);
-  assert.match(implement, /intended RED failure reason/i);
-  assert.match(implement, /general solution for valid inputs/i);
+  // specify: ambiguity handling (assumptions or dependencies)
+  assert.match(specify, /ambigu|assumption|dependenc/i);
+
+  // architect: reliability fields (confidence + revisit + rollback + trust)
+  assert.match(architect, /confidence/i);
+  assert.match(architect, /revisit/i);
+  assert.match(architect, /rollback|fallback/i);
+  assert.match(architect, /trust boundar/i);
+
+  // test-design: misuse/abuse testing + production wiring identification
+  assert.match(testDesign, /misuse|abuse/i);
+  assert.match(testDesign, /production.wiring|wiring.*test/i);
+
+  // implement: RED failure validation + general solution guardrail
+  assert.match(implement, /intended.*reason|failure reason/i);
+  assert.match(implement, /general solution|not.*only.*current test/i);
 });
 
 test('committed .claude copies stay byte-identical to the source skills and commands', () => {

@@ -19,7 +19,10 @@ unexpected phase, warn the user before proceeding.
 Your task: post-merge documentation update for feature: $ARGUMENTS
 
 Rules:
-- Read ONLY: docs/features/$ARGUMENTS/prd.md + CHANGELOG.md + CLAUDE.md + the most recent file in release-notes/
+- Determine the target CLAUDE file:
+    If docs/CLAUDE.md exists → TARGET_CLAUDE=docs/CLAUDE.md (framework-repo conventions)
+    Otherwise → TARGET_CLAUDE=CLAUDE.md (project conventions)
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + CHANGELOG.md + TARGET_CLAUDE + the most recent file in release-notes/
 - Do NOT read src/ — the prd.md describes what changed at the right level
 - Follow the CHANGELOG.md Format from the release-docs skill
 - Update CHANGELOG.md: one bullet per AC from docs/features/$ARGUMENTS/prd.md
@@ -29,9 +32,9 @@ Rules:
     Also read docs/features/$ARGUMENTS/review-codex-code-$ARGUMENTS.md if it exists for Codex review findings
 - If any new conventions were established during this feature cycle
   (check PR description, docs/features/$ARGUMENTS/review.md, and docs/features/$ARGUMENTS/review-codex-code-$ARGUMENTS.md for notes):
-    → Update the Conventions section of CLAUDE.md
-    → Update the Known Gotchas section if anything new was discovered
-- Update the "Last updated" timestamp in CLAUDE.md
+    → Update the Conventions section of TARGET_CLAUDE
+    → Update the Known Gotchas section of TARGET_CLAUDE if anything new was discovered
+- Update the "Last updated" timestamp in TARGET_CLAUDE
 - Run Phase 7 verification from verification-gate skill
 - Commit with message: "docs: post-merge update for $ARGUMENTS"
 

@@ -18,7 +18,7 @@
 |-------|----|----------|------|------------|-------|
 | 1 | [ISS-009](tickets/ISS-009.md) | P1 — High | Bug | — | `/implement` can proceed after mangled command arguments by silently falling back to handoff feature |
 | 2 | [ISS-013](tickets/ISS-013.md) | P2 — Medium | Architecture | — | Revise skill size convention and adopt progressive disclosure |
-| 3 | [ISS-010](tickets/ISS-010.md) | P2 — Medium | Feature | — | Refresh all skills with current best practices and stronger robustness guards *(rework)* |
+| 3 | [ISS-010](tickets/ISS-010.md) | P2 — Medium | Feature | — | Refresh all skills with current best practices and stronger robustness guards *(rework — in progress)* |
 | 4 | [ISS-014](tickets/ISS-014.md) | P2 — Medium | Feature | — | Make gate reviewers adversarial and require separate context for review phases |
 | 5 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | — | Add invariants-audit skill for cross-layer semantic review |
 | 6 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |
@@ -32,6 +32,7 @@
 | 14 | [ISS-016](tickets/ISS-016.md) | P3 — Low | Architecture | — | Document intentional divergence from Anthropic slash command guidance |
 | 15 | [ISS-018](tickets/ISS-018.md) | P3 — Low | Architecture | — | Standardize skill naming on gerund form |
 | 16 | [ISS-020](tickets/ISS-020.md) | P3 — Low | Architecture | — | Prefix generated PRD filenames with the feature slug |
+| 17 | [ISS-021](tickets/ISS-021.md) | P3 — Low | Feature | — | Add first-class command entry points for Codex reviewer prompts |
 
 ## Execution Waves
 
@@ -42,7 +43,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **Wave 3 — Review loop closure (7–8):** Post-implementation QA stage and stage-matched Codex reviews. These benefit from Wave 2 foundations, but are not hard-blocked by them.
 - **Wave 4 — Skill polish (9–10):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements.
 - **Wave 5 — Install ergonomics (11–12):** Force upgrade + clean reinstall, then project CLAUDE.md sync. Independent of pipeline-correctness work above.
-- **Wave 6 — Documentation polish (13–16):** Low-priority DX and documentation items. Defer until a real pain point forces them.
+- **Wave 6 — Documentation polish (13–17):** Low-priority DX and documentation items. Defer until a real pain point forces them.
 
 ## Sequencing Notes
 

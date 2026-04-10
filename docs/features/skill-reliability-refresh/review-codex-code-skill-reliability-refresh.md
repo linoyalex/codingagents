@@ -1,14 +1,16 @@
 # Review: skill-reliability-refresh
 
 ## Findings
-- No blocking code-review findings in the ISS-010 change set.
-- No remaining high-confidence correctness finding after trimming the skills, removing the boilerplate preambles, and adding explicit source/install drift checks.
+- [MAJOR] [commands/implement.md:17](/Users/linoy/projects/codingagents/commands/implement.md#L17) [commands/implement.md:20](/Users/linoy/projects/codingagents/commands/implement.md#L20) The reviewed branch still lets Phase 5 proceed after only a warning when the handoff or requested feature is stale, malformed, or conflicting. That is weaker than the fail-closed behavior this branch already introduced in [.claude/helpers/resolve-feature.js:71](/Users/linoy/projects/codingagents/.claude/helpers/resolve-feature.js#L71) [.claude/helpers/resolve-feature.js:80](/Users/linoy/projects/codingagents/.claude/helpers/resolve-feature.js#L80) [.claude/helpers/resolve-feature.js:112](/Users/linoy/projects/codingagents/.claude/helpers/resolve-feature.js#L112), but the committed `commands/implement.md` never invokes that helper. In practice, `/implement` can still target the wrong feature or continue from a stale Phase 4 handoff, which is exactly the stale-state / conflicting-signal class ISS-010 says to handle explicitly.
+- [MAJOR] [commands/document.md:22](/Users/linoy/projects/codingagents/commands/document.md#L22) [commands/document.md:23](/Users/linoy/projects/codingagents/commands/document.md#L23) [commands/document.md:33](/Users/linoy/projects/codingagents/commands/document.md#L33) [commands/document.md:35](/Users/linoy/projects/codingagents/commands/document.md#L35) The Phase 7 command is still internally inconsistent about which `CLAUDE` file to mutate when both root `CLAUDE.md` and [docs/CLAUDE.md](/Users/linoy/projects/codingagents/docs/CLAUDE.md) exist. It tells the agent to read and update `docs/CLAUDE.md` instead of the root template, but the later bullets still direct updates to the Conventions section, Known Gotchas, and "Last updated" timestamp in root `CLAUDE.md`. In a framework repo that contains both files, that can split the documentation update across two targets. There is also no targeted regression coverage for this edge case: [tests/test-command-contracts.sh:68](/Users/linoy/projects/codingagents/tests/test-command-contracts.sh#L68) only checks for generic command markers, and [tests/node/verification-gate.test.js:99](/Users/linoy/projects/codingagents/tests/node/verification-gate.test.js#L99) only verifies review verdict handling.
+
+## Open Questions
+- The working tree currently has local edits to `commands/implement.md` and `commands/document.md` that appear intended to address these issues. Should those be treated as the follow-up fix set, or should the review stay anchored strictly to the committed branch diff?
 
 ## Merge Recommendation
-APPROVE
+- REQUEST CHANGES
 
 ## Verification Notes
-- Reviewed the skill, command, and test changes for the four core skills and their paired commands.
-- Ran `node --test tests/node/core-skill-contracts.test.js tests/node/verification-gate.test.js tests/node/role-command-consistency.test.js`.
-- Ran `bash tests/test-command-contracts.sh`.
-- Confirmed all four core skills are now at or under the compact 120-line target.
+- Reviewed `git diff main...HEAD` as the primary surface, per [codex/reviewers/review-code.md](/Users/linoy/projects/codingagents/codex/reviewers/review-code.md).
+- Opened only the files needed to verify the findings: [commands/implement.md](/Users/linoy/projects/codingagents/commands/implement.md), [.claude/helpers/resolve-feature.js](/Users/linoy/projects/codingagents/.claude/helpers/resolve-feature.js), [commands/document.md](/Users/linoy/projects/codingagents/commands/document.md), [tests/test-command-contracts.sh](/Users/linoy/projects/codingagents/tests/test-command-contracts.sh), and [tests/node/verification-gate.test.js](/Users/linoy/projects/codingagents/tests/node/verification-gate.test.js).
+- Ran `node --test tests/node/core-skill-contracts.test.js tests/node/pipeline-handoff-guards.test.js` on the current checkout. Those suites passed, but they do not cover the two edge cases above in the committed branch.

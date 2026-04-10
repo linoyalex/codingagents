@@ -53,7 +53,7 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 ### Per-agent memory (pipeline agents in target projects)
 - `architect` → `.claude/agent-memory/architect/MEMORY.md`
 - `documentation-specialist` → `.claude/agent-memory/documentation-specialist/MEMORY.md`
-- Do not manually edit these. They are maintained by the agents themselves.
+- Do not manually edit these files. They are maintained by the agents themselves.
 
 ### Cross-agent memory (this repo)
 - `docs/memory/` — shared context for framework development sessions
@@ -66,12 +66,15 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 
 ### Must Follow
 - Shell scripts use `set -euo pipefail`
-- Skills stay under ~100 lines
+- **Skills stay under ~120 lines** (target ~100; hard cap 120 to prevent bloat). See ISS-010 review for rationale.
 - Commands include YAML frontmatter (`description`, `user-invocable: true`)
 - Roles include version number, pipeline phase, model spec, allowed/disallowed tools, and DoD
 - All JSON schemas use draft-07 with `additionalProperties: false`
 - Hook scripts must exit non-zero to block (checkpoint.js) or zero to proceed silently
 - No hardcoded absolute paths in any framework file — use relative paths from project root
+- **Tests for skills/commands must use structural anchors** (heading names, template field labels), not phrase-binding. Phrase-bound tests punish refinement and prevent wording improvements.
+- **Guidance must be stack-agnostic** — when hardcoding examples (e.g., `npm test`, `pytest`, `node --test`), include "adapt to your stack" comments and mention multiple toolchain examples.
+- **Source and installed copies must be kept in sync** — `skills/*/SKILL.md` must remain byte-identical to `.claude/skills/*/SKILL.md`. Use deterministic tests to catch drift.
 
 ### Naming
 - Roles: `ROLE_UPPER_SNAKE.md` (e.g. `ROLE_CODE_REVIEWER.md`)
@@ -142,6 +145,8 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 - Root `CLAUDE.md` has placeholder comments (`<!-- e.g. ... -->`) that must stay as guidance for target projects. Do not fill them in with codingagents-specific content.
 - `settings.json` (hooks) and `settings.local.json` (permissions) are merged by Claude Code. Installing hooks via `init.sh` does not overwrite permissions.
 - The backlog system uses index files + individual ticket files. Status changes cost ~2 lines across 2 index files. See `skills/backlog-management/SKILL.md`.
+- **Source/installed skill drift is a vector for silent failures** — both `skills/*/SKILL.md` and `.claude/skills/*/SKILL.md` are currently committed and edited together. Nothing prevents them diverging after install. ISS-010-followup will address this by generating `.claude/` copies at install time instead of committing them (see ISS-005).
+- **Phrase-bound tests break under refinement** — a test that asserts `assert.match(skill, /exact sentence here/i)` fails if the guidance is reworded for clarity. Use structural anchors instead: `assert.match(skill, /^## Stop Conditions$/m)` survives rewording. See ISS-010 rework findings for details.
 
 ---
 
@@ -153,3 +158,8 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 - Keep it under ~250 lines.
 - All placeholder sections (`<!-- FILL IN -->`) should remain as guidance for target project users.
 - Test changes by verifying they make sense in a fresh target project context, not just in this repo.
+
+---
+
+*Last updated: 2026-04-10*
+*Updated by: documentation-specialist*

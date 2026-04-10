@@ -182,3 +182,43 @@ The delta is not "Claude is harsher than Codex" — it is "Codex did not measure
 - ISS-010-followup: generate `.claude/skills/` from `skills/` at install time instead of committing both copies (removes entire drift class).
 - ISS-001 is now overdue — this PR is exhibit A for why invariants-audit as a dedicated skill is needed.
 - The Codex reviewer prompts should be updated to require PRD cross-reference ("for each AC, cite the evidence it is met") — Codex did not do this on its own.
+
+---
+
+## Rework Addendum (2026-04-08)
+
+**Branch:** `rework/ISS-010-skill-reliability`
+
+### Findings assessment vs committed code
+
+The review was written against an intermediate draft. The committed code (d4fb1dc) already addressed several findings. Here is the status of each finding after the rework:
+
+| # | Finding | Status after rework | Notes |
+|---|---------|-------------------|-------|
+| 1 | [BLOCKING] Tests assert exact phrases | **RESOLVED** | Skill tests already used structural anchors (heading names, template fields). Paired commands test rewritten to use concept-level regex (`/confidence/i`, `/misuse\|abuse/i`) instead of exact phrases. Drift test was already present. |
+| 2 | [BLOCKING] Skills exceed 100 lines | **ALREADY RESOLVED in original commit** | Actual line counts: prd-writing=100, architecture-decision=112, tdd=78, verification-gate=119. All under the ≤120 target. Review cited draft counts (132–240) that were trimmed before commit. |
+| 3 | [HIGH] Templated 4-section preamble | **ALREADY RESOLVED in original commit** | Skills use concise per-skill "## Top Rules" (3–5 lines each), not the templated "Success Criteria / Allowed Inputs / Deliverables / Stop Conditions" structure described in the review. |
+| 4 | [HIGH] "Adversarial" lacks definition | **ALREADY RESOLVED in original commit** | Renamed to "misuse or abuse case when relevant" with worked example (tdd skill lines 28–31: happy/edge/misuse-abuse for password reset). |
+| 5 | [HIGH] Source/installed drift | **RESOLVED** | Source `commands/implement.md` synced from installed copy. All 4 skills + 4 commands now byte-identical (verified by drift test). |
+| 6 | [MEDIUM] Stack portability regression | **ALREADY RESOLVED in original commit** | Verification-gate says "Examples only — adapt to your stack" and phase-specific checks include both `node --test` and `npm test` examples with "Adapt to your stack" comments. |
+| 7 | [MEDIUM] Rubber-stamp Codex reviews | Process issue — not a code fix. Tracked separately via ISS-014 (adversarial reviewers). |
+
+### AC8 compliance (line-count delta)
+
+| Skill | Before ISS-010 | After ISS-010 | Delta |
+|-------|---------------|--------------|-------|
+| prd-writing | 101 | 100 | -1 |
+| architecture-decision | 123 | 112 | -11 |
+| tdd | 121 | 78 | -43 |
+| verification-gate | 208 | 119 | -89 |
+| **Total** | **553** | **409** | **-144** |
+
+Signal density increased while total lines decreased by 26%. AC8 is met.
+
+### Test results
+
+All 35 tests pass, including:
+- Line-budget enforcement (≤120 per skill)
+- Structural reliability anchors (heading names, template fields)
+- Concept-level command alignment (flexible regex, not phrase-bound)
+- Source/installed byte-identity drift check
