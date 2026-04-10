@@ -16,8 +16,8 @@ const SESSION_STATE_FILE = path.join(process.cwd(), '.claude', '.session-state.j
 const RESTORE_TOP_N = 5;
 const MAX_CHARS = 2000;
 
-// Infer the NEXT agent and model from the handoff phase (the agent that will run this session)
-const NEXT_AGENT_MAP = {
+// Map from the producing phase to the agent that runs next
+const PHASE_TO_NEXT_AGENT = {
   1: { agent: 'architect', model: 'claude-opus-4-6' },           // after specify → architect runs next
   2: { agent: 'qa', model: 'claude-sonnet-4-6' },                // after architect → qa runs next
   3: { agent: 'security-reviewer', model: 'claude-opus-4-6' },   // after test-design → security runs next
@@ -29,7 +29,7 @@ const NEXT_AGENT_MAP = {
 
 function recordSessionStart(feature, handoffPhase) {
   // Infer who is running NOW based on which phase produced the handoff
-  const nextRole = (handoffPhase && NEXT_AGENT_MAP[handoffPhase]) || { agent: 'unknown', model: 'unknown' };
+  const nextRole = (handoffPhase && PHASE_TO_NEXT_AGENT[handoffPhase]) || { agent: 'unknown', model: 'unknown' };
 
   const state = {
     startTime: Date.now(),

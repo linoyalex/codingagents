@@ -13,10 +13,14 @@ continuing from a previous phase, end this session and start a new one.
 
 Model: This phase should run with claude-haiku-4-5.
 
-First, read .claude/handoff.json. If it references a different feature or
-unexpected phase, warn the user before proceeding.
+Before reading any documentation files, run:
+`node .claude/helpers/resolve-feature.js --command document --phase 7 --args "$ARGUMENTS"`
 
-Your task: post-merge documentation update for feature: $ARGUMENTS
+- If that command exits non-zero, stop and relay the error.
+- If it succeeds, treat the returned `feature` as the only valid target for this phase.
+- For the rest of this command, use that resolved feature slug in place of `$ARGUMENTS`.
+
+Your task: post-merge documentation update for the resolved feature.
 
 Rules:
 - Determine the target CLAUDE file:
@@ -38,10 +42,11 @@ Rules:
 - Run Phase 7 verification from verification-gate skill
 - Commit with message: "docs: post-merge update for $ARGUMENTS"
 
-After committing, write .claude/handoff.json with:
+After committing, write .claude/handoff.json with (substitute the actual resolved
+TARGET_CLAUDE path — e.g. "docs/CLAUDE.md" or "CLAUDE.md" — not the literal string):
   feature: $ARGUMENTS, phase: 7, goal: "Pipeline complete. Merge to main after final checks.",
-  scope: "No further phases", relevant_files: ["CHANGELOG.md", "CLAUDE.md"],
-  acceptance_criteria: ["CHANGELOG.md updated", "Release note created", "CLAUDE.md timestamp updated"],
+  scope: "No further phases", relevant_files: ["CHANGELOG.md", "<the resolved TARGET_CLAUDE path>"],
+  acceptance_criteria: ["CHANGELOG.md updated", "Release note created", "<TARGET_CLAUDE path> timestamp updated"],
   verification_commands: ["head -20 CHANGELOG.md", "ls release-notes/ | tail -1"],
   produced_by: "documentation-specialist", timestamp: current ISO 8601
 

@@ -18,7 +18,6 @@
 |-------|----|----------|------|------------|-------|
 | 1 | [ISS-009](tickets/ISS-009.md) | P1 — High | Bug | — | `/implement` can proceed after mangled command arguments by silently falling back to handoff feature |
 | 2 | [ISS-013](tickets/ISS-013.md) | P2 — Medium | Architecture | — | Revise skill size convention and adopt progressive disclosure |
-| 3 | [ISS-010](tickets/ISS-010.md) | P2 — Medium | Feature | — | Refresh all skills with current best practices and stronger robustness guards *(rework — in progress)* |
 | 4 | [ISS-014](tickets/ISS-014.md) | P2 — Medium | Feature | — | Make gate reviewers adversarial and require separate context for review phases |
 | 5 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | — | Add invariants-audit skill for cross-layer semantic review |
 | 6 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |

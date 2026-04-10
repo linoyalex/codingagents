@@ -357,3 +357,5 @@ function main() {
 }
 
 main();
+
+module.exports = { validateHandoff, detectPhase, phaseFromHandoff };

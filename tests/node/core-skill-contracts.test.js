@@ -89,6 +89,7 @@ test('committed .claude copies stay byte-identical to the source skills and comm
     ['commands/architect.md', '.claude/commands/architect.md'],
     ['commands/test-design.md', '.claude/commands/test-design.md'],
     ['commands/implement.md', '.claude/commands/implement.md'],
+    ['commands/document.md', '.claude/commands/document.md'],
   ];
 
   for (const [sourcePath, installedPath] of mirroredPaths) {

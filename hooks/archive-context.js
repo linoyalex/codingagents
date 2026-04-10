@@ -74,7 +74,7 @@ function logTokenSnapshot() {
     const dir = path.dirname(TOKEN_LOG);
     fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(TOKEN_LOG, JSON.stringify(entry) + '\n');
-    console.log(`[token-tracking] Pre-compaction snapshot logged`);
+    console.error(`[token-tracking] Pre-compaction snapshot logged`);
   } catch (err) {
     console.error(`[token-tracking] Snapshot failed (non-blocking): ${err.message}`);
   }
@@ -129,7 +129,7 @@ async function main() {
     .slice(0, MAX_ARCHIVED_TURNS * 2);
 
   fs.writeFileSync(ARCHIVE_FILE, JSON.stringify(merged, null, 2));
-  console.log(`[archive-context] Archived ${scored.length} turns. Total: ${merged.length}`);
+  console.error(`[archive-context] Archived ${scored.length} turns. Total: ${merged.length}`);
 }
 
 main().catch(err => {
