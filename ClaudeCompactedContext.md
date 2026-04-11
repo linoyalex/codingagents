@@ -18,7 +18,7 @@ Here is the compacted context. Save this as a note or paste it at the start of a
 
 ## V3 File Inventory
 
-**Root files:** `README.md`, `CLAUDE.md`, `HOW_TO_USE.md`, `PIPELINE.md`
+**Root files:** `README.md`, `CLAUDE.md`, `QUICKSTART.md`, `PIPELINE.md`
 
 **Role files (8):** `ROLE_DEVELOPER.md`, `ROLE_ARCHITECT.md`, `ROLE_QA.md`, `ROLE_SECURITY.md`, `ROLE_PRODUCT_OWNER.md`, `ROLE_UX_DESIGNER.md`, `ROLE_CODE_REVIEWER.md`, `ROLE_DOCUMENTATION_SPECIALIST.md`
 

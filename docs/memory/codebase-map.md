@@ -31,7 +31,7 @@
 
 - `CLAUDE.md` — root template (copied to target projects by `init.sh`). Contains pipeline routing, conventions, handoff protocol, memory governance.
 - `docs/CLAUDE.md` — framework development instructions (NOT copied to target projects). Contains cross-agent session context, file ownership, working model.
-- `README.md`, `PIPELINE.md`, `HOW_TO_USE.md` — general documentation.
+- `README.md`, `PIPELINE.md`, `QUICKSTART.md` — general documentation.
 
 ## Design docs and shared memory
 

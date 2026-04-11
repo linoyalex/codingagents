@@ -59,7 +59,7 @@ This backs up `.claude/` before replacing framework files. It also refreshes the
 
 ### Manual setup
 
-See [HOW_TO_USE.md](HOW_TO_USE.md) for step-by-step instructions.
+Use [QUICKSTART.md](QUICKSTART.md) for detailed setup, manual-install fallback, and safe operator workflows.
 
 ---
 
@@ -85,18 +85,14 @@ claude                          # start Claude Code
 
 Advancing phases write `.claude/handoff.json` at completion. The Stop hook validates it as a blocking gate — the pipeline cannot proceed without a valid handoff, and failed gates intentionally preserve the previous handoff instead of moving forward.
 
-### Invoking commands correctly
+This section shows the happy path. For:
 
-- `/specify` is the only phase command that should take natural-language feature requests, for example `/specify Add user auth flow with password reset`.
-- `/architect`, `/test-design`, `/security-gate`, `/implement`, `/review`, and `/document` should be invoked with only the feature slug, for example `/implement user-auth`.
-- If you need to give extra direction after Phase 1, put that in a normal chat message and then run the slash command separately. Example: `Address the BLOCKING findings in docs/features/user-auth/review.md, then run /implement user-auth.`
-- Empty args can fall back to `.claude/handoff.json` only when the handoff is valid and from the immediately previous phase. Mixed or malformed args fail closed; they do not silently guess the target feature.
-- If you are not sure what to run next, use `/status` rather than improvising the next command.
+- exact slash-command invocation rules
+- where natural language belongs vs slug-only commands
+- what to do when Phase 4 or Phase 6 blocks
+- safe resume patterns with `/status`
 
-### What happens when a gate fails
-
-- **Phase 4 `/security-gate`**: if `security-audit.md` contains any `BLOCKING` findings, the pipeline stops before implementation. No new handoff is written. Fix the issues, then re-run `/security-gate <feature>`.
-- **Phase 6 `/review`**: if `review.md` returns `REQUEST_CHANGES`, the pipeline stops before documentation. No new handoff is written. Address the findings, then re-run `/review <feature>` in a fresh session.
+continue in [QUICKSTART.md](QUICKSTART.md).
 
 ---
 
@@ -351,7 +347,7 @@ Rules:
 ```
 ├── CLAUDE.md                        ← Root router; auto-loaded by every Claude Code session
 ├── PIPELINE.md                      ← Full pipeline reference with token budgets and baseline metrics
-├── HOW_TO_USE.md                    ← Setup guide and session discipline rules
+├── QUICKSTART.md                    ← Operator quickstart for install, invocation, and resume patterns
 │
 ├── ROLE_ARCHITECT.md                ← Phase 2 — Opus, irreversible decisions
 ├── ROLE_CODE_REVIEWER.md            ← Phase 6 — Sonnet, fresh context only, read-only
