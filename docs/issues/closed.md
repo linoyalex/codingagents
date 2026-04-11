@@ -9,3 +9,4 @@
 | [ISS-003](tickets/ISS-003.md) | P1 — High | Bug | Phase 4 writes handoff on BLOCKING security findings | 2026-04-06 | Fixed in `commands/security-gate.md`; regression test added |
 | [ISS-004](tickets/ISS-004.md) | P2 — Medium | Bug | Phase 4 verification regex mismatch with template | 2026-04-06 | Fixed in `skills/verification-gate/SKILL.md`; regression tests added |
 | [ISS-010](tickets/ISS-010.md) | P2 — Medium | Feature | Refresh core skills with robustness guards | 2026-04-10 | All 4 core skills refreshed; rework passed adversarial review; Phase 7 docs complete |
+| [ISS-009](tickets/ISS-009.md) | P1 — High | Bug | `/implement` can proceed after mangled command arguments by silently falling back to handoff feature | 2026-04-11 | All pipeline commands (Phases 2-7) wired through resolve-feature.js; 18 regression tests added |
