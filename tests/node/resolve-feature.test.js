@@ -103,6 +103,17 @@ test('parseCliArgs: unknown flag without value is rejected', () => {
   );
 });
 
+test('parseCliArgs: --args value starting with -- is rejected as unknown flag, not silently swallowed', () => {
+  // Regression: --args --feature-slug must not silently set args='' and proceed.
+  // The parser treats '--feature-slug' as a flag boundary, records args='', then
+  // correctly rejects '--feature-slug' as an unknown flag.
+  assert.throws(
+    () => parseCliArgs(['--command', 'implement', '--phase', '5', '--args', '--feature-slug']),
+    /unknown flag/i,
+    '--args value starting with -- must fail cleanly, not silently fall back'
+  );
+});
+
 // --- resolveFeatureTarget decision matrix tests ---
 // These test the core safety logic that ISS-009 exists to protect.
 // We use _handoffOverride to inject handoff state without touching the filesystem.
@@ -288,18 +299,28 @@ test('/specify does not require resolve-feature.js (Phase 1 has no prior handoff
 
 // --- Installed copy sync test ---
 
-test('checkpoint.js installed and source copies are in sync on require.main guard', () => {
+test('checkpoint.js installed copy is byte-identical to hooks/ source', () => {
   const sourcePath = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
   const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.js');
 
   const source = fs.readFileSync(sourcePath, 'utf8');
   const installed = fs.readFileSync(installedPath, 'utf8');
 
-  const sourceHasGuard = /if\s*\(require\.main\s*===\s*module\)/.test(source);
-  const installedHasGuard = /if\s*\(require\.main\s*===\s*module\)/.test(installed);
+  assert.equal(source, installed,
+    'hooks/checkpoint.js and .claude/helpers/checkpoint.js must be byte-identical. ' +
+    'Edit the hooks/ source, then copy to .claude/helpers/.');
+});
 
-  assert.ok(sourceHasGuard, 'source checkpoint.js must guard main() with require.main');
-  assert.ok(installedHasGuard, 'installed checkpoint.js must guard main() with require.main');
+test('resolve-feature.js installed copy is byte-identical to hooks/ source', () => {
+  const sourcePath = path.join(ROOT_DIR, 'hooks', 'resolve-feature.js');
+  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.js');
+
+  const source = fs.readFileSync(sourcePath, 'utf8');
+  const installed = fs.readFileSync(installedPath, 'utf8');
+
+  assert.equal(source, installed,
+    'hooks/resolve-feature.js and .claude/helpers/resolve-feature.js must be byte-identical. ' +
+    'Edit the hooks/ source, then copy to .claude/helpers/.');
 });
 
 // --- Installed command copies must also wire through resolve-feature.js ---

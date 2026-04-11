@@ -183,6 +183,7 @@ if [ "$CORE_NEEDS_UPGRADE" = true ]; then
   cp "$SCRIPT_DIR/hooks/checkpoint.js" "$TARGET_DIR/.claude/helpers/checkpoint.js"
   cp "$SCRIPT_DIR/hooks/archive-context.js" "$TARGET_DIR/.claude/helpers/archive-context.js"
   cp "$SCRIPT_DIR/hooks/restore-context.js" "$TARGET_DIR/.claude/helpers/restore-context.js"
+  cp "$SCRIPT_DIR/hooks/resolve-feature.js" "$TARGET_DIR/.claude/helpers/resolve-feature.js"
   cp "$SCRIPT_DIR/hooks/settings.json" "$TARGET_DIR/.claude/settings.json"
 
   # Roles

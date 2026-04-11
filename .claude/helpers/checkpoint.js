@@ -105,6 +105,8 @@ function phaseFromHandoff(handoff) {
 
 // --- Handoff validation ---
 
+// NOTE: This validation logic must stay in sync with schemas/handoff.schema.json
+// and skills/verification-gate/SKILL.md (Handoff Validation section).
 function validateHandoff() {
   if (!fs.existsSync(HANDOFF_FILE)) {
     return { valid: false, reason: 'handoff.json not found at .claude/handoff.json' };
@@ -279,7 +281,7 @@ function logTokenUsage(phase, feature, handoff) {
     const dir = path.dirname(TOKEN_LOG);
     fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(TOKEN_LOG, JSON.stringify(entry) + '\n');
-    console.log(`[token-tracking] Logged ${entry.total_tokens || '(estimated)'} tokens for ${phaseName} (${agent}/${model}) iter ${iteration}`);
+    console.error(`[token-tracking] Logged ${entry.total_tokens || '(estimated)'} tokens for ${phaseName} (${agent}/${model}) iter ${iteration}`);
   } catch (err) {
     console.error(`[token-tracking] Failed to log (non-blocking): ${err.message}`);
   }
@@ -334,7 +336,7 @@ function main() {
     ? { ...artifactPhase, feature }
     : (phaseFromHandoff(handoffResult.handoff) || artifactPhase);
 
-  console.log(`[handoff] ✓ handoff.json valid for feature: ${feature} (phase ${handoffResult.handoff.phase})`);
+  console.error(`[handoff] ✓ handoff.json valid for feature: ${feature} (phase ${handoffResult.handoff.phase})`);
 
   // Log token usage with handoff metadata
   logTokenUsage(phase, feature, handoffResult.handoff);
@@ -356,6 +358,7 @@ function main() {
   console.log(`\n[checkpoint] ${phase.name}\n→ Next: ${phase.next}`);
 }
 
+// Export for testing; run main() only when executed directly
 if (require.main === module) {
   main();
 }
