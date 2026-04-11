@@ -13,8 +13,12 @@ continuing from a previous phase, end this session and start a new one.
 
 Model: This phase should run with claude-opus-4-6.
 
-First, read .claude/handoff.json. If it references a different feature or
-unexpected phase, warn the user before proceeding.
+Before reading any implementation files, run:
+`node .claude/helpers/resolve-feature.js --command architect --phase 2 --args "$ARGUMENTS"`
+
+- If that command exits non-zero, stop and relay the error.
+- If it succeeds, treat the returned `feature` as the only valid target for this phase.
+- For the rest of this command, use that resolved feature slug in place of `$ARGUMENTS`.
 
 Your task: produce docs/features/$ARGUMENTS/architecture.md
 
