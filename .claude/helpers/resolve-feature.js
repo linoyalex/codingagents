@@ -63,9 +63,9 @@ function formatRecovery(commandName, feature) {
   return `Re-run /${commandName} <feature-slug> after fixing .claude/handoff.json or the command arguments.`;
 }
 
-function resolveFeatureTarget({ rawArgs, commandName, targetPhase }) {
+function resolveFeatureTarget({ rawArgs, commandName, targetPhase, _handoffOverride }) {
   const argResult = classifyFeatureArgs(rawArgs);
-  const handoffResult = readValidatedHandoff();
+  const handoffResult = _handoffOverride !== undefined ? _handoffOverride : readValidatedHandoff();
   const requiredHandoffPhase = Number.isInteger(targetPhase) ? targetPhase - 1 : null;
 
   if (argResult.kind === 'invalid') {

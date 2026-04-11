@@ -56,6 +56,132 @@ test('classifyFeatureArgs: path-like string rejected as invalid', () => {
   assert.equal(result.kind, 'invalid');
 });
 
+// --- resolveFeatureTarget decision matrix tests ---
+// These test the core safety logic that ISS-009 exists to protect.
+// We use _handoffOverride to inject handoff state without touching the filesystem.
+
+function validHandoff(overrides = {}) {
+  return {
+    valid: true,
+    handoff: {
+      feature: 'user-auth',
+      phase: 4,
+      ...overrides,
+    },
+  };
+}
+
+const INVALID_HANDOFF = { valid: false, reason: 'handoff.json not found' };
+
+test('resolveFeatureTarget: malformed args hard-fail with INVALID_ARGS', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'My Feature!',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff(),
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, 'INVALID_ARGS');
+  assert.match(result.message, /malformed or ambiguous/);
+});
+
+test('resolveFeatureTarget: malformed args do NOT fall back to handoff', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'bad feature',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff(),
+  });
+  assert.equal(result.ok, false, 'must not silently proceed on mangled args');
+  assert.equal(result.code, 'INVALID_ARGS');
+});
+
+test('resolveFeatureTarget: valid slug with matching handoff succeeds', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'user-auth',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff({ phase: 4 }),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.feature, 'user-auth');
+  assert.equal(result.source, 'args');
+});
+
+test('resolveFeatureTarget: slug mismatch with handoff hard-fails with FEATURE_MISMATCH', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'user-auth',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff({ feature: 'other-feature', phase: 4 }),
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, 'FEATURE_MISMATCH');
+  assert.match(result.message, /user-auth/);
+  assert.match(result.message, /other-feature/);
+});
+
+test('resolveFeatureTarget: empty args with valid handoff at correct phase falls back to handoff', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: '',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff({ phase: 4 }),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.feature, 'user-auth');
+  assert.equal(result.source, 'handoff');
+});
+
+test('resolveFeatureTarget: empty args with stale handoff phase hard-fails with STALE_HANDOFF', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: '',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff({ phase: 2 }),
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, 'STALE_HANDOFF');
+  assert.match(result.message, /Phase 4/);
+});
+
+test('resolveFeatureTarget: empty args with no handoff hard-fails with NO_FALLBACK', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: '',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: INVALID_HANDOFF,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, 'NO_FALLBACK');
+});
+
+test('resolveFeatureTarget: valid slug with invalid handoff succeeds with warning', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'user-auth',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: INVALID_HANDOFF,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.feature, 'user-auth');
+  assert.equal(result.source, 'args');
+  assert.ok(result.warnings.length > 0, 'should warn about invalid handoff');
+});
+
+test('resolveFeatureTarget: valid slug with wrong handoff phase succeeds with warning', () => {
+  const result = resolveFeatureTarget({
+    rawArgs: 'user-auth',
+    commandName: 'implement',
+    targetPhase: 5,
+    _handoffOverride: validHandoff({ phase: 2 }),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.feature, 'user-auth');
+  assert.equal(result.source, 'args');
+  assert.ok(result.warnings.some(w => /phase/.test(w)), 'should warn about phase mismatch');
+});
+
 // --- Command wiring tests: all pipeline commands must use resolve-feature.js ---
 
 function readCommand(name) {
@@ -115,12 +241,18 @@ test('/specify does not require resolve-feature.js (Phase 1 has no prior handoff
 
 // --- Installed copy sync test ---
 
-test('source and installed resolve-feature.js are byte-identical', () => {
-  // The source hooks/ version may not exist (resolve-feature.js lives only in .claude/helpers/)
-  // but if it does, they must match
-  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.js');
+test('checkpoint.js installed and source copies are in sync on require.main guard', () => {
+  const sourcePath = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
+  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.js');
+
+  const source = fs.readFileSync(sourcePath, 'utf8');
   const installed = fs.readFileSync(installedPath, 'utf8');
-  assert.ok(installed.length > 0, 'installed resolve-feature.js must not be empty');
+
+  const sourceHasGuard = /if\s*\(require\.main\s*===\s*module\)/.test(source);
+  const installedHasGuard = /if\s*\(require\.main\s*===\s*module\)/.test(installed);
+
+  assert.ok(sourceHasGuard, 'source checkpoint.js must guard main() with require.main');
+  assert.ok(installedHasGuard, 'installed checkpoint.js must guard main() with require.main');
 });
 
 // --- Installed command copies must also wire through resolve-feature.js ---
