@@ -356,6 +356,8 @@ function main() {
   console.log(`\n[checkpoint] ${phase.name}\n→ Next: ${phase.next}`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
 
 module.exports = { validateHandoff, detectPhase, phaseFromHandoff };

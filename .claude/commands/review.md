@@ -9,8 +9,12 @@ that wrote the code.
 
 Model: This phase should run with claude-sonnet-4-6.
 
-First, read .claude/handoff.json. If it references a different feature or
-unexpected phase, warn the user before proceeding.
+Before reading any implementation files, run:
+`node .claude/helpers/resolve-feature.js --command review --phase 6 --args "$ARGUMENTS"`
+
+- If that command exits non-zero, stop and relay the error.
+- If it succeeds, treat the returned `feature` as the only valid target for this phase.
+- For the rest of this command, use that resolved feature slug in place of `$ARGUMENTS`.
 
 First, load your skills:
 - Read .claude/skills/code-review/SKILL.md for review methodology and finding classification
