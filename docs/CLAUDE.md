@@ -74,7 +74,7 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 - No hardcoded absolute paths in any framework file — use relative paths from project root
 - **Tests for skills/commands must use structural anchors** (heading names, template field labels), not phrase-binding. Phrase-bound tests punish refinement and prevent wording improvements.
 - **Guidance must be stack-agnostic** — when hardcoding examples (e.g., `npm test`, `pytest`, `node --test`), include "adapt to your stack" comments and mention multiple toolchain examples.
-- **Source and installed copies must be kept in sync** — `skills/*/SKILL.md` must remain byte-identical to `.claude/skills/*/SKILL.md`. Use deterministic tests to catch drift.
+- **Source and installed copies must be kept in sync** — `skills/*/SKILL.md` must remain byte-identical to `.claude/skills/*/SKILL.md`. Use deterministic tests (e.g., `assert.equal(source, installed)`) to catch drift. ISS-009 established this for hooks too.
 
 ### Naming
 - Roles: `ROLE_UPPER_SNAKE.md` (e.g. `ROLE_CODE_REVIEWER.md`)
@@ -131,6 +131,7 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 | `checkpoint.js` | Stop | Validates handoff.json, logs tokens, detects phase, writes pipeline-checkpoint.json |
 | `restore-context.js` | SessionStart | Loads handoff.json as primary context for fresh sessions |
 | `archive-context.js` | PreCompact | Archives conversation turns before context compaction |
+| `resolve-feature.js` | Invoked by commands (phases 2-7) | Safe CLI argument parsing; falls back to handoff.json; fails hard on invalid args or mismatches |
 
 ### ADR Index
 - [Dogfood proposal](design/dogfood-proposal.md) — using codingagents to develop codingagents
@@ -145,8 +146,10 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 - Root `CLAUDE.md` has placeholder comments (`<!-- e.g. ... -->`) that must stay as guidance for target projects. Do not fill them in with codingagents-specific content.
 - `settings.json` (hooks) and `settings.local.json` (permissions) are merged by Claude Code. Installing hooks via `init.sh` does not overwrite permissions.
 - The backlog system uses index files + individual ticket files. Status changes cost ~2 lines across 2 index files. See `skills/backlog-management/SKILL.md`.
-- **Source/installed skill drift is a vector for silent failures** — both `skills/*/SKILL.md` and `.claude/skills/*/SKILL.md` are currently committed and edited together. Nothing prevents them diverging after install. ISS-010-followup will address this by generating `.claude/` copies at install time instead of committing them (see ISS-005).
+- **Source/installed helper drift is a vector for silent failures** — ISS-009 added byte-identity sync tests (`assert.equal(source, installed)`) for both `checkpoint.js` and `resolve-feature.js`. Nothing prevents manual divergence. Test these in CI before merging changes.
 - **Phrase-bound tests break under refinement** — a test that asserts `assert.match(skill, /exact sentence here/i)` fails if the guidance is reworded for clarity. Use structural anchors instead: `assert.match(skill, /^## Stop Conditions$/m)` survives rewording. See ISS-010 rework findings for details.
+- **Feature slug naming mismatch** — The project's own feature slugs use uppercase prefixes (e.g., `ISS-009-resolve-feature-coverage`), but `FEATURE_SLUG_RE` regex in resolve-feature.js only accepts lowercase. This forces callers to rely on handoff.json fallback. Not a blocker (fallback works correctly), but limits the explicit-arg path. Tracked separately; fix when renaming slugs across the codebase.
+- **upgrade.sh idempotency gap** — resolve-feature.js copy is guarded by `if [ "$CORE_NEEDS_UPGRADE" = true ]`, so projects with recent core versions that re-run upgrade.sh won't receive the file if core is already up to date but the file is missing. Low risk in practice, but noted for future improvements to installer idempotency.
 
 ---
 
@@ -161,5 +164,5 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 
 ---
 
-*Last updated: 2026-04-10*
+*Last updated: 2026-04-11*
 *Updated by: documentation-specialist*
