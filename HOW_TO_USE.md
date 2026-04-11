@@ -44,14 +44,14 @@ your-project/
     │   ├── review.md                  → /review [feature-name]
     │   ├── document.md                → /document [feature-name]
     │   ├── status.md                  → /status
-    │   └── handoff.md                 → /handoff
+    │   └── session-note.md             → /session-note
     ├── helpers/
     │   ├── archive-context.js         ← PreCompact hook
     │   ├── restore-context.js         ← SessionStart hook
     │   └── checkpoint.js              ← Stop hook
     ├── settings.json                  ← Hook configuration
     ├── pipeline-checkpoint.json       ← Auto-written by Stop hook
-    ├── handoff-note.md                ← Written by /handoff command
+    ├── session-note.md                ← Written by /session-note command (human resumability, not pipeline handoff)
     └── context-archive/
         └── turns.json                 ← Written by PreCompact hook
 ```
@@ -59,6 +59,36 @@ your-project/
 ---
 
 ## Setup (one-time)
+
+### Automated setup (recommended)
+
+```bash
+# From your target project root:
+bash /path/to/codingagents/init.sh
+
+# With Codex review layer:
+bash /path/to/codingagents/init.sh --codex
+```
+
+This copies all roles, commands, skills, hooks, schemas, and configuration in one step.
+It creates the directory structure, updates `.gitignore`, and writes a version file.
+
+After running, edit `CLAUDE.md` to fill in your project-specific sections.
+
+### Upgrading from v4.1
+
+```bash
+# From your target project root:
+bash /path/to/codingagents/upgrade.sh
+
+# With Codex review layer:
+bash /path/to/codingagents/upgrade.sh --codex
+```
+
+This backs up your current `.claude/` directory, replaces framework files,
+and preserves project-specific configuration. See the console output for details.
+
+### Manual setup (if you prefer)
 
 ```bash
 # 1. Copy all ROLE_*.md files to .claude/agents/
@@ -78,7 +108,11 @@ cp hooks/checkpoint.js .claude/helpers/
 # 4. Copy settings.json to .claude/
 cp hooks/settings.json .claude/settings.json
 
-# 5. Copy CLAUDE.md to project root and fill in your project details
+# 5. Copy schemas
+mkdir -p .claude/schemas
+cp schemas/*.json .claude/schemas/
+
+# 6. Copy CLAUDE.md to project root and fill in your project details
 cp CLAUDE.md ./CLAUDE.md
 # Edit: project overview, stack, commands, conventions, constraints, gotchas
 
@@ -136,7 +170,7 @@ claude
 |------|-----|
 | Start a fresh session for each pipeline phase | Prevents context from prior phases polluting the current task |
 | Run `/compact` at 60% context | Auto-compaction loses context silently; manual is safer |
-| Run `/handoff` before ending a long session | Writes a compact note the next session can read to resume |
+| Run `/session-note` before ending a long session | Writes a human-readable note for resuming work (not a pipeline handoff) |
 | Run `/status` at the start of each session | Tells you exactly where you are and what to do next |
 | Never load more than 10 files in one session | If you need more, you're doing too much at once — split the task |
 

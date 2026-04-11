@@ -1,8 +1,13 @@
 ---
-description: Create session handoff note before context limit
+description: Save a session summary for human resumability
 user-invocable: true
 ---
-Before this session ends or context gets too large, create a compact handoff note.
+Before this session ends or context gets too large, create a compact session note.
+
+This is a human resumability tool, not a pipeline handoff. Pipeline handoffs use
+.claude/handoff.json, which each phase must write before completion.
+
+Use /session-note only for human resumability between long working sessions.
 
 Steps:
 1. Read .claude/pipeline-checkpoint.json if it exists
@@ -12,7 +17,7 @@ Steps:
    - Key decisions made (anything that would be in an ADR)
    - Any constraints discovered (gotchas, unexpected API behaviour, etc.)
    - Exact next step with the command to run in the new session
-3. Write to: .claude/handoff-note.md
-4. Commit: "chore: session handoff note"
+3. Write to: .claude/session-note.md
+4. Commit: "chore: session note"
 
 At the start of your NEXT session, run /status to resume cleanly.

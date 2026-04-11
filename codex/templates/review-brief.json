@@ -1,0 +1,23 @@
+{
+  "review_type": "code",
+  "feature": "user-profile-redesign",
+  "artifact": "git diff main...HEAD",
+  "artifact_paths": [
+    ".claude/handoff.json",
+    "docs/prd.md"
+  ],
+  "acceptance_criteria": [
+    "AC-1",
+    "AC-2"
+  ],
+  "focus_areas": [
+    "correctness",
+    "security",
+    "missing-tests"
+  ],
+  "verification_commands": [
+    "npm test",
+    "npm run lint"
+  ],
+  "output_format": "findings-first, severity-tagged, with file:line evidence and merge recommendation"
+}
