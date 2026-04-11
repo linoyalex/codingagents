@@ -10,10 +10,16 @@ biggest driver of token efficiency. A 200-line handoff file costs 2K tokens. A f
 conversation history costs 100K+.
 
 The canonical handoff artifact is `.claude/handoff.json` — a machine-readable contract
-between phases. Each agent writes it at the end of its phase; the next agent reads it at
+between phases. Each advancing phase writes it at the end of its phase; the next agent reads it at
 session start. The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js`
 Stop hook validates its presence, and `restore-context.js` loads it as primary context for
 fresh sessions.
+
+Not every phase result advances the pipeline. When a gate fails, the current phase artifact
+is still written, but the previous valid handoff remains authoritative so the next phase
+cannot start accidentally. Today that applies to:
+- Phase 4 when the security audit contains `BLOCKING` findings
+- Phase 6 when review returns `REQUEST_CHANGES`
 
 The second principle: **Opus only for irreversible decisions.** Architecture and security
 choices are hard to undo. Code is easy to rewrite. Model cost should match decision reversibility.
@@ -42,6 +48,13 @@ Phase 7: DOCUMENT      [documentation-specialist]   → CLAUDE.md, CHANGELOG.md 
 feature request (e.g. `user-auth`, `search-filters`). Phase 1 creates the directory
 `docs/features/<feature>/`; all subsequent phases write to the same directory. This groups
 every artifact for a feature in one browsable location.
+
+**Slash-command invocation contract:**
+- `/specify` accepts natural language and creates the feature slug.
+- Phases 2-7 should be invoked with only the feature slug, e.g. `/implement user-auth`.
+- If you want to add extra context after Phase 1, give it in a normal chat message and then run the slash command separately.
+- Phases 2-7 resolve the feature through `.claude/helpers/resolve-feature.js`, which fails closed on malformed args, slug/handoff mismatches, or invalid fallback state.
+- Empty args are allowed only as an explicit handoff-based resume when the handoff is valid and comes from the immediately previous phase.
 
 **Models by phase:**
 | Phase | Model | Why |
@@ -197,6 +210,10 @@ claude --model claude-opus-4-6 \
 
 A second, shorter code-time security scan runs automatically in CI (see `hooks/`).
 
+**Gate outcome:**
+- If there are no `BLOCKING` findings, Phase 4 writes the Phase 5 handoff and the next step is `/implement <feature>`.
+- If any `BLOCKING` finding exists, do **not** advance the pipeline. Keep the existing Phase 3 handoff, resolve the issues, and re-run `/security-gate <feature>`.
+
 ---
 
 ## Phase 5: IMPLEMENT (TDD: Red → Green → Refactor)
@@ -249,6 +266,10 @@ claude --model claude-sonnet-4-6 \
 
 **Token rule:** Code Reviewer reads the diff via `git diff`, not by opening every file.
 If a finding requires understanding context, read that one file — not the module it belongs to.
+
+**Gate outcome:**
+- If the verdict is `APPROVE`, Phase 6 writes the Phase 7 handoff and the next step is `/document <feature>` after merge.
+- If the verdict is `REQUEST_CHANGES`, do **not** advance the pipeline. Keep the existing Phase 5 handoff, address the findings, and re-run `/review <feature>` in a fresh session.
 
 ---
 
