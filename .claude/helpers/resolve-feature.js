@@ -13,20 +13,28 @@ const FEATURE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseCliArgs(argv) {
   const parsed = {};
+  const positional = [];
 
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     const next = argv[index + 1];
 
-    if (!token.startsWith('--')) continue;
+    if (!token.startsWith('--')) {
+      positional.push(token);
+      continue;
+    }
 
-    if (next === undefined) {
+    if (next === undefined || next.startsWith('--')) {
       parsed[token.slice(2)] = '';
       continue;
     }
 
     parsed[token.slice(2)] = next;
     index += 1;
+  }
+
+  if (positional.length > 0) {
+    throw new Error(`Unexpected positional arguments: ${positional.join(' ')}. All arguments must be passed as --flag value pairs.`);
   }
 
   return parsed;
@@ -126,7 +134,13 @@ function resolveFeatureTarget({ rawArgs, commandName, targetPhase, _handoffOverr
 }
 
 function main() {
-  const options = parseCliArgs(process.argv.slice(2));
+  let options;
+  try {
+    options = parseCliArgs(process.argv.slice(2));
+  } catch (err) {
+    console.error(`[resolve-feature] ${err.message}`);
+    process.exit(1);
+  }
   const commandName = options.command || 'implement';
   const targetPhase = Number.parseInt(options.phase || '', 10);
 
@@ -162,5 +176,6 @@ if (require.main === module) {
 
 module.exports = {
   classifyFeatureArgs,
+  parseCliArgs,
   resolveFeatureTarget,
 };

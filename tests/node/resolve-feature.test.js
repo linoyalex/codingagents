@@ -7,7 +7,7 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 // --- Unit tests for classifyFeatureArgs and resolveFeatureTarget ---
 
-const { classifyFeatureArgs, resolveFeatureTarget } = require(
+const { classifyFeatureArgs, parseCliArgs, resolveFeatureTarget } = require(
   path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.js')
 );
 
@@ -54,6 +54,38 @@ test('classifyFeatureArgs: special chars rejected as invalid', () => {
 test('classifyFeatureArgs: path-like string rejected as invalid', () => {
   const result = classifyFeatureArgs('docs/features/my-feature');
   assert.equal(result.kind, 'invalid');
+});
+
+// --- parseCliArgs tests ---
+
+test('parseCliArgs: standard flags are parsed correctly', () => {
+  const result = parseCliArgs(['--command', 'implement', '--phase', '5', '--args', 'user-auth']);
+  assert.equal(result.command, 'implement');
+  assert.equal(result.phase, '5');
+  assert.equal(result.args, 'user-auth');
+});
+
+test('parseCliArgs: trailing positional tokens after --args are rejected', () => {
+  // This is the Codex-found BLOCKING edge case: unquoted multi-word args like
+  // --args user-auth garbage should not silently discard "garbage"
+  assert.throws(
+    () => parseCliArgs(['--command', 'implement', '--phase', '5', '--args', 'user-auth', 'garbage']),
+    /unexpected positional/i,
+    'stray positional tokens after flag values must cause an error'
+  );
+});
+
+test('parseCliArgs: multiple trailing positional tokens are rejected', () => {
+  assert.throws(
+    () => parseCliArgs(['--command', 'implement', '--phase', '5', '--args', 'user-auth', 'extra', 'tokens']),
+    /unexpected positional/i
+  );
+});
+
+test('parseCliArgs: flag without value at end gets empty string', () => {
+  const result = parseCliArgs(['--command', 'implement', '--verbose']);
+  assert.equal(result.command, 'implement');
+  assert.equal(result.verbose, '');
 });
 
 // --- resolveFeatureTarget decision matrix tests ---
