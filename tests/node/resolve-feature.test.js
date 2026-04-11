@@ -83,9 +83,24 @@ test('parseCliArgs: multiple trailing positional tokens are rejected', () => {
 });
 
 test('parseCliArgs: flag without value at end gets empty string', () => {
-  const result = parseCliArgs(['--command', 'implement', '--verbose']);
+  const result = parseCliArgs(['--command', 'implement', '--phase', '5', '--args', '']);
   assert.equal(result.command, 'implement');
-  assert.equal(result.verbose, '');
+  assert.equal(result.args, '');
+});
+
+test('parseCliArgs: unknown flags are rejected', () => {
+  assert.throws(
+    () => parseCliArgs(['--command', 'implement', '--phase', '5', '--args', 'user-auth', '--bogus', 'garbage']),
+    /unknown flag/i,
+    'unrecognized --flags must cause an error'
+  );
+});
+
+test('parseCliArgs: unknown flag without value is rejected', () => {
+  assert.throws(
+    () => parseCliArgs(['--command', 'implement', '--phase', '5', '--args', 'user-auth', '--bogus']),
+    /unknown flag/i
+  );
 });
 
 // --- resolveFeatureTarget decision matrix tests ---

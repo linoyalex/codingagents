@@ -11,9 +11,12 @@ const { validateHandoff } = require('./checkpoint.js');
 
 const FEATURE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+const KNOWN_FLAGS = new Set(['command', 'phase', 'args']);
+
 function parseCliArgs(argv) {
   const parsed = {};
   const positional = [];
+  const unknown = [];
 
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -24,13 +27,24 @@ function parseCliArgs(argv) {
       continue;
     }
 
-    if (next === undefined || next.startsWith('--')) {
-      parsed[token.slice(2)] = '';
+    const flag = token.slice(2);
+
+    if (!KNOWN_FLAGS.has(flag)) {
+      unknown.push(token);
       continue;
     }
 
-    parsed[token.slice(2)] = next;
+    if (next === undefined || next.startsWith('--')) {
+      parsed[flag] = '';
+      continue;
+    }
+
+    parsed[flag] = next;
     index += 1;
+  }
+
+  if (unknown.length > 0) {
+    throw new Error(`Unknown flag(s): ${unknown.join(', ')}. Accepted flags: ${[...KNOWN_FLAGS].map(f => '--' + f).join(', ')}.`);
   }
 
   if (positional.length > 0) {
