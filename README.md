@@ -18,97 +18,19 @@ Phase 6  REVIEW         code-reviewer (fresh context)  → docs/features/<featur
 Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-notes                 (Haiku)
 ```
 
-**Core principle:** Agents pass files, not conversation history. Each phase produces one compact artifact and writes a structured `.claude/handoff.json` — a machine-readable contract that the next phase reads at session start.
+**Core principle:** Agents pass files, not conversation history. Each phase produces one compact artifact, and each advancing phase writes a structured `.claude/handoff.json` — a machine-readable contract that the next phase reads at session start.
 
 ---
 
 ## What's new in v5
 
-- **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases (each phase must write it before completion). Schema-validated by the Stop hook as a blocking gate. For human session resumability, use `/session-note` separately.
+- **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases (advancing phases must write it before completion). Schema-validated by the Stop hook as a blocking gate, and failed gates keep the previous handoff instead of advancing. For human session resumability, use `/session-note` separately.
 - **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution. Retry cycles are tracked separately from first-pass costs.
 - **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits to prevent context bloat.
 - **Deployment tooling** — `init.sh` and `upgrade.sh` replace the manual 6-step copy process. Version tracking via `.claude/.codingagents-version`.
+- **Fail-closed phase commands** — Phases 2-7 resolve the feature through `.claude/helpers/resolve-feature.js` and stop on malformed args, stale fallback state, or slug/handoff mismatch instead of guessing.
 - **Codex review layer** (optional) — independent cross-model review at four pipeline checkpoints, with shared token tracking.
 - **Baseline metrics** — budget targets per phase with a reporting script to compare actuals against targets.
-
----
-
-## Repo structure
-
-```
-├── CLAUDE.md                        ← Root router; auto-loaded by every Claude Code session
-├── PIPELINE.md                      ← Full pipeline reference with token budgets and baseline metrics
-├── HOW_TO_USE.md                    ← Setup guide and session discipline rules
-│
-├── ROLE_ARCHITECT.md                ← Phase 2 — Opus, irreversible decisions
-├── ROLE_CODE_REVIEWER.md            ← Phase 6 — Sonnet, fresh context only, read-only
-├── ROLE_DEVELOPER.md                ← Phase 5 — Sonnet, TDD: red/green/refactor
-├── ROLE_DOCUMENTATION_SPECIALIST.md ← Phase 7 — Haiku, changelog + CLAUDE.md
-├── ROLE_PRODUCT_OWNER.md            ← Phase 1 — Haiku, spec and acceptance criteria
-├── ROLE_QA.md                       ← Phase 3 — Sonnet, write failing tests first
-├── ROLE_SECURITY.md                 ← Phase 4 — Opus, design-time audit, read-only
-├── ROLE_UX_DESIGNER.md              ← Phase 1 — Haiku, screen states + flows
-│
-├── skills/                          ← Reusable execution procedures (HOW)
-│   ├── prd-writing/SKILL.md         ← Story format, AC template, RICE framework
-│   ├── architecture-decision/SKILL.md ← ADR template, fitness functions, tech radar
-│   ├── tdd/SKILL.md                 ← RED/GREEN/REFACTOR, property-based testing
-│   ├── security-audit/SKILL.md      ← OWASP Top 10, serverless threats, audit template
-│   ├── structured-logging/SKILL.md  ← Log format, levels, PII rules, security events
-│   ├── code-review/SKILL.md         ← Conventional comments, finding cap, taxonomy
-│   ├── release-docs/SKILL.md        ← Changelog, release notes, process learnings
-│   └── verification-gate/SKILL.md   ← Phase verification, handoff validation, retrospectives
-│
-├── commands/                        ← Slash commands — one per pipeline phase
-│   ├── specify.md                   → /specify [feature description]
-│   ├── architect.md                 → /architect [feature-name]
-│   ├── test-design.md               → /test-design [feature-name]
-│   ├── security-gate.md             → /security-gate [feature-name]
-│   ├── implement.md                 → /implement [feature-name]
-│   ├── review.md                    → /review [feature-name]
-│   ├── document.md                  → /document [feature-name]
-│   ├── status.md                    → /status
-│   └── session-note.md              → /session-note
-│
-├── schemas/                         ← Schema definitions
-│   └── handoff.schema.json          ← Handoff artifact schema (copied to target projects)
-│
-├── hooks/                           ← Lifecycle hooks
-│   ├── settings.json                ← Claude Code hook config (copy to .claude/)
-│   ├── archive-context.js           ← PreCompact: archives turns + logs token snapshot
-│   ├── restore-context.js           ← SessionStart: loads handoff.json or archived turns
-│   └── checkpoint.js                ← Stop: validates handoff (blocking), logs tokens, detects phase
-│
-├── init.sh                          ← New project setup script
-├── upgrade.sh                       ← Existing project migration script
-├── migrations/                      ← Version-specific migration logic
-│   └── v4.1-to-v5.sh
-├── .gitignore-template              ← Runtime artifact patterns for target projects
-│
-├── docs/                            ← Shared design docs, cross-agent memory, and repo-specific instructions
-│   ├── CLAUDE.md                        ← Framework development instructions (repo-local only)
-│   ├── design/
-│   │   ├── v5-implementation-record.md  ← What shipped in v5 (implementation reference)
-│   │   └── vnext-recommendations.md     ← What's left for vNext (Tier 2/3 + stretch goals)
-│   └── memory/                          ← Shared cross-agent memory (Claude + Codex)
-│       ├── session-bootstrap.md         ← Read-order guide for fresh sessions
-│       ├── v5-decisions.md              ← Settled design decisions — do not re-debate
-│       ├── codebase-map.md              ← Key files and where things live
-│       ├── codex-rules.md               ← Non-negotiable rules for Codex sessions
-│       ├── user-profile.md              ← User preferences and collaboration style
-│       └── review-process.md            ← How iterative Claude + Codex review works
-│
-└── codex/                           ← Codex review layer (optional, operational files only)
-    ├── fresh-context-playbook.md    ← Low-token patterns for Codex agents
-    ├── reviewers/                   ← Review instruction files
-    ├── templates/                   ← Input packet schemas and output formats
-    ├── reviews/                     ← Generated review artifacts (gitignored)
-    ├── log-usage.sh                 ← Manual token logging for Codex runs
-    ├── report-usage.sh              ← Token usage reporting (reads .claude/token-usage.jsonl)
-    └── README.md
-```
-
----
 
 ## Quick setup
 
@@ -137,7 +59,7 @@ This backs up `.claude/` before replacing framework files. It also refreshes the
 
 ### Manual setup
 
-See [HOW_TO_USE.md](HOW_TO_USE.md) for step-by-step instructions.
+Use [QUICKSTART.md](QUICKSTART.md) for detailed setup, manual-install fallback, and safe operator workflows.
 
 ---
 
@@ -161,13 +83,22 @@ claude                          # start Claude Code
 
 **Total: ~63K tokens first pass.** Budget allows ~20K for retry overhead (~83K combined target).
 
-Each phase writes `.claude/handoff.json` at completion. The Stop hook validates it as a blocking gate — the pipeline cannot proceed without a valid handoff.
+Advancing phases write `.claude/handoff.json` at completion. The Stop hook validates it as a blocking gate — the pipeline cannot proceed without a valid handoff, and failed gates intentionally preserve the previous handoff instead of moving forward.
+
+This section shows the happy path. For:
+
+- exact slash-command invocation rules
+- where natural language belongs vs slug-only commands
+- what to do when Phase 4 or Phase 6 blocks
+- safe resume patterns with `/status`
+
+continue in [QUICKSTART.md](QUICKSTART.md).
 
 ---
 
 ## Structured handoffs
 
-Every agent writes `.claude/handoff.json` at the end of its phase with:
+Every advancing phase writes `.claude/handoff.json` at the end of its phase with:
 
 | Field | Required | Description |
 |---|---|---|
@@ -183,7 +114,7 @@ Every agent writes `.claude/handoff.json` at the end of its phase with:
 | `produced_by` | No | Agent role that produced this handoff |
 | `timestamp` | No | ISO 8601 timestamp |
 
-The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js` Stop hook performs full schema validation (type checks, range constraints, unexpected property rejection) and exits with a non-zero code if validation fails.
+The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js` Stop hook performs full schema validation (type checks, range constraints, unexpected property rejection) and exits with a non-zero code if validation fails. Phase 4 with `BLOCKING` findings and Phase 6 with `REQUEST_CHANGES` intentionally keep the previous handoff in place so the pipeline cannot advance past a failed gate.
 
 ---
 
@@ -408,6 +339,92 @@ Rules:
 | [Ruflo](https://github.com/ruvnet/ruflo) | More sophisticated context archiving; run `npx ruflo@latest init` and keep only the hooks config |
 | [shanraisshan/claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) | `context: fork` pattern for parallel subagents, advanced slash command patterns |
 | [Anthropic: Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) | First-principles explanation for why the handoff pattern works |
+
+---
+
+## Repo structure
+
+```
+├── CLAUDE.md                        ← Root router; auto-loaded by every Claude Code session
+├── PIPELINE.md                      ← Full pipeline reference with token budgets and baseline metrics
+├── QUICKSTART.md                    ← Operator quickstart for install, invocation, and resume patterns
+│
+├── ROLE_ARCHITECT.md                ← Phase 2 — Opus, irreversible decisions
+├── ROLE_CODE_REVIEWER.md            ← Phase 6 — Sonnet, fresh context only, read-only
+├── ROLE_DEVELOPER.md                ← Phase 5 — Sonnet, TDD: red/green/refactor
+├── ROLE_DOCUMENTATION_SPECIALIST.md ← Phase 7 — Haiku, changelog + CLAUDE.md
+├── ROLE_PRODUCT_OWNER.md            ← Phase 1 — Haiku, spec and acceptance criteria
+├── ROLE_QA.md                       ← Phase 3 — Sonnet, write failing tests first
+├── ROLE_SECURITY.md                 ← Phase 4 — Opus, design-time audit, read-only
+├── ROLE_UX_DESIGNER.md              ← Phase 1 — Haiku, screen states + flows
+│
+├── skills/                          ← Reusable execution procedures (HOW)
+│   ├── prd-writing/SKILL.md         ← Story format, AC template, RICE framework
+│   ├── architecture-decision/SKILL.md ← ADR template, fitness functions, tech radar
+│   ├── backlog-management/SKILL.md  ← Backlog ticket format, ordering, and lifecycle conventions
+│   ├── tdd/SKILL.md                 ← RED/GREEN/REFACTOR, property-based testing
+│   ├── security-audit/SKILL.md      ← OWASP Top 10, serverless threats, audit template
+│   ├── structured-logging/SKILL.md  ← Log format, levels, PII rules, security events
+│   ├── code-review/SKILL.md         ← Conventional comments, finding cap, taxonomy
+│   ├── release-docs/SKILL.md        ← Changelog, release notes, process learnings
+│   └── verification-gate/SKILL.md   ← Phase verification, handoff validation, retrospectives
+│
+├── commands/                        ← Slash commands — one per pipeline phase
+│   ├── specify.md                   → /specify [feature description]
+│   ├── architect.md                 → /architect [feature-name]
+│   ├── test-design.md               → /test-design [feature-name]
+│   ├── security-gate.md             → /security-gate [feature-name]
+│   ├── implement.md                 → /implement [feature-name]
+│   ├── review.md                    → /review [feature-name]
+│   ├── document.md                  → /document [feature-name]
+│   ├── status.md                    → /status
+│   └── session-note.md              → /session-note
+│
+├── schemas/                         ← Schema definitions
+│   └── handoff.schema.json          ← Handoff artifact schema (copied to target projects)
+│
+├── hooks/                           ← Lifecycle hooks
+│   ├── settings.json                ← Claude Code hook config (copy to .claude/)
+│   ├── archive-context.js           ← PreCompact: archives turns + logs token snapshot
+│   ├── restore-context.js           ← SessionStart: loads handoff.json or archived turns
+│   ├── checkpoint.js                ← Stop: validates handoff (blocking), logs tokens, detects phase
+│   └── resolve-feature.js           ← Helper for Phases 2-7: resolves feature slug safely from args/handoff
+│
+├── init.sh                          ← New project setup script
+├── upgrade.sh                       ← Existing project migration script
+├── migrations/                      ← Version-specific migration logic
+│   └── v4.1-to-v5.sh
+├── .gitignore-template              ← Runtime artifact patterns for target projects
+├── release-notes/                   ← Generated release notes from Phase 7 documentation
+├── tests/                           ← Regression tests and contract checks for pipeline behavior
+│   ├── node/                        ← Node-based contract/unit tests for helpers and commands
+│   ├── fixtures/                    ← Stable fixtures for handoff/review/security verification tests
+│   └── test-*.sh                    ← Shell-level install and command contract checks
+│
+├── docs/                            ← Shared design docs, cross-agent memory, and repo-specific instructions
+│   ├── CLAUDE.md                        ← Framework development instructions (repo-local only)
+│   ├── design/
+│   │   ├── v5-implementation-record.md  ← What shipped in v5 (implementation reference)
+│   │   └── vnext-recommendations.md     ← What's left for vNext (Tier 2/3 + stretch goals)
+│   ├── features/                       ← Per-feature artifacts and review outputs generated by the pipeline
+│   ├── issues/                         ← Backlog, in-progress, closed tickets, and ticket files
+│   └── memory/                          ← Shared cross-agent memory (Claude + Codex)
+│       ├── session-bootstrap.md         ← Read-order guide for fresh sessions
+│       ├── v5-decisions.md              ← Settled design decisions — do not re-debate
+│       ├── codebase-map.md              ← Key files and where things live
+│       ├── codex-rules.md               ← Non-negotiable rules for Codex sessions
+│       ├── user-profile.md              ← User preferences and collaboration style
+│       └── review-process.md            ← How iterative Claude + Codex review works
+│
+└── codex/                           ← Codex review layer (optional, operational files only)
+    ├── fresh-context-playbook.md    ← Low-token patterns for Codex agents
+    ├── reviewers/                   ← Review instruction files
+    ├── templates/                   ← Input packet schemas and output formats
+    ├── reviews/                     ← Generated review artifacts (gitignored)
+    ├── log-usage.sh                 ← Manual token logging for Codex runs
+    ├── report-usage.sh              ← Token usage reporting (reads .claude/token-usage.jsonl)
+    └── README.md
+```
 
 ---
 

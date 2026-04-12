@@ -25,20 +25,23 @@
 | 7 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | — | Add invariants-audit skill for cross-layer semantic review |
 | 8 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
 | 9 | [ISS-029](tickets/ISS-029.md) | P2 — Medium | Feature | — | Add clarification checkpoints to `/specify` and review checkpoints to `/architect` |
-| 10 | [ISS-023](tickets/ISS-023.md) | P2 — Medium | Feature | — | Strengthen architecture decision skill with wiring diagrams, evidence rules, and observability naming |
-| 11 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |
-| 12 | [ISS-025](tickets/ISS-025.md) | P2 — Medium | Feature | — | Add adversarial self-review checkpoint to Phase 5 verification |
-| 13 | [ISS-015](tickets/ISS-015.md) | P2 — Medium | Feature | — | Add first-class post-implementation QA verification stage |
-| 14 | [ISS-012](tickets/ISS-012.md) | P2 — Medium | Feature | — | Add stage-matched Codex reviews and iterative feedback resolution through the pipeline |
-| 15 | [ISS-019](tickets/ISS-019.md) | P2 — Medium | Architecture | — | Add `allowed-tools` frontmatter to read-only skills |
-| 16 | [ISS-017](tickets/ISS-017.md) | P2 — Medium | Feature | — | Add stop-conditions footer to high-stakes skills |
-| 17 | [ISS-007](tickets/ISS-007.md) | P2 — Medium | Feature | — | Force upgrade and clean reinstall with backup support |
-| 18 | [ISS-008](tickets/ISS-008.md) | P2 — Medium | Feature | — | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade |
-| 19 | [ISS-011](tickets/ISS-011.md) | P3 — Low | Feature | — | Add shell script wrappers for Codex reviewer workflows |
-| 20 | [ISS-016](tickets/ISS-016.md) | P3 — Low | Architecture | — | Document intentional divergence from Anthropic slash command guidance |
-| 21 | [ISS-018](tickets/ISS-018.md) | P3 — Low | Architecture | — | Standardize skill naming on gerund form |
-| 22 | [ISS-020](tickets/ISS-020.md) | P3 — Low | Architecture | — | Prefix generated PRD filenames with the feature slug |
-| 23 | [ISS-021](tickets/ISS-021.md) | P3 — Low | Feature | — | Add first-class command entry points for Codex reviewer prompts |
+| 10 | [ISS-032](tickets/ISS-032.md) | P2 — Medium | Feature | — | Automatically run /status on fresh context to orient the agent |
+| 11 | [ISS-030](tickets/ISS-030.md) | P2 — Medium | Architecture | — | Introduce semantic versioning and tie backlog planning to major/minor/patch releases |
+| 12 | [ISS-023](tickets/ISS-023.md) | P2 — Medium | Feature | — | Strengthen architecture decision skill with wiring diagrams, evidence rules, and observability naming |
+| 13 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |
+| 14 | [ISS-025](tickets/ISS-025.md) | P2 — Medium | Feature | — | Add adversarial self-review checkpoint to Phase 5 verification |
+| 15 | [ISS-015](tickets/ISS-015.md) | P2 — Medium | Feature | — | Add first-class post-implementation QA verification stage |
+| 16 | [ISS-012](tickets/ISS-012.md) | P2 — Medium | Feature | — | Add stage-matched Codex reviews and iterative feedback resolution through the pipeline |
+| 17 | [ISS-019](tickets/ISS-019.md) | P2 — Medium | Architecture | — | Add `allowed-tools` frontmatter to read-only skills |
+| 18 | [ISS-017](tickets/ISS-017.md) | P2 — Medium | Feature | — | Add stop-conditions footer to high-stakes skills |
+| 19 | [ISS-007](tickets/ISS-007.md) | P2 — Medium | Feature | — | Force upgrade and clean reinstall with backup support |
+| 20 | [ISS-008](tickets/ISS-008.md) | P2 — Medium | Feature | — | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade |
+| 21 | [ISS-011](tickets/ISS-011.md) | P3 — Low | Feature | — | Add shell script wrappers for Codex reviewer workflows |
+| 22 | [ISS-016](tickets/ISS-016.md) | P3 — Low | Architecture | — | Document intentional divergence from Anthropic slash command guidance |
+| 23 | [ISS-018](tickets/ISS-018.md) | P3 — Low | Architecture | — | Standardize skill naming on gerund form |
+| 24 | [ISS-020](tickets/ISS-020.md) | P3 — Low | Architecture | — | Prefix generated PRD filenames with the feature slug |
+| 25 | [ISS-021](tickets/ISS-021.md) | P3 — Low | Feature | — | Add first-class command entry points for Codex reviewer prompts |
+| 26 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
 
 ## Execution Waves
 
@@ -48,11 +51,12 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **Wave 2 — Codex review method hardening (2):** Strengthen Codex’s code review prompt/process so installer paths, sync drift, and misleading tests are caught earlier and more consistently.
 - **Wave 3 — Skill convention (3):** Revise skill size convention before adding content to skills. Unblocks all skill content changes in Waves 4–6.
 - **Wave 4 — Test & review layer hardening (4–7):** Closes the two biggest failure patterns (missing integration tests, reviewer rubber-stamping), then hardens the reviewer and invariants layers.
-- **Wave 5 — Workflow ergonomics (8–9):** Improve operator ergonomics with ticket-aware feature selection plus explicit clarification/review checkpoints in the early phases.
-- **Wave 6 — Architecture, history, and QA loop (10–14):** Strengthen architecture docs, review history, self-review, post-implementation QA, and stage-matched Codex reviews.
-- **Wave 7 — Skill polish (15–16):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements.
-- **Wave 8 — Install ergonomics (17–18):** Force upgrade + clean reinstall, then project CLAUDE.md sync. Independent of pipeline-correctness work above.
-- **Wave 9 — Documentation polish (19–23):** Low-priority DX and documentation items. Defer until a real pain point forces them.
+- **Wave 5 — Workflow ergonomics (8–10):** Improve operator ergonomics with ticket-aware feature selection, explicit clarification/review checkpoints in the early phases, and automatic status on fresh context.
+- **Wave 6 — Release and planning structure (11):** Introduce semver and connect backlog planning to major/minor/patch release intent.
+- **Wave 7 — Architecture, history, and QA loop (12–16):** Strengthen architecture docs, review history, self-review, post-implementation QA, and stage-matched Codex reviews.
+- **Wave 8 — Skill polish (17–18):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements.
+- **Wave 9 — Install ergonomics (19–20):** Force upgrade + clean reinstall, then project CLAUDE.md sync. Independent of pipeline-correctness work above.
+- **Wave 10 — Documentation polish (21–26):** Low-priority DX and documentation items. Defer until a real pain point forces them. ISS-031 extends `/document` to keep README and other user-facing docs current automatically.
 
 ## Sequencing Notes
 
@@ -64,9 +68,10 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-001 is P1 but sequenced at Order 7**, not 4. Adding an invariants-audit skill before reviewers are independent (ISS-024) and adversarial (ISS-014) is less effective, but it is not hard-blocked.
 - **ISS-028 is at Order 8** because it directly improves day-to-day operator ergonomics once the current P1 review/testing issues are out of the way. It should land before lower-leverage process polish because it reduces friction across every future feature cycle without weakening the strict phase model.
 - **ISS-029 is at Order 9** because it strengthens the human feedback loop in `/specify` and `/architect` right after feature-selection ergonomics are improved. It should come before lower-leverage process polish because better early-phase clarification reduces downstream churn.
-- **ISS-023 at Order 10** adds architecture rigor (wiring diagrams, evidence rules). Valuable but the gaps are currently caught by Codex review, so less urgent than the test/review fixes above.
-- **ISS-025 at Order 12** is the developer-side counterpart to ISS-024. Less critical once ISS-024 hardens the reviewer, but provides defense-in-depth.
-- **ISS-006 has no hard dependency but is sequenced inside Wave 6** because ISS-012 (stage-matched Codex reviews, Order 14) benefits substantially from having review-history already in place.
+- **ISS-030 is at Order 11** because semantic versioning and release intent improve planning quality across the whole repo, but they are less urgent than fixing the current review/testing/operator workflow issues above.
+- **ISS-023 at Order 12** adds architecture rigor (wiring diagrams, evidence rules). Valuable but the gaps are currently caught by Codex review, so less urgent than the test/review fixes above.
+- **ISS-025 at Order 14** is the developer-side counterpart to ISS-024. Less critical once ISS-024 hardens the reviewer, but provides defense-in-depth.
+- **ISS-006 has no hard dependency but is sequenced inside Wave 7** because ISS-012 (stage-matched Codex reviews, Order 16) benefits substantially from having review-history already in place.
 - **ISS-012 benefits from ISS-006 and ISS-014** because review-history and stronger reviewer independence make the Codex review loop much more credible, but neither is a true hard blocker.
 - **ISS-019 has no hard dependency but is sequenced near ISS-017** because both touch the same skill files (`verification-gate`, `tdd`, `security-audit`). Doing them in adjacent sessions amortizes the cost of reading those files.
 - **ISS-007 before ISS-008 is a risk-reducing preference**, not a hard blocker. Backups make CLAUDE.md sync safer, but the sync feature can be implemented independently.

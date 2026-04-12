@@ -97,7 +97,7 @@ All five Tier 1 items from the original proposal were implemented.
 
 - `PIPELINE.md` — added Baseline Metrics section with budget targets per phase, retry allowance, and Codex review layer budgets.
 - `CLAUDE.md` — added Phase Handoff Protocol and Memory & Instruction Governance sections.
-- `HOW_TO_USE.md` — added automated setup via `init.sh` and upgrade instructions.
+- `QUICKSTART.md` — operator quickstart covering automated setup, upgrade instructions, and safe command invocation.
 - `README.md` — full rewrite for v5.
 
 ---
@@ -240,7 +240,7 @@ Practical rollout guidance:
 | `README.md` | Rewritten | Full v5 documentation |
 | `CLAUDE.md` | Updated | Added Phase Handoff Protocol + Memory & Instruction Governance |
 | `PIPELINE.md` | Updated | Added Baseline Metrics section with budget targets |
-| `HOW_TO_USE.md` | Updated | Added automated setup via init.sh and upgrade instructions |
+| `QUICKSTART.md` | Updated | Operator quickstart covering automated setup, upgrade instructions, and safe command invocation |
 
 ---
 

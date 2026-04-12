@@ -138,7 +138,7 @@ Compound types (e.g. `Bug + Architecture`) are allowed when a bug has a structur
 | `workflow` | State transitions, status, session discipline |
 | `testing` | Test coverage, test infra, fixtures |
 | `deployment` | init.sh, upgrade.sh, migrations, versioning |
-| `documentation` | CLAUDE.md, PIPELINE_GUIDE, HOW_TO_USE, README |
+| `documentation` | CLAUDE.md, PIPELINE_GUIDE, QUICKSTART, README |
 | `dogfood` | Issues found or related to self-development |
 | `security` | Auth, secrets, input validation |
 | `infrastructure` | CI/CD, tooling, environment |

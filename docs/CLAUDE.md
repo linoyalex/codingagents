@@ -42,7 +42,7 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 
 | Owner | Files |
 |---|---|
-| Claude | `hooks/`, `schemas/`, `ROLE_*.md`, `skills/`, `init.sh`, `upgrade.sh`, `migrations/`, root `CLAUDE.md`, `PIPELINE.md`, `HOW_TO_USE.md` |
+| Claude | `hooks/`, `schemas/`, `ROLE_*.md`, `skills/`, `init.sh`, `upgrade.sh`, `migrations/`, root `CLAUDE.md`, `PIPELINE.md`, `QUICKSTART.md` |
 | Codex | `codex/reviewers/`, `codex/templates/`, `codex/log-usage.sh`, `codex/report-usage.sh`, `codex/README.md` |
 | Shared | `docs/design/`, `docs/memory/`, `README.md`, `codex/fresh-context-playbook.md` |
 
