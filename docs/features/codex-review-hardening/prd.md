@@ -1,5 +1,5 @@
 ## Feature: Codex Review Hardening
-**Generated:** 2026-04-13T12:00:00Z
+**Generated:** 2026-04-13T21:00:00Z
 **Phase:** Specify | **Date:** 2026-04-13 | **Ticket:** ISS-027
 
 ---
@@ -32,11 +32,11 @@ These are review-method weaknesses, not product bugs. Fixing them at the reviewe
 
 - [ ] **AC4 (Unchanged-file scope):** Given unchanged files that install, generate, copy, or operationalize a changed file; When reviewer determines review scope; Then `codex/reviewers/review-code.md` clarifies these unchanged files are in scope.
 
-- [ ] **AC5 (Process docs updated):** Given the review method changes; When documentation is checked; Then `docs/memory/codex-rules.md` or `docs/memory/review-process.md` reflects the stronger review expectations.
+- [ ] **AC5 (Process docs updated):** Given the review method changes; When documentation is checked; Then `docs/memory/codex-rules.md` is updated as the canonical source of truth for Codex review expectations. If `docs/memory/review-process.md` contains overlapping Codex-specific guidance, it must either defer to `codex-rules.md` or be updated to stay consistent.
 
-- [ ] **AC6 (Regression test):** Given the updated review prompt/method; When tests run; Then at least one deterministic test or fixture-backed check protects the review method from regressing silently (e.g., structural anchor tests for required sections/headings).
+- [ ] **AC6 (Regression tests):** Given the updated review prompt/method; When tests run; Then deterministic structural anchor tests protect each of the four new rules from regressing silently: (a) installer/source-of-truth rule (AC1), (b) test-truthfulness rule (AC2), (c) parser edge-case checklist (AC3), (d) unchanged-file scope guidance (AC4). Each rule must have at least one dedicated test assertion.
 
-- [ ] **AC7 (Installer coverage contract test):** Given the source tree contains `skills/*/SKILL.md`, `commands/*.md`, and `hooks/*.js`; When the contract test runs; Then it asserts each source file has a corresponding copy line in `init.sh` (and optionally `upgrade.sh`). This catches the recurring pattern where new files are added to source but never copied to target projects.
+- [ ] **AC7 (Installer coverage contract test):** Given the source tree contains `skills/*/SKILL.md`, `commands/*.md`, and `hooks/*.js`; When the contract test runs; Then it asserts each source file is operationalized by the installer (`init.sh` and `upgrade.sh`). The test must verify the install contract (every source file reaches the target project), not a specific implementation mechanism — it must pass whether the installer uses literal copy lines, loops, manifests, directory copies, or helper functions. If `upgrade.sh` operationalizes files differently from `init.sh`, both paths must be covered.
 
 ---
 
@@ -45,9 +45,11 @@ These are review-method weaknesses, not product bugs. Fixing them at the reviewe
 | Workflow | Normal | Error | Success |
 |----------|--------|-------|---------|
 | **Codex review** | Reviewer follows install-path, test-truthfulness, and edge-case checklists | Reviewer skips a checklist item | All three gap classes checked in first pass |
-| **Installer contract test** | Test globs source files, asserts copy lines exist | New source file added without copy line in init.sh | All source files have corresponding installer entries |
+| **Installer contract test** | Test verifies each source file is operationalized by installer | New source file added but not operationalized by init.sh or upgrade.sh | All source files reachable in target project |
+| **Installer via non-literal mechanism** | Installer uses loop, manifest, or directory copy — contract test still passes | Test overfits literal copy lines and false-fails on valid installer | Contract test verifies behavior, not mechanism |
 | **Test-truthfulness check** | Reviewer compares test name to assertion body | Test name claims sync check but only asserts one property | Mismatch flagged, test improved |
 | **Edge-case enumeration** | Reviewer lists malformed-input shapes from diff | Shapes missed, discovered in re-review | Full matrix covered in first pass |
+| **No-test / no-parser diff** | Diff has no test files or parser/validator changes | Reviewer invents checklist work for inapplicable rules | Reviewer correctly skips inapplicable checklists — trigger conditions not met |
 
 ---
 
@@ -65,7 +67,8 @@ These are review-method weaknesses, not product bugs. Fixing them at the reviewe
 
 - **None (no hard blockers).** ISS-027 is at Order 1 in the backlog — no ticket must merge first.
 - **Assumption:** `codex/reviewers/review-code.md` exists and is the primary file to modify.
-- **Assumption:** `init.sh` is the canonical installer script for AC7's contract test.
+- **Assumption:** `init.sh` and `upgrade.sh` are the installer/upgrade scripts. AC7's contract test must work regardless of their internal mechanism (literal copies, loops, manifests, etc.).
+- **Assumption:** `docs/memory/codex-rules.md` is the canonical Codex review expectations doc (AC5). If it doesn't exist yet, create it.
 
 ---
 
@@ -86,6 +89,6 @@ These are review-method weaknesses, not product bugs. Fixing them at the reviewe
 - [ ] All 7 ACs pass
 - [ ] `codex/reviewers/review-code.md` updated with three new rules (AC1-AC3) and scope clarification (AC4)
 - [ ] Process docs updated (AC5)
-- [ ] Regression test protects review method (AC6)
-- [ ] Installer coverage contract test passing (AC7)
+- [ ] Regression tests protect each of the four new rules individually (AC6)
+- [ ] Installer coverage contract test passing against both init.sh and upgrade.sh (AC7)
 - [ ] No P1/P2 bugs open
