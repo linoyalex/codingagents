@@ -26,6 +26,7 @@ Rules:
 - Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
 - Do NOT read src/ — tests must be derived from the spec, not the implementation
 - Write contract tests to: tests/contracts/$ARGUMENTS.test.ts
+- Write integration tests to: tests/integration/$ARGUMENTS.integration.test.ts
 - Write E2E tests to: tests/e2e/$ARGUMENTS.spec.ts
 - Tests must FAIL when run right now (RED state — no implementation exists yet)
 - Use the TDD skill's reliability rules: identify happy, edge, and misuse/abuse cases when relevant, and make sure the first RED failure is for the intended reason
