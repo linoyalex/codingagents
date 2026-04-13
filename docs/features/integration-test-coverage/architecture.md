@@ -1,5 +1,5 @@
 ## Architecture: Integration Test Coverage for Phase 3
-**Generated:** 2026-04-13T12:00:00Z
+**Generated:** 2026-04-13T13:00:00Z
 **ADR:** ADR-003 | Date: 2026-04-13
 
 ### Decision
@@ -26,7 +26,7 @@ verification step, and revert PIPELINE_GUIDE.md. No schema or runtime changes to
 | File | Change | Budget impact |
 |------|--------|---------------|
 | `skills/tdd/SKILL.md` | Add "Three-Level Test Coverage" section (~20 lines), fixture validation rule (~3 lines), degenerate-input rule (~3 lines) | Current: 86 lines → ~112 lines (within 150 prose cap) |
-| `commands/test-design.md` | Add verification: "at least one test imports production entry point" | ~2 lines |
+| `commands/test-design.md` | Add blocking verification: import + visible-effect assertion required | ~3 lines |
 | `PIPELINE_GUIDE.md` | Add integration tests to Phase 3 deliverables list | ~1 line |
 
 ### Three-Level Test Coverage (AC1, AC2)
@@ -64,9 +64,12 @@ gate — Phase 3 cannot complete without it.
 ### Architecture Dependency (AC7)
 
 Add note to TDD skill: "Integration tests require the architecture doc to include a Call Chain
-or Integration Points section. If missing, QA agent must add a warning comment at the top of the
-test file noting the gap and flag it in the handoff. Phase 3 may proceed but the gap must be
-explicitly recorded."
+or Integration Points section. If missing, QA agent must:
+1. Add a `// ARCH GAP: No Call Chain section in architecture.md — integration target chosen by QA`
+   comment at the top of the integration test file
+2. Set `known_risks: ["Missing Call Chain in arch doc — integration target chosen by QA"]` in
+   handoff.json
+Phase 3 may proceed but the gap must be explicitly recorded in both locations."
 
 ### Module Boundaries
 
@@ -85,7 +88,9 @@ explicitly recorded."
 ### Fitness Functions
 1. `skills/tdd/SKILL.md` prose lines ≤ 150 (ISS-013 budget)
 2. TDD skill contains structural anchors: `## Three-Level Test Coverage`, fixture validation rule, degenerate-input rule
-3. `commands/test-design.md` contains entry-point verification step
+3. `commands/test-design.md` contains blocking entry-point verification (import + assertion, not advisory)
+4. `PIPELINE_GUIDE.md` Phase 3 section mentions integration tests
+5. TDD skill contains AC7 gap-handling with `ARCH GAP` comment format and handoff `known_risks` field
 
 ### Rejected Alternatives
 1. **Separate integration-test skill** — rejected because the guidance is 3 rules (~26 lines), not a standalone procedure; splitting would fragment the TDD workflow
