@@ -1,22 +1,26 @@
 {
   "feature": "review-hardening",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 7,
+  "goal": "Pipeline complete. Feature ready for merge to main.",
+  "scope": "No further phases. Documentation cycle closed.",
   "relevant_files": [
-    "docs/features/review-hardening/architecture.md",
+    "CHANGELOG.md",
+    "CLAUDE.md",
+    "release-notes/2026-04-13_v5.5.0_review-hardening.md",
     "docs/features/review-hardening/prd.md"
   ],
   "acceptance_criteria": [
-    "AC1", "AC2", "AC3", "AC4", "AC5", "AC6", "AC7", "AC8",
-    "AC9", "AC10", "AC11", "AC12", "AC13", "AC14", "AC15",
-    "AC16", "AC17", "AC18"
+    "CHANGELOG.md updated with v5.5.0 entry covering all 18 ACs",
+    "Release note created in release-notes/ with review findings",
+    "CLAUDE.md conventions updated with separate-context and source_spec guidance",
+    "CLAUDE.md timestamp updated to 2026-04-13"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/review-hardening/review.md"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md",
+    "ls release-notes/ | tail -1"
   ],
   "source_spec": "docs/features/review-hardening/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-14T00:30:00Z"
+  "produced_by": "documentation-specialist",
+  "timestamp": "2026-04-13T22:25:00Z"
 }
