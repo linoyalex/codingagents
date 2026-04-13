@@ -1,0 +1,28 @@
+{
+  "feature": "skill-size-convention",
+  "phase": 4,
+  "goal": "Implement feature using strict TDD",
+  "scope": "Phase 5 implementation only",
+  "relevant_files": [
+    "docs/features/skill-size-convention/architecture.md",
+    "tests/contracts/skill-size-convention.test.js",
+    "tests/e2e/skill-size-convention.spec.js"
+  ],
+  "acceptance_criteria": [
+    "AC1: docs/CLAUDE.md skill size budget replaced with ~150 prose / 250 total / progressive disclosure",
+    "AC2: Progressive disclosure pattern documented in docs/CLAUDE.md — exactly one location",
+    "AC3: Stop conditions footer rule documented for all pipeline-gating skills",
+    "AC4: verification-gate pilot with per-phase reference files, may trim low-signal content",
+    "AC5: Migration audit of all existing skills (dynamic discovery, no hardcoded count)",
+    "AC6: Contract tests pass for both inline and progressive-disclosure skills",
+    "AC7: Spot-check phase command with converted skill works end-to-end",
+    "AC8: Enforcement test or pre-merge check for new size budget",
+    "AC9: Root/docs CLAUDE.md conventions synced with drift-detection check"
+  ],
+  "verification_commands": [
+    "node --test tests/contracts/skill-size-convention.test.js",
+    "node --test tests/e2e/skill-size-convention.spec.js"
+  ],
+  "produced_by": "security-reviewer",
+  "timestamp": "2026-04-13T03:47:00Z"
+}
