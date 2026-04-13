@@ -52,7 +52,8 @@
     },
     "source_spec": {
       "type": "string",
-      "description": "Resolvable pointer to the originating spec: PRD path (e.g. 'docs/features/<feature>/prd.md'), ticket path (e.g. 'docs/issues/tickets/ISS-NNN.md'), or GitHub issue URL. Must not be used as an executable path."
+      "pattern": "^(docs/|https://github\\.com/)",
+      "description": "Resolvable pointer to the originating spec: PRD path (e.g. 'docs/features/<feature>/prd.md'), ticket path (e.g. 'docs/issues/tickets/ISS-NNN.md'), or GitHub issue URL. Must be relative to project root (no '..' segments, no absolute paths). URL values restricted to github.com. Must not be used as an executable path."
     },
     "produced_by": {
       "type": "string",

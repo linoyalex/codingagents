@@ -158,6 +158,23 @@ function validateHandoff() {
   }
   if (typeof handoff.source_spec !== 'string' || handoff.source_spec.length === 0) {
     errors.push('source_spec must be a non-empty string');
+  } else {
+    // Path traversal guard: reject '..' segments, absolute paths, and non-github URLs
+    const spec = handoff.source_spec;
+    if (spec.includes('..')) {
+      errors.push('source_spec must not contain ".." path segments (path traversal)');
+    } else if (spec.startsWith('/')) {
+      errors.push('source_spec must be relative to project root (no absolute paths)');
+    } else if (!spec.startsWith('docs/') && !spec.startsWith('https://github.com/')) {
+      errors.push('source_spec must start with "docs/" (local file) or "https://github.com/" (URL)');
+    }
+    // File-existence check for local paths (AC16)
+    if (!spec.startsWith('https://') && spec.startsWith('docs/')) {
+      const resolved = path.resolve(process.cwd(), spec);
+      if (!fs.existsSync(resolved)) {
+        errors.push(`source_spec file not found: ${spec}`);
+      }
+    }
   }
   if (handoff.produced_by !== undefined && typeof handoff.produced_by !== 'string') {
     errors.push('produced_by must be a string if present');

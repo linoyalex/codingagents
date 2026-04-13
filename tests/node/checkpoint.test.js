@@ -38,6 +38,10 @@ function writeJson(targetPath, sourcePath) {
 test('validateHandoff accepts a valid fixture handoff', (t) => {
   const projectDir = makeTempProject(t);
   writeJson(path.join(projectDir, '.claude', 'handoff.json'), VALID_HANDOFF);
+  // Create the source_spec target so file-existence check passes
+  const prdDir = path.join(projectDir, 'docs', 'features', 'user-auth');
+  fs.mkdirSync(prdDir, { recursive: true });
+  fs.writeFileSync(path.join(prdDir, 'prd.md'), '# PRD: user-auth\n');
 
   withProjectCwd(projectDir, (checkpoint) => {
     const result = checkpoint.validateHandoff();

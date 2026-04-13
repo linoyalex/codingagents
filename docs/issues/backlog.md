@@ -17,15 +17,16 @@
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
 | 1 | [ISS-027](tickets/ISS-027.md) | P2 — Medium | Feature | — | Harden Codex code review method for install-path, sync-drift, and test-truthfulness checks |
-| 2 | [ISS-013](tickets/ISS-013.md) | P2 — Medium | Architecture | — | Revise skill size convention and adopt progressive disclosure |
 | 4 | [ISS-024](tickets/ISS-024.md) | P1 — High | Feature | ISS-013 | Add reviewer independence and boundary-tracing rules to code-review skill |
 | 5 | [ISS-033](tickets/ISS-033.md) | P2 — Medium | Feature | ISS-013 | Require reviewers to verify against the source specification or ticket |
 | 5 | [ISS-041](tickets/ISS-041.md) | P1 — High | Bug | ISS-024, ISS-014, ISS-033 | Existing checkpoint.test.js fixtures must include source_spec after schema change |
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
 | 7 | [ISS-014](tickets/ISS-014.md) | P2 — Medium | Feature | ISS-013 | Make gate reviewers adversarial and require separate context for review phases |
 | 8 | [ISS-036](tickets/ISS-036.md) | P1 — High | Feature | ISS-013 | Add command↔skill wiring verification to prevent artifact-slot drift |
-| 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | ISS-024, ISS-014, ISS-033 | Add downstream-impact, drift-check, and reproduction steps to code-review skill |
+| 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | ISS-024, ISS-014, ISS-033 | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
 | 8 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
+| 8 | [ISS-042](tickets/ISS-042.md) | P1 — High | Feature | — | /implement command must instruct developer to verify handoff known_risks |
+| 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
 | 9 | [ISS-029](tickets/ISS-029.md) | P2 — Medium | Feature | — | Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect` |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-024, ISS-014 | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |

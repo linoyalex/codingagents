@@ -29,6 +29,10 @@ First read the `source_spec` field from `.claude/handoff.json`. This is the orig
 - If `source_spec` is unresolvable: halt with an explicit error.
 - Read the source_spec document before reading any other handoff claims.
 
+## Separate Context Check
+
+Check the `produced_by` field in the incoming handoff. If `produced_by` matches the current reviewer role (security-reviewer), halt: "Security gate requires separate context: current role matches handoff.produced_by." The same role must not author and review.
+
 Your task: design-time security audit for feature: $ARGUMENTS
 
 Rules:
