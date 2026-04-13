@@ -1,22 +1,32 @@
 {
-  "feature": "review-hardening",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "feature": "wiring-verification",
+  "phase": 3,
+  "goal": "Design-time security audit",
+  "scope": "Phase 4 security gate only",
   "relevant_files": [
-    "docs/features/review-hardening/architecture.md",
-    "docs/features/review-hardening/prd.md"
+    "docs/features/wiring-verification/prd.md",
+    "docs/features/wiring-verification/architecture.md"
   ],
   "acceptance_criteria": [
-    "AC1", "AC2", "AC3", "AC4", "AC5", "AC6", "AC7", "AC8",
-    "AC9", "AC10", "AC11", "AC12", "AC13", "AC14", "AC15",
-    "AC16", "AC17", "AC18"
+    "AC1: Contract test verifies command contains output instructions for each skill artifact (pattern + path)",
+    "AC2: Test catches known tdd/test-design integration-test gap",
+    "AC3: Malformed registry produces parse error naming skill",
+    "AC4: Phase 5 verification step in commands/implement.md",
+    "AC5: Phase 3 verification step in commands/test-design.md",
+    "AC6: Registry format: Markdown table with Artifact|Pattern|Path|Condition columns",
+    "AC7: Skills with no Required Artifacts section pass",
+    "AC8: Conditional artifacts: full pattern+path check (not relaxed — Condition column is informational only)",
+    "AC9: Multiple output paths: passes if at least one matches",
+    "AC10: No regression on existing tests",
+    "AC11: Negative test fixture with mock skill+command and known gap"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/review-hardening/review.md"
+    "ls docs/features/wiring-verification/security-audit.md"
   ],
-  "source_spec": "docs/features/review-hardening/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T22:30:00Z"
+  "known_risks": [
+    "Missing Call Chain in arch doc — integration target chosen by QA"
+  ],
+  "source_spec": "docs/issues/tickets/ISS-036.md",
+  "produced_by": "qa",
+  "timestamp": "2026-04-13T23:15:00Z"
 }
