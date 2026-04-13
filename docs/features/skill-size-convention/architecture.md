@@ -1,5 +1,5 @@
 ## Architecture: Skill Size Convention & Progressive Disclosure
-**Generated:** 2026-04-12T22:30:00Z
+**Generated:** 2026-04-13T04:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-12
 
 ### Decision
@@ -11,15 +11,14 @@ skills repeat stop conditions in a footer. Root and docs/CLAUDE.md must state id
 enforced by a drift-detection check. Enforcement via `node --test` contract tests.
 
 ### Decision Confidence
-High — 5 of 9 skills already exceed 120 lines; the new budget codifies what works in practice.
+High — 5 of 9 skills already exceed 120 lines; the new budget codifies what works.
 
 ### Revisit When
-- More than 3 skills need progressive disclosure (budget may still be too tight)
-- Claude Code gains native skill-include or partial-load semantics
+- More than 3 skills need progressive disclosure, or Claude Code gains native skill-include
 
 ### Rollback / Fallback
-Revert CLAUDE.md budget lines (both root and docs/) and delete reference files; skills remain
-functional as single files. Contract tests are the only code — deleting them fully reverts.
+Revert CLAUDE.md budget lines (both root and docs/) and delete reference files; contract tests
+are the only code — deleting them fully reverts enforcement.
 
 ### File Layout
 
@@ -30,21 +29,23 @@ skills/<name>/
 ```
 
 Link format in SKILL.md: `[See reference: skills/<name>/<reference>.md]` per AC2.
-Progressive disclosure documented in exactly one location: `docs/CLAUDE.md` (preferred;
-falls back to `skills/SKILL_AUTHORING.md` only if docs/CLAUDE.md would exceed ~250 lines).
+Progressive disclosure documented in exactly one location: `docs/CLAUDE.md`. No fallback to
+`skills/SKILL_AUTHORING.md` — eliminates a second source to drift-check and own.
 
 ### Pilot: verification-gate Conversion (AC4)
 
 | File | Content | Prose lines |
 |------|---------|-------------|
 | `SKILL.md` | Top rules, standard verification, handoff validation, no-go, stop conditions footer | ~80 |
-| `phase-checks.md` | Per-phase verification commands (phases 1-7) | ~50 |
+| `phase-1-2.md` | After Specify + Architect checks | ~15 |
+| `phase-3-5.md` | After Test Design, Security Gate, Implement checks | ~25 |
+| `phase-6-7.md` | After Review + Document checks | ~15 |
 
-AC4 requires signal-positive content — low-signal boilerplate may be trimmed, not just reorganized.
+Per-phase files prove fine-grained disclosure. Low-signal boilerplate may be trimmed (AC4d).
 
 ### Stop Conditions Footer (AC3)
 
-High-stakes skills (verification-gate, security-audit) must end with:
+Pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with:
 ```
 ---
 **STOP CONDITIONS (end of file):**
@@ -60,7 +61,7 @@ Tests in `tests/node/skill-size-convention.test.js`:
 1. **Prose counter** — exclude fenced blocks, table rows, frontmatter; assert ≤150 (inline) or ≤120 (split)
 2. **Total line cap** — assert ≤250 for inline SKILL.md files
 3. **Reference link integrity** — every `[See reference: ...]` link resolves to existing file
-4. **Stop conditions footer** — high-stakes skills have `**STOP CONDITIONS (end of file):**` in last 20 lines
+4. **Stop conditions footer** — pipeline-gating skills have `**STOP CONDITIONS (end of file):**` in last 20 lines
 5. **CLAUDE.md drift check (AC9)** — extract skill-size convention from root and docs/CLAUDE.md; assert identical
 6. **Source/installed sync** — byte-identity extended to cover sibling reference files
 
@@ -69,12 +70,9 @@ Use structural anchors, not phrase-binding, per project convention.
 
 ### Migration Audit (AC5)
 
-Audit script globs `skills/*/SKILL.md`, counts lines, and classifies:
-- **Compliant:** ≤250 total — no action
-- **Needs Trimming:** 251-300 — trim or split
-- **Needs Splitting:** >300 — must split
-
-Output: `docs/memory/skill-migration-audit.md` with per-skill line counts; includes AC9 drift check.
+Audit script globs `skills/*/SKILL.md`, counts lines, classifies as Compliant (≤250),
+Needs Trimming (251-300), or Needs Splitting (>300). Output: `docs/memory/skill-migration-audit.md`
+with per-skill line counts; includes AC9 drift check.
 
 ### Module Boundaries
 
@@ -95,6 +93,6 @@ Output: `docs/memory/skill-migration-audit.md` with per-skill line counts; inclu
 2. Root and docs/CLAUDE.md skill-size conventions are identical
 
 ### Rejected Alternatives
-1. **Single higher cap (200 lines)** — delays the split decision; skills grow until they hit the wall again
-2. **Automatic splitting at build time** — tooling complexity; manual split is a one-time authoring cost
-3. **Separate examples/ outside skills/** — breaks co-location and skill portability
+1. **Single higher cap (200 lines)** — delays the split; skills grow until they hit the wall again
+2. **Build-time splitting** — tooling complexity; manual split is a one-time authoring cost
+3. **Separate examples/ outside skills/** — breaks co-location and portability
