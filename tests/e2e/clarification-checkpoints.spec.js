@@ -1,0 +1,162 @@
+/**
+ * E2E tests for clarification-checkpoints feature (RED state)
+ *
+ * Derived from: docs/features/clarification-checkpoints/prd.md + architecture.md
+ * Ticket: ISS-029
+ *
+ * These tests verify the complete clarification-checkpoints convention chain end-to-end:
+ *   skill (Ticket Fidelity Procedure) → command/specify (fidelity + clarification gate)
+ *   → command/architect (review checkpoint) → source/installed sync
+ *
+ * Wiring proof:
+ *   If all E2E tests pass, the pipeline enforces ticket fidelity at authoring time,
+ *   human clarification before PRD finalization, and human review before architecture
+ *   finalization. Every file modified in the architecture doc is verified.
+ *
+ * Cases covered:
+ *   Happy:   Complete chain from skill procedure → command flow → checkpoint ordering works
+ *   Edge:    Source/installed copies stay in sync across all modified files
+ *   Misuse:  Commands without checkpoint language would auto-advance (caught by ordering checks)
+ */
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT_DIR = path.resolve(__dirname, '..', '..');
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
+}
+
+// ---------------------------------------------------------------------------
+// E2E Chain 1: Skill → Command → Checkpoint Ordering (specify)
+// ---------------------------------------------------------------------------
+
+test('E2E chain: prd-writing skill defines Ticket Fidelity Procedure AND specify command references and uses it', () => {
+  // Step 1: Skill defines the procedure
+  const skill = read('skills/prd-writing/SKILL.md');
+  const hasSection = /^## Ticket Fidelity Procedure$/m.test(skill);
+  assert.ok(hasSection, 'prd-writing skill must define Ticket Fidelity Procedure section');
+
+  // Step 2: Procedure covers all sub-ACs
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/)[0];
+  assert.match(section, /transcribe|faithfully/i, 'Procedure must cover AC0 (transcription)');
+  assert.match(section, /CLAUDE\.md/i, 'Procedure must cover AC0a (convention verification)');
+  assert.match(section, /contradict/i, 'Procedure must cover AC0b (contradiction check)');
+  assert.match(section, /enumerate|open.ended/i, 'Procedure must cover AC0c (open-ended scope)');
+
+  // Step 3: Command loads the skill
+  const cmd = read('commands/specify.md');
+  assert.match(cmd, /prd-writing\/SKILL\.md/, 'Command must load the skill');
+
+  // Step 4: Command includes fidelity instructions
+  assert.match(cmd, /ticket.*fidelity|fidelity.*check|transcribe.*ticket/i,
+    'Command must include ticket fidelity instructions');
+});
+
+// ---------------------------------------------------------------------------
+// E2E Chain 2: Clarification gate → outcome handling → commit ordering (specify)
+// ---------------------------------------------------------------------------
+
+test('E2E chain: specify command enforces full clarification flow before finalization', () => {
+  const cmd = read('commands/specify.md');
+
+  // Clarification gate exists
+  assert.match(cmd, /clarification/i, 'Must have clarification gate');
+
+  // Triggers are documented
+  assert.match(cmd, /trigger/i, 'Must document clarification triggers');
+
+  // Question discipline
+  assert.match(cmd, /material/i, 'Must enforce question discipline');
+
+  // Partial/refused handling
+  assert.match(cmd, /partial|refused|declines/i, 'Must handle partial/refused answers');
+
+  // Assumptions for unanswered questions
+  assert.match(cmd, /assumption/i, 'Must record unanswered as assumptions');
+
+  // Ordering: clarification before commit
+  const clarificationIdx = cmd.search(/clarification.*gate|clarification.*question|ask.*clarif/i);
+  const commitIdx = cmd.search(/commit.*when done|commit.*prd|commit.*message/i);
+  assert.ok(clarificationIdx < commitIdx, 'Clarification must come before commit');
+});
+
+// ---------------------------------------------------------------------------
+// E2E Chain 3: Review checkpoint → feedback loop → commit ordering (architect)
+// ---------------------------------------------------------------------------
+
+test('E2E chain: architect command enforces review checkpoint with feedback loop before finalization', () => {
+  const cmd = read('commands/architect.md');
+
+  // Review checkpoint exists
+  assert.match(cmd, /review.*checkpoint|present.*review|request.*user.*review/i,
+    'Must have review checkpoint');
+
+  // Feedback incorporation / revision cycles
+  assert.match(cmd, /user.*feedback|feedback.*incorporat|revision.*cycle|revise.*architecture/i,
+    'Must allow revision cycles');
+
+  // Ordering: checkpoint before commit
+  const checkpointIdx = cmd.search(/review.*checkpoint|present.*review|wait.*feedback/i);
+  const commitIdx = cmd.search(/commit.*when done|commit.*message/i);
+  assert.ok(checkpointIdx >= 0, 'Review checkpoint must exist');
+  assert.ok(commitIdx >= 0, 'Commit instruction must exist');
+  assert.ok(checkpointIdx < commitIdx, 'Review checkpoint must come before commit');
+});
+
+// ---------------------------------------------------------------------------
+// E2E Chain 4: Source/installed sync for ALL modified files
+// ---------------------------------------------------------------------------
+
+test('E2E sync: all files in the architecture boundary table have matching installed copies', () => {
+  // Architecture specifies these files are modified:
+  const filePairs = [
+    ['commands/specify.md', '.claude/commands/specify.md'],
+    ['commands/architect.md', '.claude/commands/architect.md'],
+    ['skills/prd-writing/SKILL.md', '.claude/skills/prd-writing/SKILL.md'],
+  ];
+
+  for (const [source, installed] of filePairs) {
+    const sourceContent = read(source);
+    const installedContent = read(installed);
+    assert.equal(
+      sourceContent,
+      installedContent,
+      `Source ${source} and installed ${installed} must be byte-identical`
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Error state: ticket not found — skill procedure must handle gracefully
+// ---------------------------------------------------------------------------
+
+test('E2E error state: prd-writing skill Ticket Fidelity Procedure documents ticket-not-found handling', () => {
+  const skill = read('skills/prd-writing/SKILL.md');
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(section, 'Ticket Fidelity Procedure section must exist');
+  assert.match(
+    section[0],
+    /not found|skip|proceed|error/i,
+    'Procedure must document behavior when ticket file is not found'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Empty state: no ticket reference — fidelity check should be skipped
+// ---------------------------------------------------------------------------
+
+test('E2E empty state: specify command or skill documents skipping fidelity when no ticket reference', () => {
+  const cmd = read('commands/specify.md');
+  const skill = read('skills/prd-writing/SKILL.md');
+  const combined = cmd + skill;
+  assert.match(
+    combined,
+    /no ticket|without.*ticket|skip.*fidelity|ticket.*reference/i,
+    'Must document that fidelity check is skipped when no ticket reference is provided'
+  );
+});
