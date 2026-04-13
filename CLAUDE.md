@@ -128,6 +128,7 @@ npm audit --audit-level=high
 <!-- FILL IN: Project-specific patterns all agents must follow -->
 
 ### Must Follow
+- **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
 - [ ] <!-- e.g. All API routes must validate input with Zod before touching the database -->
 - [ ] <!-- e.g. All async functions must handle the rejection case explicitly -->
 - [ ] <!-- e.g. No direct database access from UI components -->

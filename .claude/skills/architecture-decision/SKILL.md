@@ -26,7 +26,7 @@ version: "1.2.0"
 
 ## ADR Template
 
-Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
 
 ```markdown
 ## ADR-[NUMBER]: [Short title]
@@ -57,7 +57,7 @@ Include a `**Generated:**` line with the current ISO 8601 timestamp immediately 
 
 ## architecture.md Template
 
-Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
 
 ```markdown
 ## Architecture: [Feature Name]

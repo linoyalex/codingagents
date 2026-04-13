@@ -76,7 +76,7 @@ npm audit --audit-level=high
 
 ## Security Audit Document Template
 
-Include a `**Generated:**` timestamp line per the artifact timestamp convention in `docs/CLAUDE.md`.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
 
 ```markdown
 ## Security Audit: [Feature Name]

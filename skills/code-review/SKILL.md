@@ -91,7 +91,7 @@ Recommendation: Add `verifyOwnership(userId, closetId)` before the delete call.
 
 ## Review Document Template
 
-Include a `**Generated:**` timestamp line per the artifact timestamp convention in `docs/CLAUDE.md`.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
 
 ```markdown
 ## Code Review: [Branch Name]

@@ -59,7 +59,7 @@ Rules:
 
 ## PRD Template
 
-Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
 
 ```markdown
 ## Feature: [Name]
