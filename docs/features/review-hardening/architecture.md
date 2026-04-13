@@ -1,5 +1,5 @@
 ## Architecture: Review Layer Hardening
-**Generated:** 2026-04-13T18:15:00Z
+**Generated:** 2026-04-13T19:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-13
 
 ### Decision
@@ -86,8 +86,12 @@ Adding `source_spec` as required in `handoff.schema.json` affects all handoff pr
 
 "Separate context" means: different agent session with no carried-over framing beyond machine-readable handoff.json fields. The reviewer must re-derive coverage expectations from the source spec independently.
 
-**Detection mechanism**: `checkpoint.js` records `produced_by` in each handoff. Gate-phase commands (review, security-gate) check that `produced_by` in the incoming handoff differs from the current agent role. If the same role that authored also reviews, the command halts with: "Review requires separate context: current role matches handoff.produced_by." This is a lightweight, deterministic check — not full session-lineage tracking, but sufficient to catch the most common violation (same-agent continuity). Review artifact headers must state "Reviewed in separate context from authoring phase".
+**Detection mechanism**: `checkpoint.js` records `produced_by` in each handoff. Gate-phase commands (review, security-gate) check that `produced_by` in the incoming handoff differs from the current agent role. If the same role that authored also reviews, the command halts with: "Review requires separate context: current role matches handoff.produced_by."
+
+**Known limitation**: This check catches same-role continuity (e.g., developer reviewing their own code) but not same-agent-different-role continuity (e.g., one session acting as developer then switching to code-reviewer). Full session-lineage tracking is not feasible in a prompt-driven pipeline. Mitigations: (1) role docs instruct gate reviewers to re-derive expectations from source_spec independently, (2) review artifact headers must state "Reviewed in separate context from authoring phase", (3) structural tests verify these instructions exist. This is defense-in-depth via layered prose + deterministic role check, not a complete runtime guarantee.
+
+**Residual risk**: An operator manually invoking a gate command in the same session that authored the work can bypass the role check. This is accepted — the pipeline is designed for agent-per-phase invocation, and human operators bypassing it are making an informed choice.
 
 ### Rejected Alternatives
-1. **Runtime enforcement of separate context via tooling** — rejected because the pipeline is prompt-driven, not runtime-enforced. Structural tests on role docs and artifact headers are sufficient and simpler.
+1. **Full session-lineage tracking for separate context** — rejected because the pipeline has no session registry or agent identity system. Would require new infrastructure (session IDs, lineage graph) disproportionate to the risk. The `produced_by` role check + layered prose mitigations are accepted as sufficient for the agent-per-phase invocation model.
 2. **Making source_spec optional with fallback inference** — rejected because silent inference from branch names creates hidden trust (AC14-15 explicitly require explicit declaration).
