@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> Canonical version note: major version `5` begins with the `version5-codex+token-governance` line. Earlier release artifacts were temporarily labeled `0.x`; this changelog reflects the canonical `5.x` mapping. Some `5.1.x` entries preserve their original v5 branch-authored dates, so the dates do not align perfectly with the later normalized `5.0.0` baseline. See [RELEASE.md](RELEASE.md) for the transition table.
+
 ## [Unreleased]
+
+No unreleased changes documented yet.
+
+---
+
+## [5.4.0] — 2026-04-13
+
+> Upgrade warning: `5.4.0` introduces a new Phase 3 gating factor. Upgrading agents mid-feature-cycle is strongly discouraged because existing test-design outputs may not satisfy the new integration-test artifact and verification requirements.
 
 ### Added
 - **Three-level test coverage guidance (unit, integration, E2E)** — TDD skill now explicitly defines three test levels and naming conventions; integration tests call the production entry point and assert visible effects in output; Phase 3 test design requires all three levels
@@ -33,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.8.0] — 2026-04-13
+## [5.3.0] — 2026-04-13
 
 ### Added
 - **Skill size convention revised** — inline skills now allow ~150 lines instructional prose (templates/tables/examples excluded) with a 250-line total threshold, replacing the previous ~100-line constraint that conflated different content types and discouraged necessary detail
@@ -62,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.7.0] — 2026-04-13
+## [5.2.0] — 2026-04-13
 
 ### Added
 - **Artifact timestamp convention** — all pipeline-generated feature artifacts now include a `**Generated:** <ISO 8601>` metadata line immediately after the document's top-level heading, enabling pipeline operators to identify when artifacts were produced and trace multi-phase review cycles
@@ -87,7 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.6.0] — 2026-04-11
+## [5.1.1] — 2026-04-11
 
 ### Added
 - **Feature resolution safety across all pipeline commands** — phases 2-7 (architect, test-design, security-gate, review) now wire through `resolve-feature.js`, enforcing strict argument validation and failing hard on feature mismatches or stale handoffs instead of silently proceeding on malformed args
@@ -115,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.5.0] — 2026-04-10
+## [5.1.0] — 2026-04-10
 
 ### Added
 - **Reliability refresh for core skills** — prd-writing, architecture-decision, tdd, and verification-gate now include explicit stop conditions, success criteria, and structured guidance for handling ambiguous or stale inputs
@@ -145,6 +155,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.4.0] — Earlier
+## [5.0.0] — 2026-04-11
+
+### Added
+- **Structured handoffs** — `.claude/handoff.json` established as the machine-readable contract between pipeline phases, validated by the Stop hook before the next phase can proceed
+- **Token usage tracking** — `.claude/token-usage.jsonl` introduced for per-phase, per-iteration, and per-agent token accounting
+- **Memory governance** — clearer rules introduced for what belongs in `CLAUDE.md`, skills, and handoff packets to reduce context bloat
+- **Deployment tooling baseline** — `init.sh` and `upgrade.sh` established as the primary install and upgrade path for the framework
+- **Codex review integration baseline** — optional Codex review layer documented as part of the v5 framework line
+
+### Changed
+- **Framework generation reset** — the `version5-codex+token-governance` line became the canonical major-version baseline for subsequent `5.x` releases
+
+### Fixed
+- N/A
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
+## [4.x and earlier] — Earlier
 
 Refer to prior commits and feature PRDs for earlier release history.

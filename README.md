@@ -32,6 +32,18 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 - **Codex review layer** (optional) — independent cross-model review at four pipeline checkpoints, with shared token tracking.
 - **Baseline metrics** — budget targets per phase with a reporting script to compare actuals against targets.
 
+## Current release line
+
+- Canonical major line: `5.x`
+- Generation baseline: `5.0.0` from `version5-codex+token-governance`
+- Current published release: `5.4.0`
+
+`5.4.0` adds a new Phase 3 gating factor: test design now requires an explicit integration-test output slot plus visible-effect verification against the production entry point.
+
+**Upgrade warning:** upgrading agents in the middle of an active feature cycle is strongly discouraged for `5.4.0` and later releases that change gates, schema expectations, command contracts, or required artifacts. If you are already mid-feature, finish the current cycle before upgrading when possible. If you have already upgraded, run `/status` first and be prepared to regenerate artifacts from the last stable phase rather than forcing older outputs through the new gate.
+
+See [RELEASE.md](RELEASE.md) for the canonical `5.x` mapping and release-process rules, and [QUICKSTART.md](QUICKSTART.md) for operator-safe upgrade guidance.
+
 ## Quick setup
 
 ### Automated (recommended)
@@ -56,6 +68,8 @@ bash /path/to/codingagents/upgrade.sh --codex   # pipeline + Codex review layer
 ```
 
 This backs up `.claude/` before replacing framework files. It also refreshes the shared `docs/design/` and `docs/memory/` files used by fresh sessions. `CLAUDE.md` is not touched — review it manually for new sections (Phase Handoff Protocol, Memory & Instruction Governance).
+
+Before upgrading, check whether you are in the middle of an active feature cycle. Releases that add gates or required artifacts can invalidate in-flight outputs. The current example is `5.4.0`, which adds a new Phase 3 integration-test gate.
 
 ### Manual setup
 
