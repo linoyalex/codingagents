@@ -1,0 +1,29 @@
+{
+  "feature": "skill-size-convention",
+  "phase": 7,
+  "goal": "Pipeline complete. Merge to main after final checks.",
+  "scope": "No further phases",
+  "relevant_files": [
+    "CHANGELOG.md",
+    "release-notes/2026-04-13_v0.8.0.md",
+    "docs/CLAUDE.md"
+  ],
+  "acceptance_criteria": [
+    "AC1: skill size budget revised with ~150 prose / ~250 total",
+    "AC2: Progressive disclosure pattern documented",
+    "AC3: Stop conditions footer rule documented",
+    "AC4: verification-gate pilot converted",
+    "AC5: Migration audit completed",
+    "AC6: Contract tests pass",
+    "AC7: Phase command smoke test passes",
+    "AC8: Size budget enforced",
+    "AC9: Root/docs CLAUDE.md conventions synced"
+  ],
+  "verification_commands": [
+    "head -30 CHANGELOG.md",
+    "ls -l release-notes/2026-04-13_v0.8.0.md",
+    "grep 'Last updated' docs/CLAUDE.md"
+  ],
+  "produced_by": "documentation-specialist",
+  "timestamp": "2026-04-13T09:15:00Z"
+}

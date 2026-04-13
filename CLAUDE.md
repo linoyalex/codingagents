@@ -129,6 +129,7 @@ npm audit --audit-level=high
 
 ### Must Follow
 - **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
+- **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
 - [ ] <!-- e.g. All API routes must validate input with Zod before touching the database -->
 - [ ] <!-- e.g. All async functions must handle the rejection case explicitly -->
 - [ ] <!-- e.g. No direct database access from UI components -->
@@ -225,10 +226,10 @@ validates handoff presence; `restore-context.js` loads it as primary context at 
 | Content type | Location | Loaded | Max size |
 |---|---|---|---|
 | Project conventions, agent routing, absolute constraints | `CLAUDE.md` | Always (every session) | ~250 lines |
-| Reusable procedures (TDD, code review, security audit) | `skills/*.md` | On demand (by commands) | ~100 lines each |
+| Reusable procedures (TDD, code review, security audit) | `skills/*.md` | On demand (by commands) | ~150 lines each |
 | Phase-specific context for the next agent | `.claude/handoff.json` | At session start (by hook) | ~50 lines |
 | Per-feature briefs and acceptance criteria | `docs/features/<feature>/prd.md`, `docs/features/<feature>/architecture.md` | By phase spec | No hard limit |
-| Agent memory (patterns, decisions, tech radar) | `.claude/agent-memory/` | By agent on demand | ~100 lines each |
+| Agent memory (patterns, decisions, tech radar) | `.claude/agent-memory/` | By agent on demand | ~150 lines each |
 | Cross-agent memory (settled decisions, codebase map, process) | `docs/memory/` | At session start (via bootstrap) | ~50 lines each |
 
 ### Rules

@@ -67,7 +67,7 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 ### Must Follow
 - **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
 - Shell scripts use `set -euo pipefail`
-- **Skills stay under ~120 lines** (target ~100; hard cap 120 to prevent bloat). See ISS-010 review for rationale.
+- **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
 - Commands include YAML frontmatter (`description`, `user-invocable: true`)
 - Roles include version number, pipeline phase, model spec, allowed/disallowed tools, and DoD
 - All JSON schemas use draft-07 with `additionalProperties: false`

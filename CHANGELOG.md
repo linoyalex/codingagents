@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-04-13
+
+### Added
+- **Skill size convention revised** — inline skills now allow ~150 lines instructional prose (templates/tables/examples excluded) with a 250-line total threshold, replacing the previous ~100-line constraint that conflated different content types and discouraged necessary detail
+- **Progressive disclosure pattern for skills** — skills exceeding the 250-line inline threshold can now split into a compact SKILL.md (≤120 prose lines covering the core job-to-be-done) plus sibling reference files at `skills/<name>/<reference>.md` for per-phase or context-specific detail, enabling maintainability without sacrificing depth
+- **Stop conditions footer rule** — pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must now end with a `**STOP CONDITIONS (end of file):**` marker to ensure reviewers don't miss hard constraints when skimming
+- **verification-gate skill pilot conversion** — verification-gate converted to progressive-disclosure pattern with per-phase reference files, demonstrating signal-positive trimming (not just reorganization) and validating the new structure works end-to-end
+- **Skill migration audit report** — dynamic audit of all existing skills in `docs/memory/skill-migration-audit.md` identifies compliance tiers (Compliant ≤250 lines, Needs Trimming 251–300 lines, Needs Splitting >300 lines) with line counts and total inventory
+- **Enforcement tests for skill size budget** — pre-merge validation ensures inline skills ≤250 lines and progressive-disclosure skills follow SKILL.md ≤120 + reference file pattern, with clear error messages blocking violations
+- **Drift detection for root/docs conventions** — synchronization check verifies that root CLAUDE.md and docs/CLAUDE.md state identical skill size rules, preventing divergence and ensuring single source of truth
+
+### Changed
+- **docs/CLAUDE.md Code Conventions** — updated skill size budget rule to reflect new ~150-line prose / ~250-line total inline threshold with progressive disclosure pattern; includes worked example of verification-gate split
+- **docs/CLAUDE.md Memory table** — updated expected skill size from ~100 to ~150 lines to match new convention
+
+### Fixed
+- No bug fixes in this release
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [0.7.0] — 2026-04-13
 
 ### Added

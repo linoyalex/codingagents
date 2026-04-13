@@ -76,3 +76,10 @@ feat: [feature] passing
 refactor: [feature] cleanup
 fix: [feature] [what was broken]
 ```
+
+---
+**STOP CONDITIONS (end of file):**
+- Never write production code before a failing test exists.
+- If RED fails for the wrong reason, stop and fix the mismatch before writing GREEN code.
+- Never skip or remove a test to make the suite pass.
+- Do not commit GREEN if lint or typecheck fails.

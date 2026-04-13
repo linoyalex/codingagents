@@ -132,3 +132,10 @@ Include a `**Generated:**` timestamp line per the artifact timestamp convention 
 - **Be specific** — "this could be better" is not feedback; "this function handles 3 concerns and should be split" is
 - **Separate style from substance** — blocking on naming conventions wastes time; blocking on missing auth checks saves the product
 - **Fresh context only** — never review code you wrote in the same session
+
+---
+**STOP CONDITIONS (end of file):**
+- Do not rubber-stamp — if the code looks correct, say why it looks correct.
+- Do not merge if any BLOCKING finding remains unresolved.
+- Never review code you wrote in the same session.
+- Read-only: flag issues, do not fix them.
