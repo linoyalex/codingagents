@@ -1,11 +1,12 @@
 {
   "feature": "wiring-verification",
-  "phase": 3,
-  "goal": "Design-time security audit",
-  "scope": "Phase 4 security gate only",
+  "phase": 4,
+  "goal": "Implement feature using strict TDD",
+  "scope": "Phase 5 implementation only",
   "relevant_files": [
-    "docs/features/wiring-verification/prd.md",
-    "docs/features/wiring-verification/architecture.md"
+    "docs/features/wiring-verification/architecture.md",
+    "tests/contracts/wiring-verification.test.ts",
+    "tests/e2e/wiring-verification.spec.ts"
   ],
   "acceptance_criteria": [
     "AC1: Contract test verifies command contains output instructions for each skill artifact (pattern + path)",
@@ -21,12 +22,9 @@
     "AC11: Negative test fixture with mock skill+command and known gap"
   ],
   "verification_commands": [
-    "ls docs/features/wiring-verification/security-audit.md"
-  ],
-  "known_risks": [
-    "Missing Call Chain in arch doc — integration target chosen by QA"
+    "npm test"
   ],
   "source_spec": "docs/issues/tickets/ISS-036.md",
-  "produced_by": "qa",
-  "timestamp": "2026-04-13T23:15:00Z"
+  "produced_by": "security-reviewer",
+  "timestamp": "2026-04-13T21:38:00Z"
 }
