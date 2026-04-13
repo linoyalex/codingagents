@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Three-level test coverage guidance (unit, integration, E2E)** — TDD skill now explicitly defines three test levels and naming conventions; integration tests call the production entry point and assert visible effects in output; Phase 3 test design requires all three levels
+- **Integration test output slot wired in test-design command** — test-design command now includes `tests/integration/$ARGUMENTS.integration.test.ts` as a required output artifact alongside unit and E2E shells; blocking verification gate confirms at least one test imports the production entry point
+- **Fixture validation requirement** — TDD skill now requires QA agents to read production schemas/types/enums before writing fixtures; fixture values must match production schema exactly
+- **Degenerate input coverage rule** — TDD skill requires testing of degenerate values when validation constraints are widened; minimum required set: empty string, whitespace-only, and max-length boundary
+- **Architecture dependency for integration tests documented** — TDD skill requires architecture doc to include "Call Chain" or "Integration Points" section; if missing, QA agent adds ARCH GAP comment to test file and flags gap in handoff
+- **PIPELINE_GUIDE.md Phase 3 deliverables updated** — integration tests now explicitly listed alongside unit and E2E tests as Phase 3 output
+- **Integration test verification is blocking, not advisory** — Phase 3 verification fails if no test imports production entry point with visible effect assertion (import-only shells do not satisfy this requirement)
+
+### Changed
+- **TDD skill expanded** — added Coverage Rules, Fixture Validation, Degenerate Input Boundaries, and Architecture Dependency sections; skill remains within size budget
+
+### Fixed
+- **command/test-design.md integration output path** — previously had no explicit output slot for integration test files; now includes tests/integration/ directory with blocking verification
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [0.8.0] — 2026-04-13
 
 ### Added
