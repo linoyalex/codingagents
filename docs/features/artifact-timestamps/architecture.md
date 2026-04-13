@@ -1,4 +1,5 @@
 ## Architecture: Artifact Timestamps
+**Generated:** 2026-04-12T00:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-12
 
 ### Decision
@@ -44,6 +45,20 @@ the convention; skills and commands cross-reference it but do not redefine it.
 `review-claude-*.md` files are produced by `commands/review.md` — no separate
 owner needed. The same timestamp instruction covers both `review.md` and any
 named Claude review file generated in the same phase.
+
+### Generated Artifact Coverage
+
+Codex reviewer prompts are first-class artifact producers in this design, not
+documentation-only references. The timestamp convention therefore applies to the
+review files they generate in exactly the same way it applies to Claude review
+artifacts and phase documents.
+
+The current feature directory is also part of the enforcement surface. When
+`artifact-timestamps` artifacts are regenerated during implementation or review,
+the regenerated `prd.md`, `architecture.md`, `security-audit.md`, and any named
+review files must include the `**Generated:**` line immediately after the
+top-level heading. The feature does not treat its own generated artifacts as a
+special case or deferred follow-up.
 
 ### Timestamp Convention
 

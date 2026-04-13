@@ -1,4 +1,5 @@
 ## Security Audit: Artifact Timestamps
+**Generated:** 2026-04-12T02:00:00Z
 **Date:** 2026-04-12 | **Auditor:** security-reviewer agent
 **Inputs:** docs/features/artifact-timestamps/prd.md + docs/features/artifact-timestamps/architecture.md
 

@@ -1,4 +1,5 @@
 ## Feature: Artifact Timestamps
+**Generated:** 2026-04-12T00:00:00Z
 **Phase:** Specify | Date: 2026-04-12
 
 ### User Story
@@ -47,6 +48,23 @@ branch state, and how multiple review documents relate in sequence.
 
 - [ ] **AC6 (No regression):** Given the existing test suite, When all changes are
       applied, Then all existing tests continue to pass.
+
+### Generated Review Artifact Scope
+
+Codex-generated review artifacts are in scope for this feature. When a Codex
+reviewer produces or regenerates any named review file, that file must follow
+the same timestamp convention as Claude-generated review artifacts:
+
+- `review-codex-code-*.md`
+- `review-codex-architecture-*.md`
+- `review-codex-tests-*.md`
+- `review-codex-prd-*.md`
+
+This also applies to the feature-local artifacts created while implementing this
+ticket. If `prd.md`, `architecture.md`, `security-audit.md`, or any review file
+for `artifact-timestamps` is regenerated during the work, the regenerated file
+must include the `**Generated:** <ISO 8601>` line immediately after the top-level
+heading rather than treating the current feature directory as an exception.
 
 ### Screen States
 
