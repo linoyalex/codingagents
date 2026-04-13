@@ -40,9 +40,14 @@ function getActiveFeature() {
 }
 
 function hasFeatureTests(feature) {
-  const contractTest = path.join(process.cwd(), 'tests', 'contracts', `${feature}.test.ts`);
-  const e2eTest = path.join(process.cwd(), 'tests', 'e2e', `${feature}.spec.ts`);
-  return fs.existsSync(contractTest) || fs.existsSync(e2eTest);
+  // Adapt to your stack: check .ts, .js, and .mjs extensions for test files
+  const extensions = ['ts', 'js', 'mjs'];
+  for (const ext of extensions) {
+    const contractTest = path.join(process.cwd(), 'tests', 'contracts', `${feature}.test.${ext}`);
+    const e2eTest = path.join(process.cwd(), 'tests', 'e2e', `${feature}.spec.${ext}`);
+    if (fs.existsSync(contractTest) || fs.existsSync(e2eTest)) return true;
+  }
+  return false;
 }
 
 function detectPhase() {
@@ -120,7 +125,7 @@ function validateHandoff() {
   }
 
   // Check required fields
-  const required = ['feature', 'phase', 'goal', 'scope', 'relevant_files', 'acceptance_criteria', 'verification_commands'];
+  const required = ['feature', 'phase', 'goal', 'scope', 'relevant_files', 'acceptance_criteria', 'verification_commands', 'source_spec'];
   const missing = required.filter(f => !(f in handoff));
   if (missing.length > 0) {
     return { valid: false, reason: `handoff.json missing required fields: ${missing.join(', ')}` };
@@ -156,13 +161,33 @@ function validateHandoff() {
   if (handoff.known_risks !== undefined && !Array.isArray(handoff.known_risks)) {
     errors.push('known_risks must be an array if present');
   }
+  if (typeof handoff.source_spec !== 'string' || handoff.source_spec.length === 0) {
+    errors.push('source_spec must be a non-empty string');
+  } else {
+    // Path traversal guard: reject '..' segments, absolute paths, and non-github URLs
+    const spec = handoff.source_spec;
+    if (spec.includes('..')) {
+      errors.push('source_spec must not contain ".." path segments (path traversal)');
+    } else if (spec.startsWith('/')) {
+      errors.push('source_spec must be relative to project root (no absolute paths)');
+    } else if (!spec.startsWith('docs/') && !spec.startsWith('https://github.com/')) {
+      errors.push('source_spec must start with "docs/" (local file) or "https://github.com/" (URL)');
+    }
+    // File-existence check for local paths (AC16)
+    if (!spec.startsWith('https://') && spec.startsWith('docs/')) {
+      const resolved = path.resolve(process.cwd(), spec);
+      if (!fs.existsSync(resolved)) {
+        errors.push(`source_spec file not found: ${spec}`);
+      }
+    }
+  }
   if (handoff.produced_by !== undefined && typeof handoff.produced_by !== 'string') {
     errors.push('produced_by must be a string if present');
   }
 
   // Check for unexpected properties (additionalProperties: false in schema)
   const allowed = ['feature', 'phase', 'goal', 'scope', 'constraints', 'relevant_files',
-                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp'];
+                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp', 'source_spec'];
   const unexpected = Object.keys(handoff).filter(k => !allowed.includes(k));
   if (unexpected.length > 0) {
     errors.push(`unexpected properties: ${unexpected.join(', ')}`);
@@ -306,7 +331,7 @@ function main() {
 
     console.error(`[handoff] ✗ BLOCKING: ${handoffResult.reason}`);
     console.error(`[handoff] The pipeline cannot proceed to the next phase without a valid .claude/handoff.json.`);
-    console.error(`[handoff] Write handoff.json with required fields: feature, phase, goal, scope, relevant_files, acceptance_criteria, verification_commands`);
+    console.error(`[handoff] Write handoff.json with required fields: feature, phase, goal, scope, relevant_files, acceptance_criteria, verification_commands, source_spec`);
 
     // Still log token usage and write checkpoint for diagnostics, but exit with error
     logTokenUsage(phase, null, null);

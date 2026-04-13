@@ -1,5 +1,5 @@
 # Feature: Review Layer Hardening
-**Generated:** 2026-04-13T10:00:00Z
+**Generated:** 2026-04-13T16:00:00Z
 
 **Phase:** Specify | **Date:** 2026-04-13 | **Tickets:** ISS-024, ISS-014, ISS-033
 
@@ -27,13 +27,13 @@ Today reviewers trust developer framing without verifying against source specs. 
 
 **AC3:** **Given** review command invoked; **When** checking handoff.json; **Then** also load PRD, treat handoff as secondary to source spec.
 
-**AC4:** **Given** code-review skill current size; **When** Reviewer Independence added; **Then** stay under ISS-013 budget (~300 lines code-review).
+**AC4:** **Given** code-review skill current size; **When** Reviewer Independence added; **Then** stay under ISS-013 budget (≤150 prose lines for inline skills, ≤120 prose for progressive-disclosure; 250 total triggers split). Existing tests pass.
 
 ### ISS-014: Adversarial Reviewers & Separate Context
 
-**AC5:** **Given** gate role definition (ROLE_SECURITY.md, ROLE_CODE_REVIEWER.md); **When** reviewer starts phase; **Then** challenge assumptions, verify bypass paths, check stale state, verify trust boundaries, flag contradictions.
+**AC5:** **Given** gate role definitions (ROLE_SECURITY.md, ROLE_CODE_REVIEWER.md, and any other relevant gate-review roles — enumerate at architecture time); **When** reviewer starts phase; **Then** explicitly adopt adversarial-but-constructive stance: challenge hidden assumptions, verify bypass paths, check stale state, verify trust boundaries, flag contradictory artifacts.
 
-**AC6:** **Given** implementation/security phase ends; **When** review command runs; **Then** fresh session (clean context, no carryover).
+**AC6:** **Given** implementation/security phase ends; **When** review command runs; **Then** require separate context from the authoring phase — not just a generic fresh session. This means: different agent session, no carried-over handoff framing beyond the machine-readable handoff.json fields, and no same-agent continuity. The reviewer must re-derive coverage expectations from the source spec independently.
 
 **AC7:** **Given** CLAUDE.md pipeline; **When** phases examined; **Then** phases 1–5 marked "authoring", phases 4, 6 marked "gate/review".
 
@@ -41,9 +41,9 @@ Today reviewers trust developer framing without verifying against source specs. 
 
 **AC9:** **Given** gate reviewer completes phase; **When** writing findings; **Then** zero commits to src/, only docs/features/<feature>/.
 
-**AC10:** **Given** review document (review.md, security-audit.md); **When** header included; **Then** include Reviewer identity + "Reviewed in independent context (fresh session)".
+**AC10:** **Given** review document (review.md, security-audit.md); **When** header included; **Then** include Reviewer identity + "Reviewed in separate context from authoring phase" (not just "fresh session").
 
-**AC11:** **Given** tests written for review-hardening; **When** they run; **Then** verify: role definitions enforce adversarial stance, handoff includes source_spec, commands reject missing source_spec.
+**AC11:** **Given** tests written for review-hardening; **When** they run; **Then** verify: (a) role definitions enforce adversarial stance, (b) handoff schema requires source_spec, (c) commands reject missing source_spec, (d) review commands require separate context (not just fresh session), (e) gate reviewers are read-only (no src/ writes), (f) pipeline phases are tagged as authoring vs gate/review.
 
 ### ISS-033: Source Spec Verification
 
@@ -51,11 +51,11 @@ Today reviewers trust developer framing without verifying against source specs. 
 
 **AC13:** **Given** code-review command templated; **When** generating initial prompt; **Then** prompt: "First read <source_spec_path>. Then verify diff matches PRD, not developer summary."
 
-**AC14:** **Given** handoff.json written; **When** validated; **Then** include source_spec field pointing to canonical spec (PRD path or ticket URL).
+**AC14:** **Given** handoff.json written; **When** validated; **Then** `source_spec` field is required (not optional). Valid values: PRD path (for features) or ticket path/URL (for bugfixes). The field must always be present and resolve to an existing artifact.
 
-**AC15:** **Given** bugfix with no PRD; **When** handoff.source_spec missing; **Then** fall back to: commit message ticket URL, GitHub issue link, or Slack thread (logged).
+**AC15:** **Given** bugfix with no PRD; **When** handoff.source_spec is written; **Then** it must point to the originating ticket (e.g., `docs/issues/tickets/ISS-NNN.md`) or declared source spec — not left empty. The fallback source must be explicit in the handoff, not inferred from branch name or chat history. Precedence: ticket file > GitHub issue URL > other declared source.
 
-**AC16:** **Given** reviewer detects source_spec missing/unresolvable; **When** reaching check; **Then** stop with: "Review halted: source_spec unresolvable. Provide ticket URL or PRD path in handoff.source_spec."
+**AC16:** **Given** reviewer detects source_spec missing or unresolvable; **When** reaching check; **Then** stop with: "Review halted: source_spec missing or unresolvable. Provide ticket path or PRD path in handoff.source_spec." Review must not proceed without a resolvable source spec.
 
 **AC17:** **Given** test suite runs; **When** handoff/reviewer requirements change; **Then** fail if: source_spec removed from schema, review commands skip PRD, gate roles lose adversarial requirement.
 
@@ -70,7 +70,10 @@ Today reviewers trust developer framing without verifying against source specs. 
 | **Code Review** | Reviewer reads PRD from handoff.source_spec before diff | source_spec missing → review halted | Independent findings with PRD cross-ref |
 | **Security Review** | Adversarial stance active; challenge assumptions | Rubber-stamps hidden trust boundaries | Blocking findings implementation phase missed |
 | **Source Spec Verification** | Reviewer traces to ticket/PRD via handoff.source_spec | source_spec unresolvable → error | Mismatch between PRD and impl surfaced |
-| **Handoff Source-Spec** | handoff.json includes source_spec with resolvable path | Field missing or invalid | Pointer resolves, reviewer verifies against source |
+| **Handoff Source-Spec** | handoff.json includes source_spec with resolvable path | Field missing or invalid — validation rejects handoff | Pointer resolves, reviewer verifies against source |
+| **Source Spec Conflict** | Source spec and downstream artifact agree | source_spec exists but conflicts with PRD or implementation | Reviewer stops and surfaces mismatch (AC16) |
+| **No-PRD Bugfix** | source_spec points to ticket file | Multiple plausible sources (ticket, commit, chat) | Precedence applied: ticket > issue URL > declared source (AC15) |
+| **Same-Agent Review** | Review launched in separate context from authoring | Fresh session but same agent lineage | Rejected — separate context required per AC6 |
 
 ---
 

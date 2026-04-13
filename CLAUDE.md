@@ -68,27 +68,27 @@ Each phase reads only the output of the previous phase — never the full codeba
 ```
 Feature request
     │
-    ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku
+    ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku   (authoring)
     │  Reads: feature request only
     │  Writes: docs/features/<feature>/prd.md
     │
-    ▼ Phase 2 — ARCHITECT       [architect]                      model: opus
+    ▼ Phase 2 — ARCHITECT       [architect]                      model: opus    (authoring)
     │  Reads: docs/features/<feature>/prd.md + CLAUDE.md (arch section only)
     │  Writes: docs/features/<feature>/architecture.md
     │
-    ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet
+    ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet  (authoring)
     │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
     │  Writes: tests/contracts/ + tests/e2e/ (failing shells)
     │
-    ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus
+    ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus    (gate/review)
     │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
     │  Writes: docs/features/<feature>/security-audit.md
     │
-    ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet
+    ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet  (authoring)
     │  Reads: docs/features/<feature>/architecture.md + failing test files only
     │  Writes: src/ (TDD: RED commit → GREEN commit → REFACTOR commit)
     │
-    ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet
+    ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet  (gate/review)
     │  Reads: git diff only
     │  Writes: docs/features/<feature>/review.md
     │
@@ -130,6 +130,8 @@ npm audit --audit-level=high
 ### Must Follow
 - **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
 - **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
+- **Separate context for gate phases** — Phase 4 (security gate) and Phase 6 (code review) must run in separate agent sessions from authoring phases (1–3, 5). This prevents implicit trust inheritance and requires reviewers to re-derive coverage expectations from source spec independently. Enforced via `produced_by` check in role headers and documented in review document headers.
+- **Handoff source_spec is required** — all handoffs must include a resolvable `source_spec` pointing to the originating PRD (for features) or ticket file/URL (for bugfixes). Reviewers load source_spec before reading diff. Checkpoint validates file existence.
 - [ ] <!-- e.g. All API routes must validate input with Zod before touching the database -->
 - [ ] <!-- e.g. All async functions must handle the rejection case explicitly -->
 - [ ] <!-- e.g. No direct database access from UI components -->
@@ -163,13 +165,16 @@ These are non-negotiable. If a task would require violating one, stop and ask.
 - ❌ Never use `any` in TypeScript without an explicit `// TODO: type this` comment
 - ❌ Never remove or skip an existing test to make the suite pass
 - ❌ Never deploy to production without the full test suite passing
+- ❌ Gate reviewers must never write to src/ — read-only on implementation files
 <!-- Add your project-specific constraints here -->
 
 ---
 
 ## Known Gotchas
 
-<!-- FILL IN: Things that have tripped up agents (or humans) before -->
+- **Handoff source_spec must be resolvable** — if a PRD or ticket file is moved or deleted after handoff, the review phase will halt with an error. Keep file paths canonical and update handoff if source location changes.
+- **Separate-context enforcement depends on produced_by** — gate reviewers must be launched in a different agent session. If an agent omits `produced_by` from handoff, the check silently passes (defense-in-depth). Enforce via role discipline.
+- **Reviewer Independence is a methodology, not automatic** — the code-review skill documents the PRD-first approach, but enforcement depends on reviewer discipline to follow it. Contract tests verify the methodology is present.
 - <!-- e.g. The auth callback URL must be updated in Clerk dashboard when changing domains -->
 - <!-- e.g. Prisma client must be regenerated after schema changes: `pnpm db:generate` -->
 - <!-- e.g. The image upload endpoint has a 4MB limit — validate client-side first -->
@@ -207,6 +212,7 @@ contract between pipeline phases — the next agent reads it at session start.
 - `relevant_files` — file paths the next agent should read first
 - `acceptance_criteria` — AC IDs the next phase must satisfy
 - `verification_commands` — commands to verify the next phase's output
+- `source_spec` — resolvable pointer to the originating spec (PRD path, ticket path, or GitHub issue URL). For bugfix handoffs, precedence: ticket file (`docs/issues/tickets/ISS-NNN.md`) > GitHub issue URL > other declared source.
 
 ### Optional fields
 - `constraints` — hard constraints the next phase must respect
@@ -301,5 +307,5 @@ Do not manually edit these files. They are maintained by the agents themselves.
 
 ---
 
-*Last updated: <!-- DATE -->*
-*Updated by: <!-- documentation-specialist agent or human -->`*
+*Last updated: 2026-04-13*
+*Updated by: documentation-specialist*

@@ -15,8 +15,9 @@ This document is the canonical release-process guide for `codingagents` until th
 | `0.7.0` | `5.2.0` | `ISS-026` artifact timestamps |
 | `0.8.0` | `5.3.0` | `ISS-013` skill size convention |
 | `0.9.0` | `5.4.0` | `ISS-022` integration test coverage |
+| `1.0.0` | `5.5.0` | `ISS-024`, `ISS-014`, `ISS-033` review layer hardening |
 
-Current published release: `5.4.0`.
+Current published release: `5.5.0`.
 
 Some canonical `5.1.x` artifacts preserve the dates from when that work was authored on the v5 branch line, so the historical dates do not map perfectly to the later normalized `5.0.0` baseline entry. This is intentional and should be documented rather than hidden.
 
@@ -54,7 +55,6 @@ Recommended current roadmap:
 
 | Target version | Planned scope |
 |---|---|
-| `5.5.0` | `ISS-024`, `ISS-014`, `ISS-033` — review-hardening bundle |
 | `5.6.0` | `ISS-036`, `ISS-027`, `ISS-029` — command/skill correctness bundle |
 | `5.7.0` | `ISS-001`, `ISS-006`, `ISS-037` — invariants and review-traceability bundle |
 | `5.8.0` | `ISS-028`, `ISS-032`, optionally `ISS-031` — workflow ergonomics bundle |
@@ -88,7 +88,7 @@ Default recovery guidance:
 3. Re-run from the last stable phase whose outputs satisfy the new gate or contract.
 4. Regenerate artifacts rather than trying to force old outputs through new gates.
 
-Current example: `5.4.0` adds a new Phase 3 gating factor requiring integration-test output and visible-effect verification.
+Current example: `5.5.0` introduces a required `source_spec` handoff field and new gate role requirements. In-flight phases may need handoff updates before re-review.
 
 ## Manual release checklist
 

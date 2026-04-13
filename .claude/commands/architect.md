@@ -31,7 +31,7 @@ Rules:
 - Follow the architecture.md Template from the architecture-decision skill
 - Include the architecture skill's reliability fields: decision confidence, revisit trigger, rollback/fallback, and trust boundaries when relevant
 - If a key architectural assumption is still ambiguous, record it explicitly instead of smoothing it over
-- Output must be under 100 lines
+- Output must be under 200 lines
 - Run Phase 2 verification from verification-gate skill
 - Commit when done with message: "arch: $ARGUMENTS architecture decision record"
 
@@ -39,6 +39,7 @@ After committing, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 2, goal: "Write failing test shells from specs",
   scope: "Phase 3 test design only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls tests/contracts/$ARGUMENTS.test.ts"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "architect", timestamp: current ISO 8601
 
 Then print:

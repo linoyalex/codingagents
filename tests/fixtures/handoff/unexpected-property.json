@@ -15,5 +15,6 @@
     "pnpm test",
     "pnpm lint"
   ],
+  "source_spec": "docs/features/user-auth/prd.md",
   "owner": "unexpected"
 }

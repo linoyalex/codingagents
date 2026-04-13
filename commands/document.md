@@ -48,6 +48,7 @@ TARGET_CLAUDE path — e.g. "docs/CLAUDE.md" or "CLAUDE.md" — not the literal 
   scope: "No further phases", relevant_files: ["CHANGELOG.md", "<the resolved TARGET_CLAUDE path>"],
   acceptance_criteria: ["CHANGELOG.md updated", "Release note created", "<TARGET_CLAUDE path> timestamp updated"],
   verification_commands: ["head -20 CHANGELOG.md", "ls release-notes/ | tail -1"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "documentation-specialist", timestamp: current ISO 8601
 
 Then print:

@@ -1,32 +1,26 @@
 {
-  "feature": "integration-test-coverage",
+  "feature": "review-hardening",
   "phase": 7,
-  "goal": "Pipeline complete. Feature merged and documented. Ready for next feature cycle.",
-  "scope": "Post-merge documentation and changelog updates. No further phases for this feature.",
+  "goal": "Pipeline complete. Feature ready for merge to main.",
+  "scope": "No further phases. Documentation cycle closed.",
   "relevant_files": [
     "CHANGELOG.md",
-    "docs/CLAUDE.md",
-    "release-notes/2026-04-13_v0.9.0_integration-test-coverage.md"
+    "CLAUDE.md",
+    "release-notes/2026-04-13_v5.5.0_review-hardening.md",
+    "docs/features/review-hardening/prd.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated with integration-test-coverage entries under [Unreleased]",
-    "Release note created at release-notes/2026-04-13_v0.9.0_integration-test-coverage.md",
-    "docs/CLAUDE.md timestamp updated to 2026-04-13",
-    "New Known Gotcha added: integration tests require Call Chain/Integration Points in arch doc (ISS-023 dependency)"
+    "CHANGELOG.md updated with v5.5.0 entry covering all 18 ACs",
+    "Release note created in release-notes/ with review findings",
+    "CLAUDE.md conventions updated with separate-context and source_spec guidance",
+    "CLAUDE.md timestamp updated to 2026-04-13"
   ],
   "verification_commands": [
     "head -20 CHANGELOG.md",
-    "grep -i 'last updated' docs/CLAUDE.md",
+    "grep -i 'last updated' CLAUDE.md",
     "ls release-notes/ | tail -1"
   ],
-  "constraints": [
-    "No source code changes required — Phase 7 is documentation-only",
-    "All feature ACs (AC1-AC8) already passed in Phase 6 review"
-  ],
-  "known_risks": [
-    "ISS-023 (architecture call chains as Phase 2 requirement) is a soft dependency; integration tests work without call chains but are more effective with them",
-    "Review noted that this feature's own architecture.md lacks Call Chain section — recorded as example gap, not blocking"
-  ],
+  "source_spec": "docs/features/review-hardening/prd.md",
   "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T12:57:49Z"
+  "timestamp": "2026-04-13T22:25:00Z"
 }

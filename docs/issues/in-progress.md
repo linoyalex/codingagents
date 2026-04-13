@@ -5,4 +5,3 @@
 
 | ID | Priority | Type | Title | Branch/Feature |
 |----|----------|------|-------|----------------|
-| [ISS-005](tickets/ISS-005.md) | P1 — High | Feature | Dogfood — use codingagents to develop codingagents | `dogfood/using-codingagents-to-develop-codingagents` |

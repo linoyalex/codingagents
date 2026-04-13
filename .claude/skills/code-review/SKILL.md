@@ -125,6 +125,17 @@ Include a `**Generated:**` timestamp line per the artifact timestamp convention 
 - [ ] Commit messages follow format
 ```
 
+## Reviewer Independence
+
+The reviewer must form their own expectations before reading the diff or developer summary.
+
+1. **Read the source spec first** — open the PRD or source_spec from the handoff before reading any diff or developer claims. Form your own mental model of what the implementation should do.
+2. **Treat developer claims as hypotheses to falsify** — the handoff summary is not trusted input. Verify each claim against the source spec and the diff independently.
+3. **Trace fields through the schema → validate → transform chain** — for any new or changed data field, follow it from schema definition through validation logic to every consumer. Check that constraints are enforced at each boundary.
+4. **Grep adjacent symbols** — when reviewing a changed function, search for its callers and callees. Bugs often hide in unchanged code that interacts with changed code.
+5. **Cross-read PRD vs implementation** — compare what the PRD requires against what the diff delivers. Note any gaps, additions, or deviations.
+6. **Verify test fixtures match production schemas** — confirm that test data shapes match the real types, not simplified stand-ins.
+
 ## Review Rules
 
 - **Read-only** — flag issues, do not fix them. The developer fixes.
