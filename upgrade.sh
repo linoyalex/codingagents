@@ -195,25 +195,25 @@ if [ "$CORE_NEEDS_UPGRADE" = true ]; then
   if [ -d "$SCRIPT_DIR/skills" ]; then
     mkdir -p "$TARGET_DIR/.claude/skills"
     cp -r "$SCRIPT_DIR"/skills/* "$TARGET_DIR/.claude/skills/" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/architecture-decision"
+    cp "$SCRIPT_DIR/skills/architecture-decision/SKILL.md" "$TARGET_DIR/.claude/skills/architecture-decision/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/backlog-management"
+    cp "$SCRIPT_DIR/skills/backlog-management/SKILL.md" "$TARGET_DIR/.claude/skills/backlog-management/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/code-review"
+    cp "$SCRIPT_DIR/skills/code-review/SKILL.md" "$TARGET_DIR/.claude/skills/code-review/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/prd-writing"
+    cp "$SCRIPT_DIR/skills/prd-writing/SKILL.md" "$TARGET_DIR/.claude/skills/prd-writing/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/release-docs"
+    cp "$SCRIPT_DIR/skills/release-docs/SKILL.md" "$TARGET_DIR/.claude/skills/release-docs/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/security-audit"
+    cp "$SCRIPT_DIR/skills/security-audit/SKILL.md" "$TARGET_DIR/.claude/skills/security-audit/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/structured-logging"
+    cp "$SCRIPT_DIR/skills/structured-logging/SKILL.md" "$TARGET_DIR/.claude/skills/structured-logging/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/tdd"
+    cp "$SCRIPT_DIR/skills/tdd/SKILL.md" "$TARGET_DIR/.claude/skills/tdd/SKILL.md" 2>/dev/null || true
+    mkdir -p "$TARGET_DIR/.claude/skills/verification-gate"
+    cp "$SCRIPT_DIR/skills/verification-gate/SKILL.md" "$TARGET_DIR/.claude/skills/verification-gate/SKILL.md" 2>/dev/null || true
   fi
-  mkdir -p "$TARGET_DIR/.claude/skills/architecture-decision"
-  cp "$SCRIPT_DIR/skills/architecture-decision/SKILL.md" "$TARGET_DIR/.claude/skills/architecture-decision/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/backlog-management"
-  cp "$SCRIPT_DIR/skills/backlog-management/SKILL.md" "$TARGET_DIR/.claude/skills/backlog-management/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/code-review"
-  cp "$SCRIPT_DIR/skills/code-review/SKILL.md" "$TARGET_DIR/.claude/skills/code-review/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/prd-writing"
-  cp "$SCRIPT_DIR/skills/prd-writing/SKILL.md" "$TARGET_DIR/.claude/skills/prd-writing/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/release-docs"
-  cp "$SCRIPT_DIR/skills/release-docs/SKILL.md" "$TARGET_DIR/.claude/skills/release-docs/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/security-audit"
-  cp "$SCRIPT_DIR/skills/security-audit/SKILL.md" "$TARGET_DIR/.claude/skills/security-audit/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/structured-logging"
-  cp "$SCRIPT_DIR/skills/structured-logging/SKILL.md" "$TARGET_DIR/.claude/skills/structured-logging/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/tdd"
-  cp "$SCRIPT_DIR/skills/tdd/SKILL.md" "$TARGET_DIR/.claude/skills/tdd/SKILL.md" 2>/dev/null || true
-  mkdir -p "$TARGET_DIR/.claude/skills/verification-gate"
-  cp "$SCRIPT_DIR/skills/verification-gate/SKILL.md" "$TARGET_DIR/.claude/skills/verification-gate/SKILL.md" 2>/dev/null || true
 
   # Schemas
   mkdir -p "$TARGET_DIR/.claude/schemas"
@@ -223,16 +223,16 @@ if [ "$CORE_NEEDS_UPGRADE" = true ]; then
   if [ -d "$SCRIPT_DIR/commands" ]; then
     mkdir -p "$TARGET_DIR/.claude/commands"
     cp "$SCRIPT_DIR"/commands/*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/architect.md" "$TARGET_DIR/.claude/commands/architect.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/document.md" "$TARGET_DIR/.claude/commands/document.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/implement.md" "$TARGET_DIR/.claude/commands/implement.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/review.md" "$TARGET_DIR/.claude/commands/review.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/security-gate.md" "$TARGET_DIR/.claude/commands/security-gate.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/session-note.md" "$TARGET_DIR/.claude/commands/session-note.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/specify.md" "$TARGET_DIR/.claude/commands/specify.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/status.md" "$TARGET_DIR/.claude/commands/status.md" 2>/dev/null || true
+    cp "$SCRIPT_DIR/commands/test-design.md" "$TARGET_DIR/.claude/commands/test-design.md" 2>/dev/null || true
   fi
-  cp "$SCRIPT_DIR/commands/architect.md" "$TARGET_DIR/.claude/commands/architect.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/document.md" "$TARGET_DIR/.claude/commands/document.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/implement.md" "$TARGET_DIR/.claude/commands/implement.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/review.md" "$TARGET_DIR/.claude/commands/review.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/security-gate.md" "$TARGET_DIR/.claude/commands/security-gate.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/session-note.md" "$TARGET_DIR/.claude/commands/session-note.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/specify.md" "$TARGET_DIR/.claude/commands/specify.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/status.md" "$TARGET_DIR/.claude/commands/status.md" 2>/dev/null || true
-  cp "$SCRIPT_DIR/commands/test-design.md" "$TARGET_DIR/.claude/commands/test-design.md" 2>/dev/null || true
 
   # Create new doc structure directories
   mkdir -p "$TARGET_DIR/docs/features"

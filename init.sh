@@ -96,42 +96,42 @@ echo "  Copied $(ls "$SCRIPT_DIR"/ROLE_*.md 2>/dev/null | wc -l | tr -d ' ') rol
 echo "[3/7] Copying commands..."
 if [ -d "$SCRIPT_DIR/commands" ]; then
   cp "$SCRIPT_DIR"/commands/*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/architect.md" "$TARGET_DIR/.claude/commands/architect.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/document.md" "$TARGET_DIR/.claude/commands/document.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/implement.md" "$TARGET_DIR/.claude/commands/implement.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/review.md" "$TARGET_DIR/.claude/commands/review.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/security-gate.md" "$TARGET_DIR/.claude/commands/security-gate.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/session-note.md" "$TARGET_DIR/.claude/commands/session-note.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/specify.md" "$TARGET_DIR/.claude/commands/specify.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/status.md" "$TARGET_DIR/.claude/commands/status.md" 2>/dev/null || true
+  cp "$SCRIPT_DIR/commands/test-design.md" "$TARGET_DIR/.claude/commands/test-design.md" 2>/dev/null || true
   echo "  Copied $(ls "$SCRIPT_DIR"/commands/*.md 2>/dev/null | wc -l | tr -d ' ') command files"
 fi
-cp "$SCRIPT_DIR/commands/architect.md" "$TARGET_DIR/.claude/commands/architect.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/document.md" "$TARGET_DIR/.claude/commands/document.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/implement.md" "$TARGET_DIR/.claude/commands/implement.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/review.md" "$TARGET_DIR/.claude/commands/review.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/security-gate.md" "$TARGET_DIR/.claude/commands/security-gate.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/session-note.md" "$TARGET_DIR/.claude/commands/session-note.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/specify.md" "$TARGET_DIR/.claude/commands/specify.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/status.md" "$TARGET_DIR/.claude/commands/status.md" 2>/dev/null || true
-cp "$SCRIPT_DIR/commands/test-design.md" "$TARGET_DIR/.claude/commands/test-design.md" 2>/dev/null || true
 
 # --- Copy skills ---
 echo "[4/7] Copying skills..."
 if [ -d "$SCRIPT_DIR/skills" ]; then
   cp -r "$SCRIPT_DIR"/skills/* "$TARGET_DIR/.claude/skills/" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/architecture-decision"
+  cp "$SCRIPT_DIR/skills/architecture-decision/SKILL.md" "$TARGET_DIR/.claude/skills/architecture-decision/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/backlog-management"
+  cp "$SCRIPT_DIR/skills/backlog-management/SKILL.md" "$TARGET_DIR/.claude/skills/backlog-management/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/code-review"
+  cp "$SCRIPT_DIR/skills/code-review/SKILL.md" "$TARGET_DIR/.claude/skills/code-review/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/prd-writing"
+  cp "$SCRIPT_DIR/skills/prd-writing/SKILL.md" "$TARGET_DIR/.claude/skills/prd-writing/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/release-docs"
+  cp "$SCRIPT_DIR/skills/release-docs/SKILL.md" "$TARGET_DIR/.claude/skills/release-docs/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/security-audit"
+  cp "$SCRIPT_DIR/skills/security-audit/SKILL.md" "$TARGET_DIR/.claude/skills/security-audit/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/structured-logging"
+  cp "$SCRIPT_DIR/skills/structured-logging/SKILL.md" "$TARGET_DIR/.claude/skills/structured-logging/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/tdd"
+  cp "$SCRIPT_DIR/skills/tdd/SKILL.md" "$TARGET_DIR/.claude/skills/tdd/SKILL.md" 2>/dev/null || true
+  mkdir -p "$TARGET_DIR/.claude/skills/verification-gate"
+  cp "$SCRIPT_DIR/skills/verification-gate/SKILL.md" "$TARGET_DIR/.claude/skills/verification-gate/SKILL.md" 2>/dev/null || true
   echo "  Copied skills directory"
 fi
-mkdir -p "$TARGET_DIR/.claude/skills/architecture-decision"
-cp "$SCRIPT_DIR/skills/architecture-decision/SKILL.md" "$TARGET_DIR/.claude/skills/architecture-decision/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/backlog-management"
-cp "$SCRIPT_DIR/skills/backlog-management/SKILL.md" "$TARGET_DIR/.claude/skills/backlog-management/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/code-review"
-cp "$SCRIPT_DIR/skills/code-review/SKILL.md" "$TARGET_DIR/.claude/skills/code-review/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/prd-writing"
-cp "$SCRIPT_DIR/skills/prd-writing/SKILL.md" "$TARGET_DIR/.claude/skills/prd-writing/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/release-docs"
-cp "$SCRIPT_DIR/skills/release-docs/SKILL.md" "$TARGET_DIR/.claude/skills/release-docs/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/security-audit"
-cp "$SCRIPT_DIR/skills/security-audit/SKILL.md" "$TARGET_DIR/.claude/skills/security-audit/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/structured-logging"
-cp "$SCRIPT_DIR/skills/structured-logging/SKILL.md" "$TARGET_DIR/.claude/skills/structured-logging/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/tdd"
-cp "$SCRIPT_DIR/skills/tdd/SKILL.md" "$TARGET_DIR/.claude/skills/tdd/SKILL.md" 2>/dev/null || true
-mkdir -p "$TARGET_DIR/.claude/skills/verification-gate"
-cp "$SCRIPT_DIR/skills/verification-gate/SKILL.md" "$TARGET_DIR/.claude/skills/verification-gate/SKILL.md" 2>/dev/null || true
 
 # --- Copy hooks and config ---
 echo "[5/7] Copying hooks and configuration..."

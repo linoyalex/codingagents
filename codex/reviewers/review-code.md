@@ -93,6 +93,8 @@ If there are no findings, say so explicitly:
 
 ## Install-Path Tracing
 
+**Apply when:** the diff introduces, renames, or removes a file in `skills/`, `commands/`, or `hooks/`.
+
 When reviewing changes to framework files (skills, commands, hooks), verify the installer coverage:
 
 - Check that `init.sh` and `upgrade.sh` include active copy lines for every changed or added file.
@@ -103,6 +105,8 @@ Key installer scripts: `init.sh` (fresh install) and `upgrade.sh` (incremental u
 
 ## Test-Truthfulness Verification
 
+**Apply when:** the diff includes test files.
+
 Review whether each test name accurately reflects what the test asserts:
 
 - Read the test name and the assertion together. If the test name claims one thing but the assertion checks another, flag it as `MAJOR`.
@@ -110,6 +114,8 @@ Review whether each test name accurately reflects what the test asserts:
 - Confirm that every test name precisely describes the condition it covers. A misleading test name is as harmful as a missing test — it creates false confidence.
 
 ## Parser/Validator Edge-Case Checklist
+
+**Apply when:** the diff modifies a parser, validator, or input-handling function.
 
 When the diff includes a parser, validator, or schema-checking component, verify coverage of:
 
@@ -121,6 +127,8 @@ When the diff includes a parser, validator, or schema-checking component, verify
 Flag missing edge-case tests as `MAJOR` if the component is on a trust boundary. Flag as `MINOR` otherwise.
 
 ## Unchanged-File Scope Expansion
+
+**Apply when:** a changed file is installed, generated, copied, or operationalized by another file.
 
 The diff is the primary review surface, but some findings require checking unchanged files:
 

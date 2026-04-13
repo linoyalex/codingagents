@@ -12,8 +12,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { globSync } = require('node:fs');
-
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 // Files intentionally excluded from the installer contract.
@@ -47,30 +45,6 @@ function activeLines(scriptContent) {
     .split('\n')
     .filter(line => !line.trimStart().startsWith('#'))
     .join('\n');
-}
-
-function globSourceFiles(pattern) {
-  // node:fs globSync available in Node 22+
-  // Falls back to manual walk if not available
-  if (typeof globSync === 'function') {
-    return globSync(pattern, { cwd: ROOT_DIR }).map(f => f.replace(/\\/g, '/'));
-  }
-  // Manual fallback for older Node
-  const results = [];
-  const [dir, ...rest] = pattern.split('/');
-  const entries = fs.readdirSync(path.join(ROOT_DIR, dir), { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const subPattern = rest.join('/').replace('*', entry.name);
-      const subPath = path.join(ROOT_DIR, dir, entry.name, rest[rest.length - 1]);
-      if (rest.length === 2 && fs.existsSync(subPath)) {
-        results.push(`${dir}/${entry.name}/${rest[rest.length - 1]}`);
-      }
-    } else if (rest.length === 1 && entry.name.match(/\.md$|\.js$/)) {
-      results.push(`${dir}/${entry.name}`);
-    }
-  }
-  return results;
 }
 
 function collectSourceFiles() {
