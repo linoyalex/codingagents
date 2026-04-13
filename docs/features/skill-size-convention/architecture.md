@@ -1,5 +1,5 @@
 ## Architecture: Skill Size Convention & Progressive Disclosure
-**Generated:** 2026-04-13T04:00:00Z
+**Generated:** 2026-04-13T04:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-12
 
 ### Decision
@@ -17,8 +17,8 @@ High — 5 of 9 skills already exceed 120 lines; the new budget codifies what wo
 - More than 3 skills need progressive disclosure, or Claude Code gains native skill-include
 
 ### Rollback / Fallback
-Revert CLAUDE.md budget lines (both root and docs/) and delete reference files; contract tests
-are the only code — deleting them fully reverts enforcement.
+Revert CLAUDE.md budget lines (both root and docs/). For converted skills, inline reference file
+content back into SKILL.md before deleting the reference files. Delete contract tests to revert.
 
 ### File Layout
 
@@ -34,14 +34,14 @@ Progressive disclosure documented in exactly one location: `docs/CLAUDE.md`. No 
 
 ### Pilot: verification-gate Conversion (AC4)
 
-| File | Content | Prose lines |
-|------|---------|-------------|
-| `SKILL.md` | Top rules, standard verification, handoff validation, no-go, stop conditions footer | ~80 |
-| `phase-1-2.md` | After Specify + Architect checks | ~15 |
-| `phase-3-5.md` | After Test Design, Security Gate, Implement checks | ~25 |
-| `phase-6-7.md` | After Review + Document checks | ~15 |
+One reference file per pipeline phase — no grouping. This proves the pattern at full granularity.
 
-Per-phase files prove fine-grained disclosure. Low-signal boilerplate may be trimmed (AC4d).
+| File | Content |
+|------|---------|
+| `SKILL.md` | Top rules, standard verification, handoff validation, no-go, stop conditions footer (~80 lines) |
+| `phase-1-specify.md` through `phase-7-document.md` | One file per phase with that phase's verification commands |
+
+Low-signal boilerplate may be trimmed — pilot must demonstrate signal-positive content (AC4d).
 
 ### Stop Conditions Footer (AC3)
 
