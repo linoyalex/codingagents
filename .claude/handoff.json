@@ -1,22 +1,22 @@
 {
-  "feature": "codex-review-hardening",
-  "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "feature": "implement-known-risks",
+  "phase": 1,
+  "goal": "Produce architecture decision record",
+  "scope": "Phase 2 architecture only",
   "relevant_files": [
-    "CHANGELOG.md",
-    "docs/CLAUDE.md"
+    "docs/features/implement-known-risks/prd.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated",
-    "Release note created",
-    "docs/CLAUDE.md timestamp updated"
+    "AC1: commands/implement.md GREEN section includes known_risks read instruction",
+    "AC2: TDD skill GREEN phase checklist includes known_risks verification item",
+    "AC3: Contract test verifies known_risks instruction using structural anchors",
+    "AC4: Empty known_risks array requires no developer action",
+    "AC5: Malformed handoff.json halts via existing error handling"
   ],
   "verification_commands": [
-    "head -20 CHANGELOG.md",
-    "ls release-notes/ | tail -1"
+    "ls docs/features/implement-known-risks/architecture.md"
   ],
-  "source_spec": "docs/issues/tickets/ISS-027.md",
-  "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T18:55:00Z"
+  "source_spec": "docs/features/implement-known-risks/prd.md",
+  "produced_by": "product-owner",
+  "timestamp": "2026-04-13T16:45:00Z"
 }
