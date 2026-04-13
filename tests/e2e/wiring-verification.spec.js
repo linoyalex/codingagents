@@ -16,7 +16,8 @@
  *
  * Cases covered:
  *   Happy:   Full chain from skill registry → command output → test validation
- *   Edge:    Source and installed skill copies in sync (no drift in Required Artifacts)
+ *   Edge:    Source and installed skill copies in sync (no drift in Required Artifacts),
+ *            conditional artifacts get the same full pattern+path check (AC8)
  *   Misuse:  Deliberate wiring gap caught by negative fixture
  */
 'use strict';
@@ -100,6 +101,30 @@ test('E2E: contract test module validates the complete 4-stage algorithm', () =>
   // Stage 4: Negative fixture
   assert.match(wiringTest, /fixture|wiring.gap/i,
     'Wiring test must implement Stage 4 (negative fixture)');
+});
+
+// ---------------------------------------------------------------------------
+// E2E: AC8 — conditional artifacts get the same full pattern+path check
+// ---------------------------------------------------------------------------
+
+test('E2E (AC8): conditional artifact fixture is exercised by production wiring test with no relaxation', () => {
+  // Verifies the end-to-end chain for AC8:
+  //   conditional fixture (Phase 5 only condition) → production test → no relaxation
+  assert.ok(exists('tests/fixtures/wiring-gap/mock-skill-conditional.md'),
+    'Conditional artifact fixture must exist for AC8 E2E coverage');
+
+  const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
+  // The fixture declares a conditional artifact (non-empty Condition column)
+  assert.match(conditionalSkill, /Phase \d+ only|phase.*only/i,
+    'Conditional fixture must have a non-empty Condition value');
+
+  // The production wiring test must reference the Condition column
+  // and must NOT short-circuit pattern+path validation based on it
+  const wiringTest = read('tests/node/command-skill-wiring.test.js');
+  assert.match(wiringTest, /[Cc]ondition/,
+    'Production wiring test must parse and reference the Condition column');
+  assert.doesNotMatch(wiringTest, /skip.*condition|ignore.*condition|condition.*skip|condition.*ignore/i,
+    'Production wiring test must not skip conditional artifacts (AC8: no relaxation)');
 });
 
 // ---------------------------------------------------------------------------

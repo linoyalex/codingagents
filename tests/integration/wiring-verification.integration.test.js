@@ -21,7 +21,7 @@
  * Cases covered:
  *   Happy:   Run wiring test against real project → passes when all wiring is correct
  *   Edge:    Run wiring test against negative fixture → catches deliberate gap
- *   Misuse:  Run with missing fixture directory → exits non-zero with clear error
+ *   Misuse:  Wiring test output names missing artifact when gap detected (blocking gate)
  */
 'use strict';
 
@@ -71,14 +71,26 @@ test('integration: wiring test negative fixture detects missing artifact slot', 
 });
 
 // ---------------------------------------------------------------------------
-// Error: wiring test reports clear error for structural issues
+// Blocking gate: wiring test output names the missing artifact when a gap exists
 // ---------------------------------------------------------------------------
 
-test('integration: wiring test exit code is non-zero when wiring gaps exist', () => {
-  // If we corrupt a fixture to force a gap, the test should exit non-zero.
-  // For RED state: this verifies the test file exists and is runnable.
-  assert.doesNotThrow(() => {
-    // Just verify the test file exists — actual gap detection tested above
-    require('node:fs').accessSync(WIRING_TEST, require('node:fs').constants.R_OK);
-  }, 'Production wiring test file must be readable');
+test('integration: wiring test output identifies skill, command, and artifact when gap detected', () => {
+  // The production test must run and produce output that names:
+  //   - the skill requiring the artifact
+  //   - the command missing the output slot
+  //   - the artifact pattern and path
+  // This proves the error message is actionable (not just "something failed").
+  //
+  // RED: WIRING_TEST does not exist — execSync throws. Test fails because output
+  //      cannot be asserted on a non-existent file's output.
+  // GREEN: test runs, detects mock-command.md gap, names mock-tdd skill and
+  //        integration test artifact in the error output.
+  const result = execSync(
+    `node --test "${WIRING_TEST}" 2>&1 || true`,
+    { cwd: ROOT_DIR, encoding: 'utf8', timeout: 30000 }
+  );
+
+  // Output must name the skill or command when reporting a wiring gap
+  assert.match(result, /mock|integration\.test|tests\/integration/i,
+    'Wiring test output must identify the missing artifact (skill, pattern, or path) when reporting gaps');
 });

@@ -13,7 +13,7 @@
  * Cases covered:
  *   Happy:   Skill with Required Artifacts, command with matching Output section
  *   Edge:    Skill with no Required Artifacts (AC7), multiple output paths (AC9),
- *            conditional artifacts (AC8)
+ *            conditional artifacts (AC8 — full pattern+path, no relaxation)
  *   Misuse:  Command loads skills but lacks ## Skill References table (fail-closed),
  *            malformed artifact registry (AC3), missing Output section
  */
@@ -65,7 +65,7 @@ test('AC1: commands referencing skills with Required Artifacts include output in
   assert.ok(wiringTest.length > 0,
     'tests/node/command-skill-wiring.test.js must exist as the production wiring test');
 
-  // The wiring test must import and use the discovery + validation logic
+  // The wiring test must implement discovery + validation logic
   assert.match(wiringTest, /Skill References/,
     'Wiring test must reference ## Skill References for discovery');
   assert.match(wiringTest, /Required Artifacts/,
@@ -145,18 +145,40 @@ test('AC7: wiring test handles skills with no Required Artifacts section gracefu
 });
 
 // ---------------------------------------------------------------------------
-// AC8: Conditional artifacts get full pattern+path check
+// AC8: Conditional artifacts receive the SAME full pattern+path check
+// (Condition column is informational only — no relaxation at test time)
 // ---------------------------------------------------------------------------
 
-test('AC8: conditional artifacts receive the same pattern+path validation as unconditional ones', () => {
-  // Architecture decision: Condition column is informational only.
-  // Test must not relax validation for conditional artifacts.
+test('AC8: conditional artifacts receive the same full pattern+path validation as unconditional ones', () => {
+  // Architecture decision: Condition column is informational for human readers only.
+  // The test must NOT relax or skip validation for conditional artifacts.
   const wiringTest = read('tests/node/command-skill-wiring.test.js');
+
+  // The production test must reference the Condition column (parsing it)
   assert.match(wiringTest, /[Cc]ondition/,
-    'Wiring test must reference the Condition column');
-  // Should NOT have logic to skip conditional artifacts
-  assert.doesNotMatch(wiringTest, /skip.*condition|ignore.*condition/i,
+    'Wiring test must parse the Condition column from artifact tables');
+
+  // Must NOT skip or bypass conditional artifacts
+  assert.doesNotMatch(wiringTest, /skip.*condition|ignore.*condition|condition.*skip|condition.*ignore/i,
     'Wiring test must not skip or ignore conditional artifacts');
+
+  // Must NOT have "if condition" logic that bypasses pattern+path check
+  assert.doesNotMatch(wiringTest, /if\s*\(.*condition|condition\s*&&\s*skip|condition\s*\?\s*skip/i,
+    'Wiring test must not short-circuit pattern+path check based on condition value');
+});
+
+test('AC8 (fixture): conditional artifact fixture exists for AC8 validation', () => {
+  // A dedicated fixture with a non-empty Condition confirms the test exercises
+  // the conditional-artifact code path without relaxation.
+  assert.ok(exists('tests/fixtures/wiring-gap/mock-skill-conditional.md'),
+    'Conditional artifact fixture mock-skill-conditional.md must exist');
+
+  const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
+  // Must have a Required Artifacts table with a non-empty Condition value
+  assert.match(conditionalSkill, /^## Required Artifacts$/m,
+    'Conditional fixture must have Required Artifacts section');
+  assert.match(conditionalSkill, /Phase \d+ only|phase.*only/i,
+    'Conditional fixture must have a non-empty Condition value (e.g., "Phase 5 only")');
 });
 
 // ---------------------------------------------------------------------------
