@@ -143,18 +143,82 @@ test('AC6: ROLE_CODE_REVIEWER.md requires separate context from the authoring ph
   );
 });
 
-// AC7: CLAUDE.md pipeline phases tagged as authoring vs gate/review
-test('AC7: root CLAUDE.md pipeline table tags phases as authoring and gate/review', () => {
-  const claudeMd = read('CLAUDE.md');
+// AC6: Same-agent-different-role continuity — the hardest separate-context requirement
+// The architecture acknowledges that produced_by role check only catches same-role continuity.
+// For same-agent-different-role continuity, the mitigations are layered prose instructions.
+// This test verifies those distinct mitigations exist: (1) re-derive from source_spec instruction,
+// (2) known limitation disclosure, (3) residual risk acknowledgement.
+test('AC6: architecture acknowledges same-agent-different-role gap with layered mitigations', () => {
+  const arch = read('docs/features/review-hardening/architecture.md');
+  // Must disclose the limitation — same-role check doesn't catch role-switching
   assert.match(
-    claudeMd,
-    /authoring/i,
-    'CLAUDE.md must tag some pipeline phases as "authoring"'
+    arch,
+    /same.?agent.?different.?role|role.?switch|not.*same.?agent/i,
+    'architecture.md must disclose that produced_by check does not catch same-agent-different-role continuity'
+  );
+  // Must state residual risk
+  assert.match(
+    arch,
+    /residual risk/i,
+    'architecture.md must include a residual risk section for the AC6 enforcement gap'
+  );
+});
+
+test('AC6: ROLE_CODE_REVIEWER.md instructs re-deriving expectations from source_spec (not trusting prior framing)', () => {
+  const role = read('ROLE_CODE_REVIEWER.md');
+  // The role must instruct reviewers to independently derive expectations from the source spec,
+  // not carry over framing from the authoring phase — this is the prose mitigation for same-agent gap
+  assert.match(
+    role,
+    /re.?derive|independent|source.?spec|PRD.*before|form.*own/i,
+    'ROLE_CODE_REVIEWER.md must instruct reviewer to re-derive expectations from source_spec independently'
+  );
+});
+
+test('AC6: commands/review.md checks produced_by to detect same-role authoring+reviewing', () => {
+  const command = read('commands/review.md');
+  assert.match(
+    command,
+    /produced_by/,
+    'commands/review.md must check produced_by field for same-role detection (deterministic check)'
+  );
+});
+
+// AC7: CLAUDE.md pipeline phases tagged as authoring vs gate/review with correct mapping
+test('AC7: root CLAUDE.md pipeline tags phases 1-3,5 as authoring and phases 4,6 as gate/review', () => {
+  const claudeMd = read('CLAUDE.md');
+  const pipelineSection = claudeMd.match(/Pipeline Sequence[\s\S]*?(?=\n---|\n## [^#]|$)/);
+  assert.ok(pipelineSection, 'CLAUDE.md must have a Pipeline Sequence section');
+  const pipeline = pipelineSection[0];
+
+  // Authoring phases: 1 (Specify), 2 (Architect), 3 (Test Design), 5 (Implement)
+  // Each authoring phase line must contain "authoring" tag
+  assert.match(
+    pipeline,
+    /Phase 1.*authoring|1.*SPECIFY.*authoring|Specify.*authoring/i,
+    'Phase 1 (Specify) must be tagged as authoring'
   );
   assert.match(
-    claudeMd,
-    /gate|review/i,
-    'CLAUDE.md must tag some pipeline phases as "gate" or "review"'
+    pipeline,
+    /Phase 3.*authoring|3.*TEST.*authoring|Test Design.*authoring/i,
+    'Phase 3 (Test Design) must be tagged as authoring'
+  );
+  assert.match(
+    pipeline,
+    /Phase 5.*authoring|5.*IMPLEMENT.*authoring|Implement.*authoring/i,
+    'Phase 5 (Implement) must be tagged as authoring'
+  );
+
+  // Gate/review phases: 4 (Security Gate), 6 (Review)
+  assert.match(
+    pipeline,
+    /Phase 4.*gate|4.*SECURITY.*gate|Security.*gate/i,
+    'Phase 4 (Security Gate) must be tagged as gate'
+  );
+  assert.match(
+    pipeline,
+    /Phase 6.*gate|Phase 6.*review|6.*REVIEW.*gate|Review.*gate/i,
+    'Phase 6 (Review) must be tagged as gate/review'
   );
 });
 
@@ -269,22 +333,17 @@ test('AC11e: ROLE_CODE_REVIEWER.md and ROLE_SECURITY.md both have read-only enfo
   assert.match(security, /read.?only|no.*src\/|never.*src\//i, 'ROLE_SECURITY.md read-only src/ check');
 });
 
-// AC11f: Pipeline phases tagged authoring vs gate/review in CLAUDE.md
+// AC11f: Pipeline phases tagged authoring vs gate/review in CLAUDE.md with exact mapping
 test('AC11f: CLAUDE.md tags phases 1-3,5 as authoring and phases 4,6 as gate/review', () => {
   const claudeMd = read('CLAUDE.md');
-  // Structural anchor: authoring and gate tags must appear in pipeline context
-  const pipelineSection = claudeMd.match(/Pipeline Sequence[\s\S]*?(?=\n##[^#]|$)/);
+  const pipelineSection = claudeMd.match(/Pipeline Sequence[\s\S]*?(?=\n---|\n## [^#]|$)/);
   assert.ok(pipelineSection, 'CLAUDE.md must have a Pipeline Sequence section');
-  assert.match(
-    pipelineSection[0],
-    /authoring/i,
-    'Pipeline Sequence section must include "authoring" tag'
-  );
-  assert.match(
-    pipelineSection[0],
-    /gate|review/i,
-    'Pipeline Sequence section must include "gate" or "review" tag'
-  );
+  const pipeline = pipelineSection[0];
+
+  // Verify exact phase-to-tag mapping per PRD AC7: phases 1-3,5 = authoring; 4,6 = gate/review
+  assert.match(pipeline, /Phase 1.*authoring|1.*SPECIFY.*authoring|Specify.*authoring/i, 'Phase 1 must be tagged authoring');
+  assert.match(pipeline, /Phase 4.*gate|4.*SECURITY.*gate|Security.*gate/i, 'Phase 4 must be tagged gate');
+  assert.match(pipeline, /Phase 6.*gate|Phase 6.*review|6.*REVIEW.*gate|Review.*gate/i, 'Phase 6 must be tagged gate/review');
 });
 
 // ---------------------------------------------------------------------------
@@ -364,6 +423,33 @@ test('AC15: commands/implement.md or CLAUDE.md documents the bugfix source_spec 
   assert.ok(
     hasTicketMention || implementHasTicket,
     'CLAUDE.md or commands/implement.md must document the bugfix source_spec fallback (ticket file path)'
+  );
+});
+
+// AC15: Explicit precedence order — ticket file > GitHub issue URL > other declared source
+test('AC15: documentation states the explicit precedence order for bugfix source_spec', () => {
+  // The PRD states: "Precedence: ticket file > GitHub issue URL > other declared source"
+  // At least one of: architecture.md, CLAUDE.md, or commands/implement.md must document this ordering
+  const arch = read('docs/features/review-hardening/architecture.md');
+  const claudeMd = read('CLAUDE.md');
+  const implementExists = exists('commands/implement.md');
+  const implementContent = implementExists ? read('commands/implement.md') : '';
+  const combined = arch + claudeMd + implementContent;
+  assert.match(
+    combined,
+    /ticket.*>.*(?:issue|URL|github)|precedence.*ticket/i,
+    'Bugfix source_spec precedence (ticket file > GitHub issue URL > other) must be documented in architecture, CLAUDE.md, or commands/implement.md'
+  );
+});
+
+// AC15: GitHub issue URL is a valid source_spec value
+test('AC15: handoff.schema.json source_spec description accepts URL as valid value', () => {
+  const schema = JSON.parse(read('schemas/handoff.schema.json'));
+  const desc = (schema.properties.source_spec || {}).description || '';
+  assert.match(
+    desc,
+    /URL/i,
+    'source_spec schema description must list URL as a valid value (for GitHub issue URLs in bugfix fallback)'
   );
 });
 

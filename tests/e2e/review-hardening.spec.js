@@ -184,12 +184,20 @@ test('E2E chain: commands/security-gate.md has source_spec-first enforcement', (
 // E2E Chain 5: CLAUDE.md pipeline phase tagging
 // ---------------------------------------------------------------------------
 
-test('E2E chain: CLAUDE.md pipeline table tags authoring and gate/review phases correctly', () => {
+test('E2E chain: CLAUDE.md pipeline table tags authoring and gate/review phases with correct mapping', () => {
   const claudeMd = read('CLAUDE.md');
+  const pipelineSection = claudeMd.match(/Pipeline Sequence[\s\S]*?(?=\n---|\n## [^#]|$)/);
+  assert.ok(pipelineSection, 'CLAUDE.md must have a Pipeline Sequence section');
+  const pipeline = pipelineSection[0];
 
-  // AC7: Pipeline phases tagged
-  assert.match(claudeMd, /authoring/i, 'Must tag authoring phases');
-  assert.match(claudeMd, /gate|review/i, 'Must tag gate/review phases');
+  // AC7: Verify specific phase-to-tag mapping, not just keyword presence
+  // Authoring: phases 1-3, 5
+  assert.match(pipeline, /Phase 1.*authoring|1.*SPECIFY.*authoring|Specify.*authoring/i, 'Phase 1 must be tagged authoring');
+  assert.match(pipeline, /Phase 5.*authoring|5.*IMPLEMENT.*authoring|Implement.*authoring/i, 'Phase 5 must be tagged authoring');
+
+  // Gate/review: phases 4, 6
+  assert.match(pipeline, /Phase 4.*gate|4.*SECURITY.*gate|Security.*gate/i, 'Phase 4 must be tagged gate');
+  assert.match(pipeline, /Phase 6.*gate|Phase 6.*review|6.*REVIEW.*gate|Review.*gate/i, 'Phase 6 must be tagged gate/review');
 
   // AC18: source_spec referenced
   assert.match(claudeMd, /source_spec/, 'Must reference source_spec handling');
@@ -243,12 +251,27 @@ test('E2E empty state: checkpoint.js exists and is a valid Node.js script', () =
 // E2E: Misuse — same-role authoring+reviewing detected by command
 // ---------------------------------------------------------------------------
 
-test('E2E misuse: commands/review.md instructs checking produced_by to detect same-role authoring+reviewing', () => {
+test('E2E misuse: commands/review.md checks produced_by for same-role detection', () => {
   const command = read('commands/review.md');
   assert.match(
     command,
-    /produced_by|same.*role|role.*match|separate context/i,
-    'Review command must detect and halt when the authoring role matches the reviewing role (AC6 separate-context enforcement)'
+    /produced_by/,
+    'Review command must check produced_by for deterministic same-role detection (AC6)'
+  );
+});
+
+test('E2E misuse: architecture discloses same-agent-different-role as a known limitation of AC6 enforcement', () => {
+  const arch = read('docs/features/review-hardening/architecture.md');
+  // The architecture must honestly disclose that the produced_by check is role-level only
+  assert.match(
+    arch,
+    /same.?agent.?different.?role|not.*same.?agent|role.?switch/i,
+    'Architecture must disclose that produced_by check does not catch same-agent-different-role continuity'
+  );
+  assert.match(
+    arch,
+    /residual risk/i,
+    'Architecture must state residual risk for the enforcement gap'
   );
 });
 
