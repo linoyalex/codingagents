@@ -1,11 +1,13 @@
 {
   "feature": "review-hardening",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 6,
+  "goal": "Document the review-hardening feature: update CHANGELOG.md, write release notes, update CLAUDE.md conventions",
+  "scope": "Phase 7 documentation only — no source code changes",
   "relevant_files": [
-    "docs/features/review-hardening/architecture.md",
-    "docs/features/review-hardening/prd.md"
+    "docs/features/review-hardening/prd.md",
+    "docs/features/review-hardening/review.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
     "AC1", "AC2", "AC3", "AC4", "AC5", "AC6", "AC7", "AC8",
@@ -13,10 +15,15 @@
     "AC16", "AC17", "AC18"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/review-hardening/review.md"
+    "head -20 CHANGELOG.md",
+    "ls release-notes/ | tail -1",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/features/review-hardening/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T22:30:00Z"
+  "known_risks": [
+    "ISS-039 (phase commands 1-3,5,7 missing source_spec in handoff templates) is a P1-High open ticket tracked for Batch 2.5 — document as a known gap, do not attempt to fix in Phase 7",
+    "The architect command line limit change (100->200) has commit-level rationale but no dedicated ticket — may be worth noting in CHANGELOG"
+  ],
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T23:30:00Z"
 }
