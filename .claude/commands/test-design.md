@@ -2,6 +2,14 @@
 description: Write failing test shells from specs (Phase 3)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| tdd | skills/tdd/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the qa subagent.
 
 First, load your skills:
@@ -40,6 +48,12 @@ Rules:
   modules directly do not satisfy this check. This is a blocking gate — Phase 3 cannot complete without it.
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
+
+## Output
+
+- Write contract tests to: tests/contracts/$ARGUMENTS.test.ts
+- Write integration tests to: tests/integration/ following [feature].integration.test.* naming pattern
+- Write E2E tests to: tests/e2e/$ARGUMENTS.spec.ts
 
 After committing, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 3, goal: "Design-time security audit",

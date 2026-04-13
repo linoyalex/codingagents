@@ -2,6 +2,14 @@
 description: Produce an architecture decision record (Phase 2)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| architecture-decision | skills/architecture-decision/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the architect subagent.
 
 First, load your skills:

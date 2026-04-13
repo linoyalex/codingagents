@@ -2,6 +2,15 @@
 description: TDD implementation of a feature (Phase 5)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| tdd | skills/tdd/SKILL.md |
+| structured-logging | skills/structured-logging/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the developer subagent.
 
 First, load your skills:
@@ -53,6 +62,12 @@ Context discipline:
 - If context reaches 60%: run /compact immediately
 - If you need to read more than 10 files: split the task
 - If the RED failure is unrelated, stale, or contradicts the architecture/PRD, stop and resolve that mismatch before coding
+
+## Output
+
+- Write production source code to: src/ (minimum code to make tests pass)
+- Write integration tests to: tests/integration/ following [feature].integration.test.* naming pattern
+- Commit GREEN at each TDD step: RED → GREEN → REFACTOR
 
 After all three commits, run Phase 5 verification from verification-gate skill.
 

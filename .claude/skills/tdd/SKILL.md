@@ -73,6 +73,12 @@ Phase 3 may proceed but the gap must be explicitly recorded in both locations.
 
 Use selectively for data transformations, mathematical properties, validation logic, or hard constraints. Write example-based tests first; if PBT finds a failure, add it back as a named example-based test.
 
+## Required Artifacts
+
+| Artifact | Pattern | Path | Condition |
+|----------|---------|------|-----------|
+| Integration test | [feature].integration.test.* | tests/integration/ | Always — every feature must have an integration test at the production entry point |
+
 ## Anti-Patterns
 
 - Testing implementation details instead of outcomes
