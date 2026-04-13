@@ -37,6 +37,7 @@ After committing, write .claude/handoff.json with:
   feature: <feature-slug>, phase: 1, goal: "Produce architecture decision record",
   scope: "Phase 2 architecture only", relevant_files: ["docs/features/<feature-slug>/prd.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls docs/features/<feature-slug>/architecture.md"],
+  source_spec: "docs/features/<feature-slug>/prd.md",
   produced_by: "product-owner", timestamp: current ISO 8601
 
 Then print:

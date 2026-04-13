@@ -39,6 +39,7 @@ After committing, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 2, goal: "Write failing test shells from specs",
   scope: "Phase 3 test design only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls tests/contracts/$ARGUMENTS.test.ts"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "architect", timestamp: current ISO 8601
 
 Then print:

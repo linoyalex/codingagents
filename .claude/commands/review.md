@@ -53,6 +53,7 @@ If the verdict is APPROVE, write .claude/handoff.json with:
   scope: "Phase 7 documentation only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "CHANGELOG.md", "CLAUDE.md"],
   acceptance_criteria: ["CHANGELOG.md updated", "CLAUDE.md timestamp updated"],
   verification_commands: ["head -20 CHANGELOG.md", "grep -i 'last updated' CLAUDE.md"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "code-reviewer", timestamp: current ISO 8601
 Then print: "Phase 6 complete — APPROVED. Next: /document $ARGUMENTS (after merge)"
 

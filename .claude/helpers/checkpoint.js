@@ -326,7 +326,7 @@ function main() {
 
     console.error(`[handoff] ✗ BLOCKING: ${handoffResult.reason}`);
     console.error(`[handoff] The pipeline cannot proceed to the next phase without a valid .claude/handoff.json.`);
-    console.error(`[handoff] Write handoff.json with required fields: feature, phase, goal, scope, relevant_files, acceptance_criteria, verification_commands`);
+    console.error(`[handoff] Write handoff.json with required fields: feature, phase, goal, scope, relevant_files, acceptance_criteria, verification_commands, source_spec`);
 
     // Still log token usage and write checkpoint for diagnostics, but exit with error
     logTokenUsage(phase, null, null);
