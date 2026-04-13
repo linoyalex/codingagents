@@ -6,7 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const SKILL_PATH = path.join(ROOT_DIR, 'skills', 'verification-gate', 'SKILL.md');
+const SKILL_DIR = path.join(ROOT_DIR, 'skills', 'verification-gate');
 const APPROVED_REVIEW = path.join(ROOT_DIR, 'tests', 'fixtures', 'review', 'approved.md');
 const REQUEST_CHANGES_REVIEW = path.join(ROOT_DIR, 'tests', 'fixtures', 'review', 'request-changes.md');
 const BLOCKING_AUDIT = path.join(ROOT_DIR, 'tests', 'fixtures', 'security-audit', 'with-blocking.md');
@@ -21,12 +21,18 @@ function makeTempProject(t) {
 }
 
 function extractPhaseBlock(label) {
-  const source = fs.readFileSync(SKILL_PATH, 'utf8');
+  // Search across all .md files in the skill directory (progressive disclosure)
+  const files = fs.readdirSync(SKILL_DIR).filter(f => f.endsWith('.md'));
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`### ${escaped}[\\s\\S]*?\\n\\\`\\\`\\\`bash\\n([\\s\\S]*?)\\n\\\`\\\`\\\``);
-  const match = source.match(regex);
-  assert.ok(match, `Expected to find bash block for "${label}"`);
-  return match[1];
+
+  for (const file of files) {
+    const source = fs.readFileSync(path.join(SKILL_DIR, file), 'utf8');
+    const match = source.match(regex);
+    if (match) return match[1];
+  }
+
+  assert.fail(`Expected to find bash block for "${label}" in verification-gate skill files`);
 }
 
 function writeExecutable(targetPath, content) {

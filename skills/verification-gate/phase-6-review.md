@@ -1,8 +1,6 @@
-# Phase 6: Review — Verification
+### After Phase 6 (Review)
 
-After diff-based code review, verify the review document and verdict.
-
-## Verification Commands
+Verify the review document and verdict before proceeding.
 
 ```bash
 ls docs/features/<feature>/review.md
@@ -12,7 +10,7 @@ if grep -qi "REQUEST.CHANGES" docs/features/<feature>/review.md; then
 fi
 ```
 
-## Checklist
+#### Checklist
 
 - Review document exists at `docs/features/<feature>/review.md`
 - Verdict is APPROVE, REQUEST_CHANGES, or NEEDS_DISCUSSION

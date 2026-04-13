@@ -18,7 +18,7 @@ version: "2.0.0"
 Use the smallest reliable command that fits your stack. Broader checks are for final sweeps, not first-pass diagnosis.
 
 ```bash
-# Examples only — adapt to your stack
+# Examples only — Adapt to your stack
 npm test
 npx tsc --noEmit
 npm run lint
@@ -29,13 +29,13 @@ npm run build
 
 Each phase has its own reference file with verification commands:
 
-- [See reference: skills/verification-gate/phase-1-specify.md]
-- [See reference: skills/verification-gate/phase-2-architect.md]
-- [See reference: skills/verification-gate/phase-3-test-design.md]
-- [See reference: skills/verification-gate/phase-4-security-gate.md]
-- [See reference: skills/verification-gate/phase-5-implement.md]
-- [See reference: skills/verification-gate/phase-6-review.md]
-- [See reference: skills/verification-gate/phase-7-document.md]
+- [See reference: .claude/skills/verification-gate/phase-1-specify.md]
+- [See reference: .claude/skills/verification-gate/phase-2-architect.md]
+- [See reference: .claude/skills/verification-gate/phase-3-test-design.md]
+- [See reference: .claude/skills/verification-gate/phase-4-security-gate.md]
+- [See reference: .claude/skills/verification-gate/phase-5-implement.md]
+- [See reference: .claude/skills/verification-gate/phase-6-review.md]
+- [See reference: .claude/skills/verification-gate/phase-7-document.md]
 
 ## Handoff Validation
 

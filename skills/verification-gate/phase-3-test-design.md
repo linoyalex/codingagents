@@ -1,8 +1,6 @@
-# Phase 3: Test Design — Verification
+### After Phase 3 (Test Design)
 
-After test shells are written, verify RED state and coverage of acceptance criteria.
-
-## Verification Commands
+Verify RED state and coverage of acceptance criteria.
 
 ```bash
 # Run a feature-scoped RED check. Adapt to your stack:
@@ -12,7 +10,7 @@ After test shells are written, verify RED state and coverage of acceptance crite
 grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SKIPPED TESTS FOUND" || echo "No skips"
 ```
 
-## Checklist
+#### Checklist
 
 - All new tests fail for the intended reason (RED state)
 - No skipped tests (`.skip`, `xtest`, `xit`)

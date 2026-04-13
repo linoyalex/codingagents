@@ -1,8 +1,6 @@
-# Phase 5: Implement — Verification
+### After Phase 5 (Implement)
 
-After TDD implementation, verify all tests pass and code quality checks are clean.
-
-## Verification Commands
+Verify all tests pass and code quality checks are clean.
 
 ```bash
 # Run feature-scoped tests first. Adapt to your stack:
@@ -13,7 +11,7 @@ grep -rn "console\.log\|debugger" src/ --include="*.ts" --include="*.tsx" | grep
 grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO.*type" | head -10
 ```
 
-## Checklist
+#### Checklist
 
 - All feature-scoped tests pass (GREEN state)
 - TDD commits present: RED, GREEN, REFACTOR

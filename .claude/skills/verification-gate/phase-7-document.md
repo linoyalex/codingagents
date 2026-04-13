@@ -1,8 +1,6 @@
-# Phase 7: Document — Verification
+### After Phase 7 (Document)
 
-After documentation updates, verify changelog and convention sync.
-
-## Verification Commands
+Verify changelog and convention sync after documentation updates.
 
 ```bash
 head -20 CHANGELOG.md
@@ -10,7 +8,7 @@ grep -i "last updated" CLAUDE.md
 ls release-notes/ | tail -1
 ```
 
-## Checklist
+#### Checklist
 
 - CHANGELOG.md has an entry for the feature
 - CLAUDE.md "Last updated" timestamp is current
