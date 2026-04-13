@@ -40,9 +40,14 @@ function getActiveFeature() {
 }
 
 function hasFeatureTests(feature) {
-  const contractTest = path.join(process.cwd(), 'tests', 'contracts', `${feature}.test.ts`);
-  const e2eTest = path.join(process.cwd(), 'tests', 'e2e', `${feature}.spec.ts`);
-  return fs.existsSync(contractTest) || fs.existsSync(e2eTest);
+  // Adapt to your stack: check .ts, .js, and .mjs extensions for test files
+  const extensions = ['ts', 'js', 'mjs'];
+  for (const ext of extensions) {
+    const contractTest = path.join(process.cwd(), 'tests', 'contracts', `${feature}.test.${ext}`);
+    const e2eTest = path.join(process.cwd(), 'tests', 'e2e', `${feature}.spec.${ext}`);
+    if (fs.existsSync(contractTest) || fs.existsSync(e2eTest)) return true;
+  }
+  return false;
 }
 
 function detectPhase() {
