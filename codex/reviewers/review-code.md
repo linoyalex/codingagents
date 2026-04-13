@@ -36,6 +36,10 @@ Do not read the full codebase by default.
 - Prefer file:line evidence
 - If you cannot verify a concern from the available context, label it as a question, not a finding
 
+## Timestamp Convention
+
+Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output.
+
 ## Output Format
 
 Produce findings-first output using this structure:

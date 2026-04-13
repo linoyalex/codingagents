@@ -59,8 +59,11 @@ Rules:
 
 ## PRD Template
 
+Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+
 ```markdown
 ## Feature: [Name]
+**Generated:** <ISO 8601 timestamp>
 **Phase:** Specify | Date: YYYY-MM-DD
 
 ### User Story

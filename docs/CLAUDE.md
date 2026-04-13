@@ -65,6 +65,7 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 ## Code Conventions
 
 ### Must Follow
+- **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
 - Shell scripts use `set -euo pipefail`
 - **Skills stay under ~120 lines** (target ~100; hard cap 120 to prevent bloat). See ISS-010 review for rationale.
 - Commands include YAML frontmatter (`description`, `user-invocable: true`)

@@ -27,6 +27,7 @@ Rules:
   (If the repo has a docs/CLAUDE.md, read that file for project-specific architecture context instead of the root template)
 - If you need to understand an existing pattern, read ONE representative file — not a whole module
 - Never Glob src/
+- Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
 - Follow the architecture.md Template from the architecture-decision skill
 - Include the architecture skill's reliability fields: decision confidence, revisit trigger, rollback/fallback, and trust boundaries when relevant
 - If a key architectural assumption is still ambiguous, record it explicitly instead of smoothing it over

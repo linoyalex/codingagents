@@ -25,6 +25,10 @@ Your job is to spot ambiguity, missing acceptance criteria, missing user states,
 - Use `handoff.json` only for context, not as a substitute for the PRD
 - Do not expand into architecture or implementation suggestions unless they are required to explain a PRD gap
 
+## Timestamp Convention
+
+Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output.
+
 ## Output Format
 
 ```markdown

@@ -26,8 +26,11 @@ version: "1.2.0"
 
 ## ADR Template
 
+Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+
 ```markdown
 ## ADR-[NUMBER]: [Short title]
+**Generated:** <ISO 8601 timestamp>
 
 **Status:** Proposed | Accepted | Deprecated
 **Date:** YYYY-MM-DD
@@ -54,8 +57,11 @@ version: "1.2.0"
 
 ## architecture.md Template
 
+Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+
 ```markdown
 ## Architecture: [Feature Name]
+**Generated:** <ISO 8601 timestamp>
 **ADR:** ADR-[N] | Date: YYYY-MM-DD
 
 ### Decision

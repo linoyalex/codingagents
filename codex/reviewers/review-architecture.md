@@ -26,6 +26,10 @@ Your job is to challenge unjustified complexity, missing failure handling, and a
 - Do not inspect broad codebase context by default
 - Frame concerns as architecture risks, not implementation guesses
 
+## Timestamp Convention
+
+Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output.
+
 ## Output Format
 
 ```markdown

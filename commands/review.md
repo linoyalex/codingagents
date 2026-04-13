@@ -27,6 +27,7 @@ Rules:
 - Run: git diff main...HEAD (read the diff, not individual files)
 - If a finding requires context, open that ONE file — not its whole module
 - Run the Quick Automated Checks from the code-review skill
+- Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in all review artifacts, including named review-claude-*.md files. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
 - Write findings to docs/features/$ARGUMENTS/review.md using the Review Document Template from the skill
 - Run Phase 6 verification from verification-gate skill
 
