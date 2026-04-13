@@ -34,6 +34,7 @@ Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after t
 
 ```markdown
 # Architecture Review: [feature]
+**Generated:** <ISO 8601 timestamp>
 
 ## Findings
 - [SEVERITY] [section or decision] Risk, consequence, and why it is under-addressed.

@@ -34,6 +34,7 @@ Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after t
 
 ```markdown
 # Test Design Review: [feature]
+**Generated:** <ISO 8601 timestamp>
 
 ## Findings
 - [SEVERITY] [AC-ID or file] Coverage gap or weakness and why it matters.

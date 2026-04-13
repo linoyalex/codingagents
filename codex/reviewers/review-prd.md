@@ -33,6 +33,7 @@ Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after t
 
 ```markdown
 # PRD Review: [feature]
+**Generated:** <ISO 8601 timestamp>
 
 ## Findings
 - [SEVERITY] [AC-ID or section] Ambiguity, gap, or risk and why it matters.

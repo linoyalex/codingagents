@@ -46,6 +46,7 @@ Produce findings-first output using this structure:
 
 ```markdown
 # Review: [feature or branch]
+**Generated:** <ISO 8601 timestamp>
 
 ## Findings
 - [SEVERITY] [path:line] Clear statement of the issue, impact, and why it matters.
