@@ -19,7 +19,6 @@
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
 | 8 | [ISS-036](tickets/ISS-036.md) | P1 — High | Feature | ISS-013 | Add command↔skill wiring verification to prevent artifact-slot drift |
 | 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
-| 8 | [ISS-042](tickets/ISS-042.md) | P1 — High | Feature | — | /implement command must instruct developer to verify handoff known_risks |
 | 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
 | 8 | [ISS-045](tickets/ISS-045.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
 | 9 | ~~[ISS-029](tickets/ISS-029.md)~~ | P2 — Medium | Feature | — | ~~Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect`~~ → closed |
