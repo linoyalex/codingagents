@@ -45,7 +45,7 @@ If any trigger fires: ask the minimum necessary clarification questions, then ST
 wait for the user to respond before finalizing the PRD. Write
 `checkpoint_pending: "clarification"` to .claude/handoff.json before stopping.
 
-If the user provides partial answers or declines to answer: record each unanswered question as an assumption in the Dependencies section and proceed.
+If the user provides partial answers or declines to answer: record each unanswered question as an explicit assumption in the Dependencies section, then proceed.
 Do not block indefinitely on optional clarification.
 
 If no triggers fire: proceed directly to Step 3.
