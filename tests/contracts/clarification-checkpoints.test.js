@@ -63,6 +63,19 @@ test('AC0: Ticket Fidelity Procedure instructs flagging divergences as assumptio
   );
 });
 
+test('AC0: Ticket Fidelity Procedure requires detecting drift in scope, severity, or specificity', () => {
+  const skill = read('skills/prd-writing/SKILL.md');
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(section, 'Ticket Fidelity Procedure section must exist');
+  // PRD AC0: "diverges from the ticket AC in scope, severity, or specificity"
+  const driftDimensions = [/scope/i, /severity/i, /specificity/i];
+  const matches = driftDimensions.filter(p => p.test(section[0])).length;
+  assert.ok(
+    matches >= 2,
+    `Ticket Fidelity Procedure must reference at least 2 of 3 drift dimensions (scope, severity, specificity) — found ${matches}`
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC0a: Convention citation verification
 // ---------------------------------------------------------------------------
@@ -75,6 +88,24 @@ test('AC0a: Ticket Fidelity Procedure requires verifying convention values again
     section[0],
     /CLAUDE\.md/,
     'Ticket Fidelity Procedure must reference verifying against CLAUDE.md'
+  );
+});
+
+test('AC0a: Ticket Fidelity Procedure specifies docs/CLAUDE.md as canonical with root fallback', () => {
+  const skill = read('skills/prd-writing/SKILL.md');
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(section, 'Ticket Fidelity Procedure section must exist');
+  // Must specify docs/CLAUDE.md as the canonical source (not just "CLAUDE.md")
+  assert.match(
+    section[0],
+    /docs\/CLAUDE\.md/,
+    'Ticket Fidelity Procedure must specify docs/CLAUDE.md as the canonical convention source'
+  );
+  // Must mention fallback to root CLAUDE.md
+  assert.match(
+    section[0],
+    /fallback|root\s+CLAUDE\.md|template/i,
+    'Ticket Fidelity Procedure must specify fallback to root CLAUDE.md'
   );
 });
 
@@ -108,6 +139,18 @@ test('AC0c: Ticket Fidelity Procedure requires enumerating or asking about open-
   );
 });
 
+test('AC0c: Ticket Fidelity Procedure includes the "ask the user which ones apply" alternative', () => {
+  const skill = read('skills/prd-writing/SKILL.md');
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(section, 'Ticket Fidelity Procedure section must exist');
+  // PRD AC0c: "enumerate the candidates OR ask the user which ones apply"
+  assert.match(
+    section[0],
+    /ask.*(user|which|apply)|user.*which.*apply/i,
+    'Ticket Fidelity Procedure must include asking the user as an alternative to enumeration'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC1: Clarification gate exists in /specify
 // ---------------------------------------------------------------------------
@@ -127,6 +170,23 @@ test('AC1: commands/specify.md documents clarification triggers', () => {
     cmd,
     /trigger/i,
     'commands/specify.md must document clarification triggers'
+  );
+});
+
+test('AC1: commands/specify.md enumerates concrete trigger classes from the PRD', () => {
+  const cmd = read('commands/specify.md');
+  // PRD AC1 enumerates 5 trigger classes — at least 3 must be present to confirm binding
+  const triggerPatterns = [
+    /undefined\s+term/i,
+    /ACs?\s+conflict|conflict.*ACs?|contradict/i,
+    /open.ended\s+(without\s+enumeration|scope)/i,
+    /contradict.*convention|convention.*contradict/i,
+    /cannot\s+be\s+inferred|required\s+field/i,
+  ];
+  const matches = triggerPatterns.filter(p => p.test(cmd)).length;
+  assert.ok(
+    matches >= 3,
+    `commands/specify.md must enumerate at least 3 of the 5 concrete trigger classes from the PRD (found ${matches})`
   );
 });
 
@@ -166,6 +226,21 @@ test('AC3: commands/specify.md records unanswered clarification questions as ass
   );
 });
 
+test('AC3: commands/specify.md binds the "record in Dependencies and proceed" behavior', () => {
+  const cmd = read('commands/specify.md');
+  // PRD AC3 requires: record unanswered questions as explicit assumptions in Dependencies section AND proceed
+  assert.match(
+    cmd,
+    /dependencies/i,
+    'commands/specify.md must instruct recording unanswered questions in the Dependencies section'
+  );
+  assert.match(
+    cmd,
+    /proceed|continue|move\s+forward/i,
+    'commands/specify.md must instruct proceeding after recording assumptions (not blocking indefinitely)'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC4: Architect review checkpoint
 // ---------------------------------------------------------------------------
@@ -192,6 +267,16 @@ test('AC5: commands/architect.md allows multiple revision cycles based on user f
   );
 });
 
+test('AC5: commands/architect.md requires user approval before finalizing', () => {
+  const cmd = read('commands/architect.md');
+  // PRD AC5: "Multiple revision cycles are allowed — the command signals 'still in review' until the user approves"
+  assert.match(
+    cmd,
+    /approv|user\s+(confirm|accept|sign.off)|until.*approv/i,
+    'commands/architect.md must require explicit user approval before finalizing the architecture'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC6: No hidden auto-advance — checkpoint ordering (structural)
 // ---------------------------------------------------------------------------
@@ -208,6 +293,21 @@ test('AC6: commands/specify.md places checkpoint instructions BEFORE commit/hand
   );
 });
 
+test('AC6: commands/specify.md has no unconditional finalize bypass after clarification gate', () => {
+  const cmd = read('commands/specify.md');
+  const clarificationIdx = cmd.search(/clarification.*gate|clarification.*question|ask.*clarif/i);
+  assert.ok(clarificationIdx >= 0, 'Clarification gate must exist');
+  // Extract text after the clarification gate
+  const afterCheckpoint = cmd.slice(clarificationIdx);
+  // Must not contain unconditional "proceed regardless" / "skip clarification" / "finalize without"
+  // that would bypass the gate entirely (as opposed to the allowed "proceed with assumptions" path)
+  assert.doesNotMatch(
+    afterCheckpoint,
+    /skip\s+clarification\s+entirely|finalize\s+without\s+(waiting|clarification|user)|always\s+commit\s+regardless/i,
+    'commands/specify.md must not contain an unconditional bypass of the clarification gate'
+  );
+});
+
 test('AC6: commands/architect.md places review checkpoint BEFORE commit/handoff', () => {
   const cmd = read('commands/architect.md');
   const checkpointIdx = cmd.search(/review.*checkpoint|present.*review|wait.*feedback/i);
@@ -217,6 +317,19 @@ test('AC6: commands/architect.md places review checkpoint BEFORE commit/handoff'
   assert.ok(
     checkpointIdx < commitIdx,
     `Review checkpoint (pos ${checkpointIdx}) must appear before commit instructions (pos ${commitIdx})`
+  );
+});
+
+test('AC6: commands/architect.md has no unconditional finalize bypass after review checkpoint', () => {
+  const cmd = read('commands/architect.md');
+  const checkpointIdx = cmd.search(/review.*checkpoint|present.*review|wait.*feedback/i);
+  assert.ok(checkpointIdx >= 0, 'Review checkpoint must exist');
+  const afterCheckpoint = cmd.slice(checkpointIdx);
+  // Must not contain unconditional commit/finalize that bypasses user approval
+  assert.doesNotMatch(
+    afterCheckpoint,
+    /skip\s+review\s+entirely|finalize\s+without\s+(approval|review|user)|always\s+commit\s+regardless|proceed\s+without\s+user\s+response/i,
+    'commands/architect.md must not contain an unconditional bypass of the review checkpoint'
   );
 });
 
@@ -239,6 +352,16 @@ test('AC7: commands/architect.md signals when waiting for user feedback', () => 
     cmd,
     /wait.*feedback|waiting.*review|before finaliz.*review|request.*user.*review/i,
     'commands/architect.md must signal when it is waiting for user feedback'
+  );
+});
+
+test('AC7: commands/architect.md distinguishes "still in review" from "phase complete"', () => {
+  const cmd = read('commands/architect.md');
+  // PRD AC5+AC7: command must signal "still in review" until approval, distinct from completion
+  assert.match(
+    cmd,
+    /still\s+in\s+review|awaiting\s+(review|feedback|approval)|not\s+yet\s+(complete|finalized)|review\s+in\s+progress/i,
+    'commands/architect.md must clearly signal "still in review" state as distinct from phase completion'
   );
 });
 
@@ -272,6 +395,13 @@ test('AC8b: commands/specify.md has no unconditional commit after checkpoint sec
     clarificationIdx < handoffIdx,
     'Handoff write must appear after clarification gate'
   );
+  // Negative check: the commit/handoff section must be gated, not unconditional
+  const betweenCheckpointAndHandoff = cmd.slice(clarificationIdx, handoffIdx);
+  assert.match(
+    betweenCheckpointAndHandoff,
+    /wait|stop|user\s+(answer|respond|input)|incorporate.*answer|after.*clarification/i,
+    'Between clarification gate and handoff, there must be a user-response gate — not an unconditional path'
+  );
 });
 
 test('AC8b: commands/architect.md has no unconditional commit after checkpoint section', () => {
@@ -283,6 +413,13 @@ test('AC8b: commands/architect.md has no unconditional commit after checkpoint s
   assert.ok(
     checkpointIdx < handoffIdx,
     'Handoff write must appear after review checkpoint'
+  );
+  // Negative check: between checkpoint and handoff, must require user approval
+  const betweenCheckpointAndHandoff = cmd.slice(checkpointIdx, handoffIdx);
+  assert.match(
+    betweenCheckpointAndHandoff,
+    /approv|user\s+(confirm|accept|respond)|wait.*feedback|after.*review/i,
+    'Between review checkpoint and handoff, there must be an approval gate — not an unconditional path'
   );
 });
 
