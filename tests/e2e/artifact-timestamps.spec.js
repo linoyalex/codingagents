@@ -50,20 +50,35 @@ test('every Codex reviewer prompt references the timestamp convention', () => {
 
 // --- Full-chain: all skill templates ---
 
-test('every artifact-producing skill template contains the **Generated:** anchor in its template section', () => {
+test('every artifact-producing skill template has **Generated:** positioned after its heading', () => {
   const skills = [
     { path: 'skills/prd-writing/SKILL.md', section: /## PRD Template[\s\S]*?(?=\n## [^#]|$)/ },
     { path: 'skills/architecture-decision/SKILL.md', section: /## (?:ADR|architecture\.md) Template[\s\S]*?(?=\n## [^#]|$)/ },
     { path: 'skills/code-review/SKILL.md', section: /## Review Document Template[\s\S]*?(?=\n## [^#]|$)/ },
     { path: 'skills/security-audit/SKILL.md', section: /## Security Audit Document Template[\s\S]*?(?=\n## [^#]|$)/ },
   ];
-  const missing = skills.filter(s => {
+  const failing = [];
+  for (const s of skills) {
     const content = read(s.path);
     const templateMatch = content.match(s.section);
-    return !templateMatch || !templateMatch[0].includes('**Generated:**');
-  });
-  assert.equal(missing.length, 0,
-    `Skills missing **Generated:** in template section: ${missing.map(s => s.path).join(', ')}`);
+    if (!templateMatch || !templateMatch[0].includes('**Generated:**')) {
+      failing.push(s.path + ' (missing **Generated:** in template section)');
+      continue;
+    }
+    // Verify position: **Generated:** must be within the first few lines after
+    // the template's first heading (the artifact title line)
+    const tmpl = templateMatch[0];
+    const headingMatch = tmpl.match(/^(#+\s+.+)$/m);
+    if (headingMatch) {
+      const afterHeading = tmpl.slice(tmpl.indexOf(headingMatch[0]) + headingMatch[0].length);
+      const firstLines = afterHeading.split('\n').filter(l => l.trim()).slice(0, 5).join('\n');
+      if (!firstLines.includes('**Generated:**')) {
+        failing.push(s.path + ' (**Generated:** not positioned after template heading)');
+      }
+    }
+  }
+  assert.equal(failing.length, 0,
+    `Skills with **Generated:** issues: ${failing.join('; ')}`);
 });
 
 // --- Full-chain: canonical source ---

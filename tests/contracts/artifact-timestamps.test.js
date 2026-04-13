@@ -115,14 +115,31 @@ test('AC3: artifact-producing commands require fresh timestamps on regeneration'
       `${cmdPath} should include the **Generated:** marker`);
     // The command must explicitly instruct fresh/current timestamp generation,
     // not just mention "current" incidentally (e.g. in a handoff instruction).
-    // Look for the **Generated:** marker and verify regeneration-freshness language nearby.
     const generatedIdx = content.indexOf('**Generated:**');
     const nearby = content.slice(
       Math.max(0, generatedIdx - 300),
       Math.min(content.length, generatedIdx + 300)
     );
     assert.match(nearby, /current.*time|current.*ISO|regenerat|update.*timestamp|fresh|do not preserve/i,
-      `${cmdPath} should instruct the agent to use a fresh/current timestamp near the **Generated:** marker (not preserve stale values)`);
+      `${cmdPath} should instruct the agent to use a fresh/current timestamp near the **Generated:** marker`);
+  }
+});
+
+test('AC3: commands explicitly instruct replacing prior timestamps on regeneration', () => {
+  // AC3 says "the timestamp is updated to the current time rather than preserved
+  // from the earlier run." Commands must contain explicit replace/update/overwrite
+  // language to contractually prevent stale-timestamp preservation.
+  const commandPaths = [
+    'commands/specify.md',
+    'commands/architect.md',
+    'commands/security-gate.md',
+    'commands/review.md',
+  ];
+  for (const cmdPath of commandPaths) {
+    const content = read(cmdPath);
+    assert.match(content,
+      /replac|updat.*timestamp|overwrit|do not preserve|never preserve|always.*current|must.*current/i,
+      `${cmdPath} should explicitly instruct replacing/updating the timestamp on regeneration`);
   }
 });
 
@@ -136,39 +153,56 @@ test('AC4: timestamp convention is in the Code Conventions section of docs/CLAUD
     'Timestamp convention should appear in the Code Conventions section');
 });
 
-// --- AC5: Skill templates contain **Generated:** anchor in template section ---
+// --- AC5: Skill templates contain **Generated:** anchor in correct position ---
 // Each skill has a named template section (e.g. "PRD Template", "ADR Template").
-// The **Generated:** anchor must appear inside that template, not in an unrelated note.
+// The **Generated:** anchor must appear inside that template section, positioned
+// immediately after the first heading in the template (not buried later).
 
-test('AC5: prd-writing skill template section contains **Generated:** anchor line', () => {
+/**
+ * Verify that **Generated:** appears within the first few lines after the
+ * template section's first heading — i.e. right after the document title line.
+ * This enforces the "immediately after top-level heading" placement rule from AC1.
+ */
+function assertGeneratedAfterFirstHeading(templateText, skillPath) {
+  assert.match(templateText, /\*\*Generated:\*\*/,
+    `${skillPath} template section must contain **Generated:**`);
+  // Find the first markdown heading inside the template (the artifact's title line)
+  const headingMatch = templateText.match(/^(#+\s+.+)$/m);
+  if (headingMatch) {
+    const afterHeading = templateText.slice(
+      templateText.indexOf(headingMatch[0]) + headingMatch[0].length
+    );
+    // **Generated:** must appear within the first 5 non-empty lines after the heading
+    const firstLines = afterHeading.split('\n').filter(l => l.trim()).slice(0, 5).join('\n');
+    assert.match(firstLines, /\*\*Generated:\*\*/,
+      `${skillPath}: **Generated:** must appear within the first few lines after the template heading`);
+  }
+}
+
+test('AC5: prd-writing skill template has **Generated:** after its heading', () => {
   const skill = read('skills/prd-writing/SKILL.md');
   const templateSection = skill.match(/## PRD Template[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(templateSection, 'skills/prd-writing/SKILL.md should have a PRD Template section');
-  assert.match(templateSection[0], /\*\*Generated:\*\*/,
-    '**Generated:** anchor must appear inside the PRD Template section');
+  assertGeneratedAfterFirstHeading(templateSection[0], 'skills/prd-writing/SKILL.md');
 });
 
-test('AC5: architecture-decision skill template section contains **Generated:** anchor line', () => {
+test('AC5: architecture-decision skill template has **Generated:** after its heading', () => {
   const skill = read('skills/architecture-decision/SKILL.md');
-  // architecture-decision has both "ADR Template" and "architecture.md Template"
   const templateSection = skill.match(/## (?:ADR|architecture\.md) Template[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(templateSection, 'skills/architecture-decision/SKILL.md should have a template section');
-  assert.match(templateSection[0], /\*\*Generated:\*\*/,
-    '**Generated:** anchor must appear inside the architecture template section');
+  assertGeneratedAfterFirstHeading(templateSection[0], 'skills/architecture-decision/SKILL.md');
 });
 
-test('AC5: code-review skill template section contains **Generated:** anchor line', () => {
+test('AC5: code-review skill template has **Generated:** after its heading', () => {
   const skill = read('skills/code-review/SKILL.md');
   const templateSection = skill.match(/## Review Document Template[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(templateSection, 'skills/code-review/SKILL.md should have a Review Document Template section');
-  assert.match(templateSection[0], /\*\*Generated:\*\*/,
-    '**Generated:** anchor must appear inside the Review Document Template section');
+  assertGeneratedAfterFirstHeading(templateSection[0], 'skills/code-review/SKILL.md');
 });
 
-test('AC5: security-audit skill template section contains **Generated:** anchor line', () => {
+test('AC5: security-audit skill template has **Generated:** after its heading', () => {
   const skill = read('skills/security-audit/SKILL.md');
   const templateSection = skill.match(/## Security Audit Document Template[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(templateSection, 'skills/security-audit/SKILL.md should have a Security Audit Document Template section');
-  assert.match(templateSection[0], /\*\*Generated:\*\*/,
-    '**Generated:** anchor must appear inside the Security Audit Document Template section');
+  assertGeneratedAfterFirstHeading(templateSection[0], 'skills/security-audit/SKILL.md');
 });
