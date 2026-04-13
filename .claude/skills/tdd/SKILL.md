@@ -1,7 +1,7 @@
 ---
 name: tdd
 description: Test-Driven Development execution — Red/Green/Refactor cycle with commit protocol
-version: "1.2.0"
+version: "1.3.0"
 ---
 
 # Skill: Test-Driven Development
