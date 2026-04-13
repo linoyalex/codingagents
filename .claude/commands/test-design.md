@@ -34,6 +34,9 @@ Rules:
 - Follow test naming conventions from the tdd skill
 - Run linter on test files before committing: `npm run lint -- tests/`
   Fix any lint errors — test files must be lint-clean even in RED state
+- Integration test verification (blocking): at least one test must import the production entry point
+  AND contain an assertion on visible output. Import-only shells, utility imports, or tests that call
+  modules directly do not satisfy this check. This is a blocking gate — Phase 3 cannot complete without it.
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
 
