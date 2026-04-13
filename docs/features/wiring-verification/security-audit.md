@@ -1,5 +1,5 @@
 ## Security Audit: Wiring Verification (ISS-036)
-**Generated:** 2026-04-13T21:38:00Z
+**Generated:** 2026-04-13T21:50:00Z
 **Date:** 2026-04-13 | **Auditor:** security-reviewer agent
 **Reviewed in separate context from authoring phase** | Reviewer: security-reviewer (handoff produced_by: qa)
 **Inputs:** docs/features/wiring-verification/prd.md + docs/features/wiring-verification/architecture.md
@@ -47,7 +47,48 @@ No new data fields introduced. The feature reads existing markdown files and pro
 
 Not applicable — no secrets accessed, stored, or transmitted.
 
+### Codex Review Integration
+
+Two findings from the Codex architecture review (`reviews-codex-architecture-wiring-verification.md`)
+were not surfaced in the initial security audit. They are incorporated below as MEDIUM and LOW findings.
+
+**RCA — why these were missed initially:**
+The audit correctly identified zero OWASP threats (appropriate for read-only test infrastructure)
+but did not shift to an adversarial lens on the protection mechanism itself. For features that
+ARE test/protection infrastructure, the most valuable security analysis is "can this protection
+be bypassed or produce false confidence?" — not traditional threat modeling. The fail-closed
+heuristic was accepted at face value, and a stale architecture note was not caught.
+
+Existing backlog coverage: ISS-025 AC7 (fail-open defaults in Phase 2 self-review) and
+ISS-029 AC4a (PRD↔architecture delta check) already capture both gap patterns with ISS-036
+cited as evidence. No new tickets required.
+
 ### Findings
+
+#### [MEDIUM]: Fail-closed heuristic has residual bypass risk (from Codex review)
+
+**Location:** Architecture Stage 1 — Discovery, fail-closed rule
+**Risk:** The fail-closed rule scans command text for `skills/` or `.claude/skills/` patterns.
+If a command loads skills through an indirect mechanism (e.g., a helper script or a reference
+that doesn't literally contain `skills/`), or if prose is later reworded to remove those
+patterns, the command would be silently skipped — the protection disappears without signal.
+The heuristic is sound for current conventions but depends on prose patterns that are not
+structurally enforced.
+**Recommendation:** Accept for v1 — current commands all use `skills/` paths explicitly.
+Document this assumption in the test file's header comment. If future commands use indirect
+skill loading, tighten to a registry of known-skill-loading commands. Tracked under ISS-025
+AC7 (adversarial self-review for fail-open defaults).
+
+#### [LOW]: Stale architecture note could mislead implementer (from Codex review, now resolved)
+
+**Location:** Architecture doc, AC8 note
+**Risk:** The architecture contained a note claiming the PRD's AC8 "describes
+acknowledgment-by-name-or-pattern only" and needed updating. In fact, the PRD was already
+updated to "full pattern+path check" before Phase 4. An implementer reading the stale note
+could waste time reconciling a non-existent mismatch or, worse, implement the weaker version
+described in the note.
+**Recommendation:** Fixed — the architecture note has been updated to reflect the resolved
+state. Tracked under ISS-029 AC4a (PRD↔architecture delta check at authoring time).
 
 #### [LOW]: Fail-open risk if test file is deleted or excluded from CI
 
@@ -73,6 +114,10 @@ This project has no `package-lock.json` — it is a framework template repo that
 
 ### Verdict
 
-**APPROVED**
+**APPROVED WITH CONDITIONS**
 
-No BLOCKING or HIGH findings. The feature is purely additive test infrastructure with zero runtime impact, zero new dependencies, and a well-defined read-only trust boundary. The two findings (LOW and INFO) are informational and do not require resolution before implementation.
+No BLOCKING or HIGH findings. One MEDIUM finding (fail-closed heuristic bypass risk) is
+accepted for v1 with documentation recommended. The feature is purely additive test
+infrastructure with zero runtime impact, zero new dependencies, and a well-defined read-only
+trust boundary. The MEDIUM finding is tracked under ISS-025 AC7; no implementation changes
+required before proceeding.

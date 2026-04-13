@@ -74,9 +74,9 @@ missing from that section, fail with:
 **Conditional artifacts (AC8):** The Condition column is informational for human readers.
 At test time, all artifacts — conditional or not — receive the same pattern+path check.
 This resolves the ambiguity: the test does not relax validation for conditional artifacts.
-**Note:** The PRD's AC8 describes acknowledgment-by-name-or-pattern only. This architecture
-intentionally tightens to full pattern+path. The PRD should be updated to match before
-implementation starts — the architecture's stricter interpretation is the canonical contract.
+**Note (resolved):** The PRD AC8 has been updated to match this architecture's stricter
+interpretation (full pattern+path check). The PRD, architecture, and handoff are now aligned.
+Original delta flagged by Codex review round 1; resolved before Phase 4.
 
 **Stage 4 -- Negative fixture.** A dedicated `test()` block loads files from
 `tests/fixtures/wiring-gap/` and runs the same wiring check, asserting it throws (AC11).
