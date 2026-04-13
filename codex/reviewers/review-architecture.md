@@ -28,7 +28,7 @@ Your job is to challenge unjustified complexity, missing failure handling, and a
 
 ## Timestamp Convention
 
-Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output.
+Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
 
 ## Output Format
 
