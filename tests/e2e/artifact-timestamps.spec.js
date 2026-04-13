@@ -50,16 +50,20 @@ test('every Codex reviewer prompt references the timestamp convention', () => {
 
 // --- Full-chain: all skill templates ---
 
-test('every artifact-producing skill template contains the **Generated:** anchor', () => {
-  const skillPaths = [
-    'skills/prd-writing/SKILL.md',
-    'skills/architecture-decision/SKILL.md',
-    'skills/code-review/SKILL.md',
-    'skills/security-audit/SKILL.md',
+test('every artifact-producing skill template contains the **Generated:** anchor in its template section', () => {
+  const skills = [
+    { path: 'skills/prd-writing/SKILL.md', section: /## PRD Template[\s\S]*?(?=\n## [^#]|$)/ },
+    { path: 'skills/architecture-decision/SKILL.md', section: /## (?:ADR|architecture\.md) Template[\s\S]*?(?=\n## [^#]|$)/ },
+    { path: 'skills/code-review/SKILL.md', section: /## Review Document Template[\s\S]*?(?=\n## [^#]|$)/ },
+    { path: 'skills/security-audit/SKILL.md', section: /## Security Audit Document Template[\s\S]*?(?=\n## [^#]|$)/ },
   ];
-  const missing = skillPaths.filter(p => !read(p).includes('**Generated:**'));
+  const missing = skills.filter(s => {
+    const content = read(s.path);
+    const templateMatch = content.match(s.section);
+    return !templateMatch || !templateMatch[0].includes('**Generated:**');
+  });
   assert.equal(missing.length, 0,
-    `Skills missing **Generated:** anchor: ${missing.join(', ')}`);
+    `Skills missing **Generated:** in template section: ${missing.map(s => s.path).join(', ')}`);
 });
 
 // --- Full-chain: canonical source ---

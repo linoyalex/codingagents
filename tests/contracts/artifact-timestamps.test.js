@@ -9,6 +9,10 @@
  *   "docs/CLAUDE.md defines the convention" + "every artifact-producing command
  *   includes the **Generated:** instruction" = the pipeline is wired to produce
  *   timestamped artifacts. The wiring proof is the combination of AC1+AC2+AC4.
+ *
+ * AC6 (no regression) verification path:
+ *   Run `node --test tests/node/*.test.js` separately to confirm existing tests
+ *   still pass. AC6 is validated by the full existing suite, not by this file.
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -21,14 +25,18 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
 }
 
-// --- AC1: Convention defined ---
+// --- AC1: Convention defined (format + placement) ---
 
-test('AC1: docs/CLAUDE.md defines the **Generated:** timestamp convention', () => {
+test('AC1: docs/CLAUDE.md defines the **Generated:** timestamp convention with placement rule', () => {
   const doc = read('docs/CLAUDE.md');
-  assert.match(doc, /\*\*Generated:\*\*/,
-    'docs/CLAUDE.md should reference the **Generated:** convention');
-  assert.match(doc, /ISO 8601/i,
-    'docs/CLAUDE.md should mention ISO 8601 format');
+  const conventions = doc.match(/## Code Conventions[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(conventions, 'docs/CLAUDE.md should have a Code Conventions section');
+  assert.match(conventions[0], /\*\*Generated:\*\*/,
+    'Code Conventions should reference the **Generated:** convention');
+  assert.match(conventions[0], /ISO 8601/i,
+    'Code Conventions should mention ISO 8601 format');
+  assert.match(conventions[0], /immediately after.*top-level heading|after.*top-level heading/i,
+    'Code Conventions should specify placement after the top-level heading');
 });
 
 // --- AC2: Command instructions updated ---
@@ -57,6 +65,17 @@ test('AC2: commands/review.md includes timestamp instruction', () => {
     'commands/review.md should include the **Generated:** instruction');
 });
 
+test('AC2: commands/review.md covers review-claude-*.md artifacts with timestamp instruction', () => {
+  // Per architecture.md: review-claude-*.md files are produced by commands/review.md.
+  // The review command must instruct the agent to include the timestamp in all
+  // review output artifacts, including named Claude review files.
+  const content = read('commands/review.md');
+  assert.match(content, /\*\*Generated:\*\*/,
+    'commands/review.md should include **Generated:** for all review artifacts');
+  assert.match(content, /review-claude|named.*review|all.*review.*artifact/i,
+    'commands/review.md should explicitly reference review-claude or named review files');
+});
+
 test('AC2: codex/reviewers/review-code.md includes timestamp instruction', () => {
   const content = read('codex/reviewers/review-code.md');
   assert.match(content, /\*\*Generated:\*\*/,
@@ -83,7 +102,7 @@ test('AC2: codex/reviewers/review-prd.md includes timestamp instruction', () => 
 
 // --- AC3: Regeneration updates timestamp ---
 
-test('AC3: artifact-producing commands instruct agents to use the current timestamp with **Generated:**', () => {
+test('AC3: artifact-producing commands require fresh timestamps on regeneration', () => {
   const commandPaths = [
     'commands/specify.md',
     'commands/architect.md',
@@ -92,17 +111,18 @@ test('AC3: artifact-producing commands instruct agents to use the current timest
   ];
   for (const cmdPath of commandPaths) {
     const content = read(cmdPath);
-    // Must contain **Generated:** AND mention "current" in the same context
     assert.match(content, /\*\*Generated:\*\*/,
       `${cmdPath} should include the **Generated:** marker`);
-    // The instruction near **Generated:** must say "current" to prevent stale copies
+    // The command must explicitly instruct fresh/current timestamp generation,
+    // not just mention "current" incidentally (e.g. in a handoff instruction).
+    // Look for the **Generated:** marker and verify regeneration-freshness language nearby.
     const generatedIdx = content.indexOf('**Generated:**');
     const nearby = content.slice(
-      Math.max(0, generatedIdx - 200),
-      Math.min(content.length, generatedIdx + 200)
+      Math.max(0, generatedIdx - 300),
+      Math.min(content.length, generatedIdx + 300)
     );
-    assert.match(nearby, /current/i,
-      `${cmdPath} should instruct the agent to use the current timestamp near the **Generated:** marker`);
+    assert.match(nearby, /current.*time|current.*ISO|regenerat|update.*timestamp|fresh|do not preserve/i,
+      `${cmdPath} should instruct the agent to use a fresh/current timestamp near the **Generated:** marker (not preserve stale values)`);
   }
 });
 
@@ -116,28 +136,39 @@ test('AC4: timestamp convention is in the Code Conventions section of docs/CLAUD
     'Timestamp convention should appear in the Code Conventions section');
 });
 
-// --- AC5: Skill templates contain **Generated:** anchor ---
+// --- AC5: Skill templates contain **Generated:** anchor in template section ---
+// Each skill has a named template section (e.g. "PRD Template", "ADR Template").
+// The **Generated:** anchor must appear inside that template, not in an unrelated note.
 
-test('AC5: prd-writing skill template contains **Generated:** anchor line', () => {
+test('AC5: prd-writing skill template section contains **Generated:** anchor line', () => {
   const skill = read('skills/prd-writing/SKILL.md');
-  assert.match(skill, /\*\*Generated:\*\*/,
-    'skills/prd-writing/SKILL.md should contain the **Generated:** anchor');
+  const templateSection = skill.match(/## PRD Template[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(templateSection, 'skills/prd-writing/SKILL.md should have a PRD Template section');
+  assert.match(templateSection[0], /\*\*Generated:\*\*/,
+    '**Generated:** anchor must appear inside the PRD Template section');
 });
 
-test('AC5: architecture-decision skill template contains **Generated:** anchor line', () => {
+test('AC5: architecture-decision skill template section contains **Generated:** anchor line', () => {
   const skill = read('skills/architecture-decision/SKILL.md');
-  assert.match(skill, /\*\*Generated:\*\*/,
-    'skills/architecture-decision/SKILL.md should contain the **Generated:** anchor');
+  // architecture-decision has both "ADR Template" and "architecture.md Template"
+  const templateSection = skill.match(/## (?:ADR|architecture\.md) Template[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(templateSection, 'skills/architecture-decision/SKILL.md should have a template section');
+  assert.match(templateSection[0], /\*\*Generated:\*\*/,
+    '**Generated:** anchor must appear inside the architecture template section');
 });
 
-test('AC5: code-review skill template contains **Generated:** anchor line', () => {
+test('AC5: code-review skill template section contains **Generated:** anchor line', () => {
   const skill = read('skills/code-review/SKILL.md');
-  assert.match(skill, /\*\*Generated:\*\*/,
-    'skills/code-review/SKILL.md should contain the **Generated:** anchor');
+  const templateSection = skill.match(/## Review Document Template[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(templateSection, 'skills/code-review/SKILL.md should have a Review Document Template section');
+  assert.match(templateSection[0], /\*\*Generated:\*\*/,
+    '**Generated:** anchor must appear inside the Review Document Template section');
 });
 
-test('AC5: security-audit skill template contains **Generated:** anchor line', () => {
+test('AC5: security-audit skill template section contains **Generated:** anchor line', () => {
   const skill = read('skills/security-audit/SKILL.md');
-  assert.match(skill, /\*\*Generated:\*\*/,
-    'skills/security-audit/SKILL.md should contain the **Generated:** anchor');
+  const templateSection = skill.match(/## Security Audit Document Template[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(templateSection, 'skills/security-audit/SKILL.md should have a Security Audit Document Template section');
+  assert.match(templateSection[0], /\*\*Generated:\*\*/,
+    '**Generated:** anchor must appear inside the Security Audit Document Template section');
 });
