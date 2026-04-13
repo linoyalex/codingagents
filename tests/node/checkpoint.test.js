@@ -82,6 +82,28 @@ test('artifact-based detection beats stale handoff phase when newer artifacts ex
   });
 });
 
+test('detectPhase recognizes .js test files as Phase 3 completion (ISS-040)', (t) => {
+  const projectDir = makeTempProject(t);
+  writeJson(path.join(projectDir, '.claude', 'handoff.json'), VALID_HANDOFF);
+
+  const featureDir = path.join(projectDir, 'docs', 'features', 'user-auth');
+  fs.mkdirSync(featureDir, { recursive: true });
+  fs.writeFileSync(path.join(featureDir, 'prd.md'), '# prd\n');
+  fs.writeFileSync(path.join(featureDir, 'architecture.md'), '# architecture\n');
+  // Use .js extension instead of .ts — must still be detected as Phase 3
+  fs.mkdirSync(path.join(projectDir, 'tests', 'contracts'), { recursive: true });
+  fs.writeFileSync(path.join(projectDir, 'tests', 'contracts', 'user-auth.test.js'), 'test\n');
+
+  withProjectCwd(projectDir, (checkpoint) => {
+    const phase = checkpoint.detectPhase();
+    // Phase 3 (test design complete) should be detected, not Phase 2 (architect)
+    assert.ok(
+      phase.phase >= 3,
+      `Expected phase >= 3 (test design complete) but got phase ${phase.phase} (${phase.phaseName}). .js test files must be recognized.`
+    );
+  });
+});
+
 test('checkpoint main hard-fails and writes diagnostics when handoff is missing', (t) => {
   const projectDir = makeTempProject(t);
   const featureDir = path.join(projectDir, 'docs', 'features', 'user-auth');
