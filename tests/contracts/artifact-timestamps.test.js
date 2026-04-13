@@ -127,9 +127,10 @@ test('AC3: artifact-producing commands require fresh timestamps on regeneration'
 
 test('AC3: commands explicitly instruct replacing prior timestamps on regeneration', () => {
   // AC3 says "the timestamp is updated to the current time rather than preserved
-  // from the earlier run." Commands must contain explicit replace/overwrite language
-  // that distinguishes regeneration from first-time generation. A command that only
-  // says "use current timestamp" is ambiguous about whether to keep a prior value.
+  // from the earlier run." Commands must contain explicit replace/update/overwrite
+  // language near the **Generated:** marker to contractually prevent stale-timestamp
+  // preservation. Proximity check ensures the replace instruction is tied to the
+  // timestamp convention, not incidental elsewhere in the file.
   const commandPaths = [
     'commands/specify.md',
     'commands/architect.md',
@@ -138,10 +139,16 @@ test('AC3: commands explicitly instruct replacing prior timestamps on regenerati
   ];
   for (const cmdPath of commandPaths) {
     const content = read(cmdPath);
-    // Must have explicit regeneration/overwrite instruction — not just "current"
-    assert.match(content,
-      /replac.*prior|replac.*existing|overwrit.*timestamp|do not preserve|never preserve|always overwrite|update.*existing.*timestamp|replac.*previous/i,
-      `${cmdPath} must explicitly instruct replacing/overwriting any prior timestamp on regeneration, not just "use current"`);
+    const generatedIdx = content.indexOf('**Generated:**');
+    assert.ok(generatedIdx !== -1,
+      `${cmdPath} must contain **Generated:** marker`);
+    const nearby = content.slice(
+      Math.max(0, generatedIdx - 300),
+      Math.min(content.length, generatedIdx + 300)
+    );
+    assert.match(nearby,
+      /replac|overwrit|do not preserve|never preserve/i,
+      `${cmdPath} should explicitly instruct replacing/overwriting the timestamp near the **Generated:** marker`);
   }
 });
 
