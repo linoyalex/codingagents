@@ -1,5 +1,5 @@
 ## Architecture: Wiring Verification (ISS-036)
-**Generated:** 2026-04-13T21:30:00Z
+**Generated:** 2026-04-13T22:00:00Z
 
 ### Decision
 
@@ -46,7 +46,14 @@ them in a markdown table: `| Skill | Source path |`. Example:
 `| tdd | skills/tdd/SKILL.md |`. The test parses this table — not natural-language prose
 like "Read .claude/skills/..." — so the mapping is explicit and survives rewording.
 Build a map: `{ commandPath -> [skillName, ...] }`.
-Commands without a `## Skill References` section are skipped (no skills to check).
+
+**Fail-closed rule:** After parsing, the test scans each command's full text for skill-loading
+prose (e.g., lines matching `skills/` or `.claude/skills/`). If a command contains such prose
+but has no `## Skill References` table, the test fails with:
+`"Command '<command>' appears to load skills but has no ## Skill References table"`.
+Commands with neither a `## Skill References` section nor any skill-loading prose are
+skipped (genuinely no skills to check). This prevents the protection from silently
+disappearing when a command forgets to maintain the structural table.
 
 **Stage 2 -- Registry parse.** For each discovered skill, read `skills/<name>/SKILL.md`.
 Look for the heading `## Required Artifacts`. If absent, skip (AC7). If present, parse the
@@ -67,6 +74,9 @@ missing from that section, fail with:
 **Conditional artifacts (AC8):** The Condition column is informational for human readers.
 At test time, all artifacts — conditional or not — receive the same pattern+path check.
 This resolves the ambiguity: the test does not relax validation for conditional artifacts.
+**Note:** The PRD's AC8 describes acknowledgment-by-name-or-pattern only. This architecture
+intentionally tightens to full pattern+path. The PRD should be updated to match before
+implementation starts — the architecture's stricter interpretation is the canonical contract.
 
 **Stage 4 -- Negative fixture.** A dedicated `test()` block loads files from
 `tests/fixtures/wiring-gap/` and runs the same wiring check, asserting it throws (AC11).
@@ -94,7 +104,8 @@ This fixture is self-contained and does not depend on real skill/command content
 | Malformed artifact table | Stage 2 column validation | Test fails naming skill and malformation type (AC3) |
 | Command missing artifact wiring | Stage 3 pattern/path check in output section | Test fails naming skill, command, artifact, and what is missing (AC1) |
 | Command has no Output/Deliverables section | Stage 3 section-not-found check | Test fails naming the command and the missing section |
-| Command missing `## Skill References` table | Stage 1 skips command | No skills to check — silent pass |
+| Command missing `## Skill References` but has skill-loading prose | Stage 1 fail-closed check | Test fails naming the command — forces table to be added |
+| Command with no skill references at all | Stage 1 skips command | No skills to check — silent pass (expected) |
 | New skill added without registry | Stage 1 discovers it, Stage 2 skips it | Passes silently (AC7) -- no false positives |
 | Fixture directory missing | `fs.readFileSync` throws ENOENT | Test fails; fixture is required infrastructure |
 
