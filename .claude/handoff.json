@@ -1,12 +1,11 @@
 {
   "feature": "codex-review-hardening",
-  "phase": 4,
-  "goal": "Implement feature using strict TDD",
-  "scope": "Phase 5 implementation only",
+  "phase": 5,
+  "goal": "Diff-based code review in fresh context",
+  "scope": "Phase 6 review only",
   "relevant_files": [
     "docs/features/codex-review-hardening/architecture.md",
-    "tests/node/codex-review-method.test.js",
-    "tests/node/installer-coverage.test.js"
+    "docs/features/codex-review-hardening/prd.md"
   ],
   "acceptance_criteria": [
     "AC1: Installer/source-of-truth rule in review-code.md",
@@ -18,14 +17,10 @@
     "AC7: Installer coverage contract test (init.sh + upgrade.sh, behavior not mechanism)"
   ],
   "verification_commands": [
-    "node --test tests/node/codex-review-method.test.js",
-    "node --test tests/node/installer-coverage.test.js"
+    "git diff main...HEAD",
+    "ls docs/features/codex-review-hardening/review.md"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
-  "known_risks": [
-    "MEDIUM: Architecture doc module boundary statement (AC7 reads commands/hooks as inputs) contradicts 'must NOT cross into' — clarify in Phase 5",
-    "MEDIUM: upgrade.sh 'where applicable' left vague in arch doc — tests enforce symmetric coverage but policy should be documented"
-  ],
-  "produced_by": "security-reviewer",
-  "timestamp": "2026-04-13T21:38:00Z"
+  "produced_by": "developer",
+  "timestamp": "2026-04-13T22:00:00Z"
 }
