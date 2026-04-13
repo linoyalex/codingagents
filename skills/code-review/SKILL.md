@@ -91,8 +91,11 @@ Recommendation: Add `verifyOwnership(userId, closetId)` before the delete call.
 
 ## Review Document Template
 
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
+
 ```markdown
 ## Code Review: [Branch Name]
+**Generated:** <ISO 8601 timestamp>
 **Date:** YYYY-MM-DD | **Reviewer:** code-reviewer agent
 **Diff:** `git diff main...HEAD`
 

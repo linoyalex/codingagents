@@ -59,8 +59,11 @@ Rules:
 
 ## PRD Template
 
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
+
 ```markdown
 ## Feature: [Name]
+**Generated:** <ISO 8601 timestamp>
 **Phase:** Specify | Date: YYYY-MM-DD
 
 ### User Story

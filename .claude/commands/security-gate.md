@@ -26,6 +26,7 @@ Your task: design-time security audit for feature: $ARGUMENTS
 Rules:
 - Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
 - Do NOT read src/ — audit the design, not the code
+- Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
 - Follow the Security Audit Document Template from the security-audit skill
 - Classify every finding using the severity levels from the skill: BLOCKING / HIGH / MEDIUM / LOW / INFO
 - If any BLOCKING findings exist, the pipeline must stop here — do not proceed to implement

@@ -76,8 +76,11 @@ npm audit --audit-level=high
 
 ## Security Audit Document Template
 
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `CLAUDE.md`.
+
 ```markdown
 ## Security Audit: [Feature Name]
+**Generated:** <ISO 8601 timestamp>
 **Date:** YYYY-MM-DD | **Auditor:** security-reviewer agent
 **Inputs:** docs/features/<feature>/prd.md + docs/features/<feature>/architecture.md
 

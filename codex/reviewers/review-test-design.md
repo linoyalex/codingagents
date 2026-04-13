@@ -26,10 +26,15 @@ Your job is to identify acceptance criteria that are untested, under-tested, or 
 - Do not inspect implementation files unless a test explicitly depends on implementation details and that dependency itself is part of the concern
 - Map every finding back to a specific AC or risk
 
+## Timestamp Convention
+
+Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading in your review output. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
+
 ## Output Format
 
 ```markdown
 # Test Design Review: [feature]
+**Generated:** <ISO 8601 timestamp>
 
 ## Findings
 - [SEVERITY] [AC-ID or file] Coverage gap or weakness and why it matters.
