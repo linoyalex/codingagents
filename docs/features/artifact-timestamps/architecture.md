@@ -30,15 +30,20 @@ None. No schema, database, or handoff.json changes.
 | `commands/security-gate.md` | Add timestamp instruction to security-audit.md output |
 | `commands/review.md` | Add timestamp instruction to review.md output |
 | `codex/reviewers/review-*.md` | Add timestamp instruction to Codex review output |
-| `.claude/commands/*` | Mirror changes from source commands |
-| `docs/CLAUDE.md` | Document the convention in Code Conventions |
+| `.claude/commands/*` | Mirror changes from source commands (byte-identity sync tests enforce this) |
+| `docs/CLAUDE.md` | Document the convention in Code Conventions — single canonical source |
 | `skills/prd-writing/SKILL.md` | Add `**Generated:**` line to PRD template |
 | `skills/architecture-decision/SKILL.md` | Add `**Generated:**` line to architecture.md template |
 | `skills/code-review/SKILL.md` | Add `**Generated:**` line to review document template |
 | `skills/security-audit/SKILL.md` | Add `**Generated:**` line to audit template |
 
 Commands own the instruction to include the timestamp. Skills own the template
-that shows where it goes. Tests verify the structural anchor exists.
+that shows where it goes. `docs/CLAUDE.md` is the single canonical source for
+the convention; skills and commands cross-reference it but do not redefine it.
+
+`review-claude-*.md` files are produced by `commands/review.md` — no separate
+owner needed. The same timestamp instruction covers both `review.md` and any
+named Claude review file generated in the same phase.
 
 ### Timestamp Convention
 
@@ -51,12 +56,15 @@ On regeneration: always use current time, never preserve the prior value.
 | Failure | Impact | Mitigation |
 |---------|--------|------------|
 | Agent omits timestamp | Artifact lacks traceability | Structural test catches missing instruction in commands/skills |
-| Agent copies stale timestamp | Misleading freshness signal | Command wording says "current ISO 8601 timestamp" |
+| Agent copies stale timestamp | Misleading freshness signal | Command wording says "current ISO 8601 timestamp"; structural test verifies commands include "current" near the timestamp instruction. Regeneration freshness is agent-behavioral — static analysis cannot fully enforce it, but explicit wording + test coverage minimizes drift. |
 | Installed commands drift from source | Timestamp instruction missing in installed copy | Existing byte-identity sync tests catch this |
 
 ### Fitness Functions
-1. `grep -l "Generated:" commands/specify.md commands/architect.md commands/security-gate.md commands/review.md` — all four commands reference the timestamp convention.
-2. Structural test: each artifact-producing skill template contains the `**Generated:**` anchor line.
+1. All four source commands (`commands/specify.md`, `commands/architect.md`, `commands/security-gate.md`, `commands/review.md`) reference the `**Generated:**` convention.
+2. All Codex reviewer prompts (`codex/reviewers/review-*.md`) reference the `**Generated:**` convention.
+3. Each artifact-producing skill template contains the `**Generated:**` anchor line.
+4. `docs/CLAUDE.md` documents the timestamp convention in Code Conventions.
+5. Installed `.claude/commands/*` stay in sync with source commands (covered by existing byte-identity sync tests — no new test needed for this).
 
 ### Rejected Alternatives
 1. **YAML front-matter** — rejected because feature artifacts currently use plain
