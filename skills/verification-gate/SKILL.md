@@ -1,7 +1,7 @@
 ---
 name: verification-gate
 description: Cross-cutting verification commands and Definition of Done checklists used by all agents
-version: "1.2.0"
+version: "2.0.0"
 ---
 
 # Skill: Verification Gate
@@ -27,67 +27,15 @@ npm run build
 
 ## Phase-Specific Verification
 
-### After Phase 1 (Specify)
-```bash
-wc -l docs/features/<feature>/prd.md
-grep -c "Given\|When\|Then" docs/features/<feature>/prd.md
-grep -n "Dependencies" docs/features/<feature>/prd.md || true
-```
+Each phase has its own reference file with verification commands:
 
-### After Phase 2 (Architect)
-```bash
-ls docs/features/<feature>/architecture.md
-grep -qi "Decision Confidence" docs/features/<feature>/architecture.md
-grep -qi "Revisit When" docs/features/<feature>/architecture.md
-grep -qi "Rollback / Fallback" docs/features/<feature>/architecture.md
-```
-
-### After Phase 3 (Test Design)
-```bash
-# Run a feature-scoped RED check first. Adapt to your stack.
-# Examples:
-#   node --test tests/node/<feature>*.test.js 2>&1 | tail -20
-#   npm test -- tests/contracts/<feature>.test.ts tests/e2e/<feature>.spec.ts 2>&1 | tail -20
-# Expected: fail for the intended reason, not for unrelated setup errors.
-grep -rn "\.skip\|xtest\|xit\b" tests/ src/**/__tests__/ 2>/dev/null && echo "SKIPPED TESTS FOUND" || echo "No skips"
-```
-
-### After Phase 4 (Security Gate)
-```bash
-ls docs/features/<feature>/security-audit.md
-if grep -qiE "(^#{1,6}\s+\[?BLOCKING\]?\s*:)|(^\s*-\s+\[?BLOCKING\]?\s*:)" docs/features/<feature>/security-audit.md; then
-  echo "BLOCKING findings present — pipeline must stop"
-  exit 1
-fi
-npm audit --audit-level=high
-```
-
-### After Phase 5 (Implement)
-```bash
-# Run feature-scoped tests first. Adapt to your stack.
-# Examples:
-#   node --test tests/node/<feature>*.test.js
-#   npm test -- tests/contracts/<feature>.test.ts tests/e2e/<feature>.spec.ts
-npm run lint && npm run build
-grep -rn "console\.log\|debugger" src/ --include="*.ts" --include="*.tsx" | grep -v "test\|spec" | head -10
-grep -rn "as any\|: any" src/ --include="*.ts" --include="*.tsx" | grep -v "TODO.*type" | head -10
-```
-
-### After Phase 6 (Review)
-```bash
-ls docs/features/<feature>/review.md
-if grep -qi "REQUEST.CHANGES" docs/features/<feature>/review.md; then
-  echo "Review verdict is REQUEST_CHANGES — address findings before proceeding"
-  exit 1
-fi
-```
-
-### After Phase 7 (Document)
-```bash
-head -20 CHANGELOG.md
-grep -i "last updated" CLAUDE.md
-ls release-notes/ | tail -1
-```
+- [See reference: skills/verification-gate/phase-1-specify.md]
+- [See reference: skills/verification-gate/phase-2-architect.md]
+- [See reference: skills/verification-gate/phase-3-test-design.md]
+- [See reference: skills/verification-gate/phase-4-security-gate.md]
+- [See reference: skills/verification-gate/phase-5-implement.md]
+- [See reference: skills/verification-gate/phase-6-review.md]
+- [See reference: skills/verification-gate/phase-7-document.md]
 
 ## Handoff Validation
 
@@ -117,3 +65,10 @@ This is a blocking gate. If the handoff is stale, malformed, or mismatched with 
 - Tests fail, are skipped, or fail for the wrong reason
 - BLOCKING security findings remain unresolved
 - Build or lint fails
+
+---
+**STOP CONDITIONS (end of file):**
+- Do not declare a phase complete if the required artifact, verdict, or handoff is missing.
+- Do not proceed past a BLOCKING security finding.
+- Do not skip handoff validation — it is a blocking gate.
+- If the feature slug is ambiguous or mismatched, stop and repair before continuing.

@@ -134,3 +134,10 @@ Design-time catches:
 - Data model exposures (fields that shouldn't be in API responses)
 
 Code-time audits run separately in CI as lightweight diff scans.
+
+---
+**STOP CONDITIONS (end of file):**
+- Do not approve if any BLOCKING finding remains unresolved.
+- Do not skip the dependency audit — it is a required gate.
+- Do not proceed past a BLOCKING severity finding (CVSS 9.0–10.0).
+- If PII flows through a system that should not see it, that is BLOCKING.
