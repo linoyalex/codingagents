@@ -1,26 +1,21 @@
 {
   "feature": "integration-test-coverage",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/integration-test-coverage/architecture.md",
-    "docs/features/integration-test-coverage/prd.md"
+    "docs/features/integration-test-coverage/prd.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC1: Three-level test coverage section in TDD skill (unit, integration, E2E)",
-    "AC2: Integration test definition — calls production entry point AND asserts visible effect",
-    "AC3: Fixture validation against production schema before writing fixtures",
-    "AC4: Degenerate input rule — minimum set: empty, whitespace, max-length",
-    "AC5: Phase 3 blocking verification — import + assertion, not advisory",
-    "AC6: PIPELINE_GUIDE.md includes integration tests in Phase 3",
-    "AC7: Architecture dependency with gap-handling — ARCH GAP comment + handoff known_risks",
-    "AC8: No regression — existing tests pass, skill within size budget"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/integration-test-coverage/review.md"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T15:30:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T17:00:00Z"
 }
