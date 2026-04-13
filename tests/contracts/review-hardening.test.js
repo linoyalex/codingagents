@@ -572,3 +572,45 @@ test('TRUST BOUNDARY: handoff schema source_spec description forbids use as exec
   // The property must be a string type — no default exec-path semantics
   assert.equal(sourceProp.type, 'string', 'source_spec must be a plain string, not executable');
 });
+
+// ---------------------------------------------------------------------------
+// Pipeline-wide migration: all command handoff templates must include source_spec
+// (architecture.md "Source Spec Population" table)
+// ---------------------------------------------------------------------------
+
+test('MIGRATION: all pipeline command handoff templates include source_spec', () => {
+  const commands = [
+    'commands/specify.md',
+    'commands/architect.md',
+    'commands/test-design.md',
+    'commands/security-gate.md',
+    'commands/implement.md',
+    'commands/review.md',
+    'commands/document.md',
+  ];
+  const missing = [];
+  for (const cmd of commands) {
+    const content = read(cmd);
+    // Look for source_spec in the handoff-writing section of each command
+    if (!content.includes('source_spec')) {
+      missing.push(cmd);
+    }
+  }
+  assert.equal(
+    missing.length,
+    0,
+    `These command templates must include source_spec in their handoff output: ${missing.join(', ')}`
+  );
+});
+
+test('MIGRATION: checkpoint.js remediation message includes source_spec in required fields list', () => {
+  const checkpoint = read('hooks/checkpoint.js');
+  // The error message that tells users what fields are required must include source_spec
+  const remediationMatch = checkpoint.match(/Write handoff\.json with required fields:([^\n]+)/);
+  assert.ok(remediationMatch, 'checkpoint.js must have a remediation message listing required fields');
+  assert.match(
+    remediationMatch[1],
+    /source_spec/,
+    'checkpoint.js remediation message must list source_spec as a required field'
+  );
+});
