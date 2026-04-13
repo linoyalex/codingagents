@@ -76,7 +76,7 @@ npm audit --audit-level=high
 
 ## Security Audit Document Template
 
-Include a `**Generated:**` line with the current ISO 8601 timestamp immediately after the top-level heading.
+Include a `**Generated:**` timestamp line per the artifact timestamp convention in `docs/CLAUDE.md`.
 
 ```markdown
 ## Security Audit: [Feature Name]
