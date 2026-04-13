@@ -1,29 +1,26 @@
 {
-  "feature": "skill-size-convention",
-  "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "feature": "integration-test-coverage",
+  "phase": 5,
+  "goal": "Diff-based code review in fresh context",
+  "scope": "Phase 6 review only",
   "relevant_files": [
-    "CHANGELOG.md",
-    "release-notes/2026-04-13_v0.8.0.md",
-    "docs/CLAUDE.md"
+    "docs/features/integration-test-coverage/architecture.md",
+    "docs/features/integration-test-coverage/prd.md"
   ],
   "acceptance_criteria": [
-    "AC1: skill size budget revised with ~150 prose / ~250 total",
-    "AC2: Progressive disclosure pattern documented",
-    "AC3: Stop conditions footer rule documented",
-    "AC4: verification-gate pilot converted",
-    "AC5: Migration audit completed",
-    "AC6: Contract tests pass",
-    "AC7: Phase command smoke test passes",
-    "AC8: Size budget enforced",
-    "AC9: Root/docs CLAUDE.md conventions synced"
+    "AC1: Three-level test coverage section in TDD skill (unit, integration, E2E)",
+    "AC2: Integration test definition — calls production entry point AND asserts visible effect",
+    "AC3: Fixture validation against production schema before writing fixtures",
+    "AC4: Degenerate input rule — minimum set: empty, whitespace, max-length",
+    "AC5: Phase 3 blocking verification — import + assertion, not advisory",
+    "AC6: PIPELINE_GUIDE.md includes integration tests in Phase 3",
+    "AC7: Architecture dependency with gap-handling — ARCH GAP comment + handoff known_risks",
+    "AC8: No regression — existing tests pass, skill within size budget"
   ],
   "verification_commands": [
-    "head -30 CHANGELOG.md",
-    "ls -l release-notes/2026-04-13_v0.8.0.md",
-    "grep 'Last updated' docs/CLAUDE.md"
+    "git diff main...HEAD",
+    "ls docs/features/integration-test-coverage/review.md"
   ],
-  "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T09:15:00Z"
+  "produced_by": "developer",
+  "timestamp": "2026-04-13T15:30:00Z"
 }
