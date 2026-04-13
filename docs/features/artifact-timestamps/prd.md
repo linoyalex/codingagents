@@ -10,15 +10,22 @@ branch state, and how multiple review documents relate in sequence.
 ### Acceptance Criteria
 
 - [ ] **AC1 (Convention defined):** Given the pipeline generates feature artifacts,
-      When the convention is documented, Then a single timestamp field name and
-      ISO 8601 format is defined for all generated feature artifacts, placed in a
-      consistent location (front-matter or header metadata line).
+      When the convention is documented, Then a single timestamp field is defined:
+      `**Generated:** <ISO 8601>` placed immediately after the document's top-level
+      heading in every generated feature artifact.
 
-- [ ] **AC2 (Command instructions updated):** Given the pipeline commands that
-      produce `prd.md`, `architecture.md`, `security-audit.md`, `review.md`, and
-      Codex review files, When these commands are updated, Then each command's
-      instructions require the agent to include the timestamp field in the generated
-      artifact.
+- [ ] **AC2 (Command instructions updated):** Given the pipeline commands and
+      reviewer prompts that produce the following artifacts, When these are updated,
+      Then each requires the agent to include the `**Generated:**` timestamp line:
+      - `prd.md` (via `commands/specify.md`)
+      - `architecture.md` (via `commands/architect.md`)
+      - `security-audit.md` (via `commands/security-gate.md`)
+      - `review.md` (via `commands/review.md`)
+      - `review-codex-code-*.md` (via `codex/reviewers/review-code.md`)
+      - `review-codex-architecture-*.md` (via `codex/reviewers/review-architecture.md`)
+      - `review-codex-tests-*.md` (via `codex/reviewers/review-test-design.md`)
+      - `review-codex-prd-*.md` (via `codex/reviewers/review-prd.md`)
+      - `review-claude-*.md` (via any Claude review that produces a named review file)
 
 - [ ] **AC3 (Regeneration updates timestamp):** Given an artifact that was previously
       generated with a timestamp, When the artifact is regenerated in a later
@@ -27,12 +34,16 @@ branch state, and how multiple review documents relate in sequence.
 
 - [ ] **AC4 (Convention documented):** Given a new contributor reading the pipeline
       guidance, When they look for artifact format conventions, Then the timestamp
-      requirement is documented in `docs/CLAUDE.md` or the relevant skill so they
-      know which artifacts require timestamps and where to place them.
+      requirement is documented in `docs/CLAUDE.md` under Code Conventions as the
+      single canonical source, with a cross-reference from each skill template that
+      includes the `**Generated:**` line.
 
 - [ ] **AC5 (Regression test):** Given the updated command/template files, When
-      the test suite runs, Then at least one test verifies that the artifact-producing
-      commands reference the timestamp convention.
+      the test suite runs, Then tests verify that:
+      (a) every artifact-producing command listed in AC2 references the timestamp
+      convention, (b) every artifact-producing skill template contains the
+      `**Generated:**` anchor line, and (c) the convention is documented in
+      `docs/CLAUDE.md`.
 
 - [ ] **AC6 (No regression):** Given the existing test suite, When all changes are
       applied, Then all existing tests continue to pass.
@@ -55,13 +66,12 @@ conventions. There are no user-facing screens.
 
 ### Assumptions
 
-- The timestamp is a human-readable metadata line in the generated markdown, not
-  YAML front-matter (since feature artifacts currently use plain markdown without
-  front-matter). Format: `**Generated:** 2026-04-12T14:30:00Z`
-- The timestamp is placed immediately after the document title heading for consistency.
-- Commands instruct the agent to use the current ISO 8601 timestamp at generation
-  time. The agent derives the timestamp from the system; no external clock service
-  is needed.
+- Feature artifacts use plain markdown without YAML front-matter. The timestamp
+  is a bold metadata line: `**Generated:** 2026-04-12T14:30:00Z`
+- Placement is immediately after the document's top-level heading, before any
+  other content. This is consistent across all artifact types.
+- The agent derives the timestamp from the system clock at generation time.
+  No external clock service is needed.
 
 ### RICE Score
 Reach: High (every feature cycle) | Impact: Medium (traceability, not blocking) | Confidence: High | Effort: Low | **Score: High**
