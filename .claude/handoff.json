@@ -1,22 +1,29 @@
 {
-  "feature": "review-hardening",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "feature": "codex-review-hardening",
+  "phase": 3,
+  "goal": "Design-time security audit",
+  "scope": "Phase 4 security gate only",
   "relevant_files": [
-    "docs/features/review-hardening/architecture.md",
-    "docs/features/review-hardening/prd.md"
+    "docs/features/codex-review-hardening/prd.md",
+    "docs/features/codex-review-hardening/architecture.md"
   ],
   "acceptance_criteria": [
-    "AC1", "AC2", "AC3", "AC4", "AC5", "AC6", "AC7", "AC8",
-    "AC9", "AC10", "AC11", "AC12", "AC13", "AC14", "AC15",
-    "AC16", "AC17", "AC18"
+    "AC1: Installer/source-of-truth rule in review-code.md",
+    "AC2: Test-truthfulness rule in review-code.md",
+    "AC3: Parser edge-case checklist in review-code.md",
+    "AC4: Unchanged-file scope guidance in review-code.md",
+    "AC5: Process docs updated — codex-rules.md as canonical source",
+    "AC6: Per-rule regression tests for AC1-AC4",
+    "AC7: Installer coverage contract test (init.sh + upgrade.sh, behavior not mechanism)"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/review-hardening/review.md"
+    "ls docs/features/codex-review-hardening/security-audit.md"
   ],
-  "source_spec": "docs/features/review-hardening/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T22:30:00Z"
+  "source_spec": "docs/issues/tickets/ISS-027.md",
+  "known_risks": [
+    "MEDIUM: Architecture doc module boundary statement (AC7 reads commands/hooks as inputs) contradicts 'must NOT cross into' — clarify in Phase 5",
+    "MEDIUM: upgrade.sh 'where applicable' left vague in arch doc — tests enforce symmetric coverage but policy should be documented"
+  ],
+  "produced_by": "qa",
+  "timestamp": "2026-04-13T22:45:00Z"
 }
