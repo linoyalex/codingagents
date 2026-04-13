@@ -27,7 +27,7 @@
 | 8 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
 | 8 | [ISS-042](tickets/ISS-042.md) | P1 — High | Feature | — | /implement command must instruct developer to verify handoff known_risks |
 | 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
-| 9 | [ISS-029](tickets/ISS-029.md) | P2 — Medium | Feature | — | Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect` |
+| 9 | ~~[ISS-029](tickets/ISS-029.md)~~ | P2 — Medium | Feature | — | ~~Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect`~~ → moved to in-progress |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-024, ISS-014 | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
 | 12 | [ISS-032](tickets/ISS-032.md) | P2 — Medium | Feature | — | Automatically run /status on fresh context to orient the agent |
