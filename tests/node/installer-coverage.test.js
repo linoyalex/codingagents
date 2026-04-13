@@ -1,9 +1,12 @@
 // Production wiring test seam: init.sh and upgrade.sh
 // This contract test verifies every source file (skills/*/SKILL.md, commands/*.md, hooks/*.js)
 // is operationalized by the installer and upgrade scripts.
-// The assertion is path-presence, not mechanism — literal cp, loops, manifests, and
-// directory copies all satisfy the contract as long as the target path appears in the script.
+// The assertion is path-presence in active (non-comment) lines — literal cp, loops, manifests,
+// and directory copies all satisfy the contract as long as the target path appears in an
+// active script line. Comment-only references do not count.
 // Derived from PRD (ISS-027) AC7 and architecture decision record.
+// Codex review feedback (2026-04-13): tightened to filter commented lines, cap exclusions,
+// and require upgrade.sh exclusions to carry explicit documentation.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -15,6 +18,10 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 // Files intentionally excluded from the installer contract.
 // Each entry must have an explanatory comment.
+// Hard cap: no more than 5 exclusions per script. If you need more, the installer
+// likely needs structural fixes, not more exceptions. (Codex review feedback, 2026-04-13)
+const MAX_EXCLUSIONS_PER_SCRIPT = 5;
+
 const INIT_EXCLUSIONS = [
   // Add entries here when a source file is deliberately not installed.
   // Format: 'relative/path/from/root'
@@ -22,11 +29,24 @@ const INIT_EXCLUSIONS = [
 
 const UPGRADE_EXCLUSIONS = [
   // upgrade.sh may legitimately skip init-time-only files.
-  // Document each omission here with a reason.
+  // Each exclusion MUST have a corresponding comment explaining why upgrade.sh
+  // does not need to cover this file. (Codex review feedback, 2026-04-13)
 ];
 
 function readScript(relPath) {
   return fs.readFileSync(path.join(ROOT_DIR, relPath), 'utf8');
+}
+
+/**
+ * Returns active (non-comment) lines from a shell script.
+ * A line is considered a comment if its first non-whitespace character is '#'.
+ * This prevents false-passes where a path appears only in a comment or dead code.
+ */
+function activeLines(scriptContent) {
+  return scriptContent
+    .split('\n')
+    .filter(line => !line.trimStart().startsWith('#'))
+    .join('\n');
 }
 
 function globSourceFiles(pattern) {
@@ -142,15 +162,15 @@ test('at least one source file of each type is found', () => {
 // --- AC7: init.sh coverage ---
 
 test('AC7: init.sh operationalizes every skills/*/SKILL.md file', () => {
-  const initSh = readScript('init.sh');
+  const initActive = activeLines(readScript('init.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'skill');
   const failures = [];
 
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in init.sh`);
+    if (!initActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
     }
   }
 
@@ -162,15 +182,15 @@ test('AC7: init.sh operationalizes every skills/*/SKILL.md file', () => {
 });
 
 test('AC7: init.sh operationalizes every commands/*.md file', () => {
-  const initSh = readScript('init.sh');
+  const initActive = activeLines(readScript('init.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'command');
   const failures = [];
 
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in init.sh`);
+    if (!initActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
     }
   }
 
@@ -182,15 +202,15 @@ test('AC7: init.sh operationalizes every commands/*.md file', () => {
 });
 
 test('AC7: init.sh operationalizes every hooks/*.js file', () => {
-  const initSh = readScript('init.sh');
+  const initActive = activeLines(readScript('init.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'hook');
   const failures = [];
 
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in init.sh`);
+    if (!initActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
     }
   }
 
@@ -204,15 +224,15 @@ test('AC7: init.sh operationalizes every hooks/*.js file', () => {
 // --- AC7: upgrade.sh coverage ---
 
 test('AC7: upgrade.sh operationalizes every skills/*/SKILL.md file', () => {
-  const upgradeSh = readScript('upgrade.sh');
+  const upgradeActive = activeLines(readScript('upgrade.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'skill');
   const failures = [];
 
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in upgrade.sh`);
+    if (!upgradeActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
     }
   }
 
@@ -224,15 +244,15 @@ test('AC7: upgrade.sh operationalizes every skills/*/SKILL.md file', () => {
 });
 
 test('AC7: upgrade.sh operationalizes every commands/*.md file', () => {
-  const upgradeSh = readScript('upgrade.sh');
+  const upgradeActive = activeLines(readScript('upgrade.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'command');
   const failures = [];
 
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in upgrade.sh`);
+    if (!upgradeActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
     }
   }
 
@@ -244,15 +264,15 @@ test('AC7: upgrade.sh operationalizes every commands/*.md file', () => {
 });
 
 test('AC7: upgrade.sh operationalizes every hooks/*.js file', () => {
-  const upgradeSh = readScript('upgrade.sh');
+  const upgradeActive = activeLines(readScript('upgrade.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'hook');
   const failures = [];
 
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeSh.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in upgrade.sh`);
+    if (!upgradeActive.includes(installedPath)) {
+      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
     }
   }
 
@@ -273,6 +293,17 @@ test('exclusion lists are arrays of strings (invariant guard)', () => {
   }
 });
 
+test('exclusion lists do not exceed the per-script cap', () => {
+  assert.ok(
+    INIT_EXCLUSIONS.length <= MAX_EXCLUSIONS_PER_SCRIPT,
+    `INIT_EXCLUSIONS has ${INIT_EXCLUSIONS.length} entries, max is ${MAX_EXCLUSIONS_PER_SCRIPT} — fix the installer instead of adding more exceptions`
+  );
+  assert.ok(
+    UPGRADE_EXCLUSIONS.length <= MAX_EXCLUSIONS_PER_SCRIPT,
+    `UPGRADE_EXCLUSIONS has ${UPGRADE_EXCLUSIONS.length} entries, max is ${MAX_EXCLUSIONS_PER_SCRIPT} — fix the installer instead of adding more exceptions`
+  );
+});
+
 test('exclusion list entries must correspond to actual source files (no phantom exclusions)', () => {
   const files = collectSourceFiles().map(f => f.source);
   for (const excluded of [...INIT_EXCLUSIONS, ...UPGRADE_EXCLUSIONS]) {
@@ -281,4 +312,24 @@ test('exclusion list entries must correspond to actual source files (no phantom 
       `Exclusion "${excluded}" does not match any known source file — remove stale entry`
     );
   }
+});
+
+test('comment-only path references in init.sh do not satisfy the contract', () => {
+  // Regression test: a path appearing only in a shell comment must not pass
+  const fakeScript = '#!/bin/bash\n# cp source .claude/skills/fake/SKILL.md\necho "real work"';
+  const active = activeLines(fakeScript);
+  assert.ok(
+    !active.includes('.claude/skills/fake/SKILL.md'),
+    'activeLines() must filter comment lines — comment-only path references are not real coverage'
+  );
+});
+
+test('active code lines in init.sh do satisfy the contract', () => {
+  // Positive regression: a path in active code must pass
+  const fakeScript = '#!/bin/bash\ncp source .claude/skills/real/SKILL.md\n# comment';
+  const active = activeLines(fakeScript);
+  assert.ok(
+    active.includes('.claude/skills/real/SKILL.md'),
+    'activeLines() must retain non-comment lines'
+  );
 });

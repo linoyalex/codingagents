@@ -27,6 +27,7 @@
 | 8 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
 | 8 | [ISS-042](tickets/ISS-042.md) | P1 — High | Feature | — | /implement command must instruct developer to verify handoff known_risks |
 | 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
+| 8 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
 | 9 | [ISS-029](tickets/ISS-029.md) | P2 — Medium | Feature | — | Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect` |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-024, ISS-014 | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
@@ -154,6 +155,7 @@ Batch 3: ISS-001 (solo)                          branch: feature/ISS-001-invaria
 | ISS-008 | | | | | | | | | | | ✓ | ✓ | |
 | ISS-042 | ✓ | | | | | ✓ | | | ✓ | | | | |
 | ISS-043 | | | | ✓ | | | | | ✓ | | | | |
+| ISS-044 | ✓ | | | ✓ | | | | | ✓ | | | | |
 | ISS-001 | | | | | | | | | | | | | ✓ |
 
 Batch 2 Branch A and B → no overlap, safe in parallel.
@@ -212,4 +214,5 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-040 at Order 8** is a pre-existing bug in `checkpoint.js` exposed during review-hardening RCA. `detectPhase()` hard-codes `.ts` test extensions, misclassifying `.js`-based test suites. No file overlap with anything in Batch 2.5, so it runs as a parallel branch.
 - **ISS-042 at Order 8** is a process gap found during review-hardening RCA — the developer never reads `known_risks` from the incoming handoff. Touches `commands/implement.md` and `skills/tdd/SKILL.md` — no overlap with Batch 2.5 A-F. Can run as Batch 2.5 Branch G or deferred to Batch 3.
 - **ISS-043 at Order 8** is a Phase 3 quality gap — QA tested one representative of each symmetric pair, not all members. Touches `commands/test-design.md` which overlaps with ISS-036 (Batch 2.5 A). Must wait for ISS-036 to merge; deferred to Batch 3.
+- **ISS-044 at Order 8** is a complementary Phase 3 quality gap — QA accepted a contract specification literally without adversarially testing its edge cases (comment-only matches, unbounded escape hatches). Found by Codex review on ISS-027 architecture. Touches the same files as ISS-043 (`commands/test-design.md`, `skills/tdd/SKILL.md`). Can be combined with ISS-043 in a single branch.
 - **ISS-038 at Order 31** is intentionally separate from ISS-005. ISS-005 validates the current framework through dogfooding; ISS-038 is the broader architecture effort to make Codex, Gemini, and future LLMs first-class authoring agents rather than Claude-centric adapters.
