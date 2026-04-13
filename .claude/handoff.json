@@ -5,17 +5,16 @@
   "scope": "Phase 7 documentation only — CHANGELOG.md, release-notes/, CLAUDE.md conventions update",
   "relevant_files": [
     "docs/features/clarification-checkpoints/prd.md",
-    "docs/features/clarification-checkpoints/review.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC0", "AC0a", "AC0b", "AC0c",
-    "AC1", "AC2", "AC3", "AC4", "AC5",
-    "AC6", "AC7", "AC8"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "ls release-notes/",
-    "grep -n 'clarification-checkpoints\\|ISS-029' CHANGELOG.md"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "known_risks": [
     "HIGH finding in integration test (line 120: || should be &&) — logged but not blocking merge; document as known gap",
@@ -23,5 +22,5 @@
   ],
   "source_spec": "docs/issues/tickets/ISS-029.md",
   "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T00:00:00Z"
+  "timestamp": "2026-04-13T12:45:00Z"
 }

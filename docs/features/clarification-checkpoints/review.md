@@ -1,5 +1,5 @@
 ## Code Review: feature/ISS-029-specify-fidelity
-**Generated:** 2026-04-13T00:00:00Z
+**Generated:** 2026-04-13T12:45:00Z
 **Date:** 2026-04-13 | **Reviewer:** code-reviewer agent
 **Reviewed in separate context from authoring phase**
 **Diff:** `git diff main...HEAD`
