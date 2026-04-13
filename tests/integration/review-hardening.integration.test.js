@@ -208,3 +208,78 @@ test('INTEGRATION separate-context: checkpoint.js records produced_by for gate-p
     'hooks/checkpoint.js must handle produced_by field for separate-context enforcement'
   );
 });
+
+// ---------------------------------------------------------------------------
+// AC6 higher-fidelity misuse: same-agent role-switch scenario
+// ---------------------------------------------------------------------------
+// Models the realistic attack path: an agent authors as "developer" (Phase 5),
+// then the same session switches to code-reviewer role for Phase 6.
+// The deterministic defense is produced_by mismatch — but same-agent-different-role
+// bypasses it. This test verifies the layered prose mitigations are in place at the
+// command layer (the only enforcement point for this scenario).
+
+test('INTEGRATION AC6 misuse: review command instructs halting when produced_by matches current role AND instructs independent re-derivation for role-switch case', () => {
+  // Step 1: Verify the deterministic check exists in the review command
+  const reviewCommand = read('commands/review.md');
+  assert.match(
+    reviewCommand,
+    /produced_by/,
+    'commands/review.md must check produced_by (deterministic same-role defense)'
+  );
+
+  // Step 2: Verify the command instructs re-deriving from source_spec independently
+  // This is the prose mitigation for same-agent-different-role — even if the role check
+  // passes, the reviewer must independently form expectations from the source spec
+  assert.match(
+    reviewCommand,
+    /re.?derive|independent|form.*own.*expectation|source.?spec.*before|First read/i,
+    'commands/review.md must instruct independent re-derivation from source_spec (prose mitigation for role-switch bypass)'
+  );
+
+  // Step 3: Verify the artifact header captures separate-context identity
+  // If a role-switched agent wrote "Reviewed in separate context" without actually
+  // being separate, the header becomes a false claim — but its presence is still
+  // required as an auditable signal
+  assert.match(
+    reviewCommand,
+    /Reviewed in separate context/i,
+    'commands/review.md must require "Reviewed in separate context" header (auditable signal even for role-switch case)'
+  );
+});
+
+test('INTEGRATION AC6 misuse: checkpoint.js preserves produced_by through validation so downstream commands can check it', () => {
+  // Simulate: developer writes handoff with produced_by = "developer"
+  // Verify: checkpoint.js does not strip or ignore produced_by during validation
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rh-int-'));
+
+  const prdPath = path.join(tmpDir, 'docs', 'features', 'test-feature', 'prd.md');
+  fs.mkdirSync(path.dirname(prdPath), { recursive: true });
+  fs.writeFileSync(prdPath, '# PRD\n');
+
+  writeFixtureHandoff(tmpDir, {
+    feature: 'test-feature',
+    phase: 5,
+    goal: 'Implement feature',
+    scope: 'Phase 5',
+    relevant_files: ['docs/features/test-feature/prd.md'],
+    acceptance_criteria: ['AC1'],
+    verification_commands: ['echo ok'],
+    source_spec: 'docs/features/test-feature/prd.md',
+    produced_by: 'developer',
+    timestamp: new Date().toISOString(),
+  });
+
+  // Run checkpoint — it should accept this handoff (developer writing Phase 5 is valid)
+  const result = runCheckpoint(tmpDir);
+
+  // The handoff must survive validation with produced_by intact
+  // (If checkpoint stripped produced_by, the downstream review command couldn't check it)
+  const handoffAfter = JSON.parse(
+    fs.readFileSync(path.join(tmpDir, '.claude', 'handoff.json'), 'utf8')
+  );
+  assert.equal(
+    handoffAfter.produced_by,
+    'developer',
+    'checkpoint.js must preserve produced_by in handoff so downstream review commands can detect role-switch'
+  );
+});
