@@ -68,27 +68,27 @@ Each phase reads only the output of the previous phase — never the full codeba
 ```
 Feature request
     │
-    ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku
+    ▼ Phase 1 — SPECIFY         [product-owner + ux-designer]   model: haiku   (authoring)
     │  Reads: feature request only
     │  Writes: docs/features/<feature>/prd.md
     │
-    ▼ Phase 2 — ARCHITECT       [architect]                      model: opus
+    ▼ Phase 2 — ARCHITECT       [architect]                      model: opus    (authoring)
     │  Reads: docs/features/<feature>/prd.md + CLAUDE.md (arch section only)
     │  Writes: docs/features/<feature>/architecture.md
     │
-    ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet
+    ▼ Phase 3 — TEST DESIGN     [qa]                             model: sonnet  (authoring)
     │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
     │  Writes: tests/contracts/ + tests/e2e/ (failing shells)
     │
-    ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus
+    ▼ Phase 4 — SECURITY GATE   [security-reviewer]              model: opus    (gate/review)
     │  Reads: docs/features/<feature>/prd.md + architecture.md only (NOT src/)
     │  Writes: docs/features/<feature>/security-audit.md
     │
-    ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet
+    ▼ Phase 5 — IMPLEMENT       [developer]                      model: sonnet  (authoring)
     │  Reads: docs/features/<feature>/architecture.md + failing test files only
     │  Writes: src/ (TDD: RED commit → GREEN commit → REFACTOR commit)
     │
-    ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet
+    ▼ Phase 6 — REVIEW          [code-reviewer] FRESH SESSION    model: sonnet  (gate/review)
     │  Reads: git diff only
     │  Writes: docs/features/<feature>/review.md
     │
@@ -207,6 +207,7 @@ contract between pipeline phases — the next agent reads it at session start.
 - `relevant_files` — file paths the next agent should read first
 - `acceptance_criteria` — AC IDs the next phase must satisfy
 - `verification_commands` — commands to verify the next phase's output
+- `source_spec` — resolvable pointer to the originating spec (PRD path, ticket path, or GitHub issue URL). For bugfix handoffs, precedence: ticket file (`docs/issues/tickets/ISS-NNN.md`) > GitHub issue URL > other declared source.
 
 ### Optional fields
 - `constraints` — hard constraints the next phase must respect

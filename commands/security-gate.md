@@ -21,12 +21,21 @@ Before reading any implementation files, run:
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
 - For the rest of this command, use that resolved feature slug in place of `$ARGUMENTS`.
 
+## Source Spec Verification
+
+First read the `source_spec` field from `.claude/handoff.json`. This is the originating spec (PRD, ticket, or issue URL) that anchors the security audit.
+
+- If `source_spec` is missing: halt with an explicit error.
+- If `source_spec` is unresolvable: halt with an explicit error.
+- Read the source_spec document before reading any other handoff claims.
+
 Your task: design-time security audit for feature: $ARGUMENTS
 
 Rules:
 - Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
 - Do NOT read src/ — audit the design, not the code
 - Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
+- Include in the audit artifact header: "Reviewed in separate context from authoring phase" and the reviewer identity.
 - Follow the Security Audit Document Template from the security-audit skill
 - Classify every finding using the severity levels from the skill: BLOCKING / HIGH / MEDIUM / LOW / INFO
 - If any BLOCKING findings exist, the pipeline must stop here — do not proceed to implement

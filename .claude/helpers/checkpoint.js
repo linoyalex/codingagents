@@ -120,7 +120,7 @@ function validateHandoff() {
   }
 
   // Check required fields
-  const required = ['feature', 'phase', 'goal', 'scope', 'relevant_files', 'acceptance_criteria', 'verification_commands'];
+  const required = ['feature', 'phase', 'goal', 'scope', 'relevant_files', 'acceptance_criteria', 'verification_commands', 'source_spec'];
   const missing = required.filter(f => !(f in handoff));
   if (missing.length > 0) {
     return { valid: false, reason: `handoff.json missing required fields: ${missing.join(', ')}` };
@@ -156,13 +156,16 @@ function validateHandoff() {
   if (handoff.known_risks !== undefined && !Array.isArray(handoff.known_risks)) {
     errors.push('known_risks must be an array if present');
   }
+  if (typeof handoff.source_spec !== 'string' || handoff.source_spec.length === 0) {
+    errors.push('source_spec must be a non-empty string');
+  }
   if (handoff.produced_by !== undefined && typeof handoff.produced_by !== 'string') {
     errors.push('produced_by must be a string if present');
   }
 
   // Check for unexpected properties (additionalProperties: false in schema)
   const allowed = ['feature', 'phase', 'goal', 'scope', 'constraints', 'relevant_files',
-                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp'];
+                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp', 'source_spec'];
   const unexpected = Object.keys(handoff).filter(k => !allowed.includes(k));
   if (unexpected.length > 0) {
     errors.push(`unexpected properties: ${unexpected.join(', ')}`);
