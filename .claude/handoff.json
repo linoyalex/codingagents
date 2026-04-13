@@ -5,8 +5,8 @@
   "scope": "Phase 5 implementation only",
   "relevant_files": [
     "docs/features/codex-review-hardening/architecture.md",
-    "tests/contracts/codex-review-hardening.test.ts",
-    "tests/e2e/codex-review-hardening.spec.ts"
+    "tests/node/codex-review-method.test.js",
+    "tests/node/installer-coverage.test.js"
   ],
   "acceptance_criteria": [
     "AC1: Installer/source-of-truth rule in review-code.md",
@@ -18,7 +18,8 @@
     "AC7: Installer coverage contract test (init.sh + upgrade.sh, behavior not mechanism)"
   ],
   "verification_commands": [
-    "npm test"
+    "node --test tests/node/codex-review-method.test.js",
+    "node --test tests/node/installer-coverage.test.js"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
   "known_risks": [
