@@ -1,21 +1,32 @@
 {
   "feature": "integration-test-coverage",
-  "phase": 6,
-  "goal": "Post-merge documentation update",
-  "scope": "Phase 7 documentation only",
+  "phase": 7,
+  "goal": "Pipeline complete. Feature merged and documented. Ready for next feature cycle.",
+  "scope": "Post-merge documentation and changelog updates. No further phases for this feature.",
   "relevant_files": [
-    "docs/features/integration-test-coverage/prd.md",
     "CHANGELOG.md",
-    "CLAUDE.md"
+    "docs/CLAUDE.md",
+    "release-notes/2026-04-13_v0.9.0_integration-test-coverage.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated",
-    "CLAUDE.md timestamp updated"
+    "CHANGELOG.md updated with integration-test-coverage entries under [Unreleased]",
+    "Release note created at release-notes/2026-04-13_v0.9.0_integration-test-coverage.md",
+    "docs/CLAUDE.md timestamp updated to 2026-04-13",
+    "New Known Gotcha added: integration tests require Call Chain/Integration Points in arch doc (ISS-023 dependency)"
   ],
   "verification_commands": [
     "head -20 CHANGELOG.md",
-    "grep -i 'last updated' CLAUDE.md"
+    "grep -i 'last updated' docs/CLAUDE.md",
+    "ls release-notes/ | tail -1"
   ],
-  "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T17:00:00Z"
+  "constraints": [
+    "No source code changes required — Phase 7 is documentation-only",
+    "All feature ACs (AC1-AC8) already passed in Phase 6 review"
+  ],
+  "known_risks": [
+    "ISS-023 (architecture call chains as Phase 2 requirement) is a soft dependency; integration tests work without call chains but are more effective with them",
+    "Review noted that this feature's own architecture.md lacks Call Chain section — recorded as example gap, not blocking"
+  ],
+  "produced_by": "documentation-specialist",
+  "timestamp": "2026-04-13T12:57:49Z"
 }
