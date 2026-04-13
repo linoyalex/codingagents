@@ -240,6 +240,28 @@ test('source and installed TDD skill are byte-identical', () => {
     'skills/tdd/SKILL.md and .claude/skills/tdd/SKILL.md must be byte-identical');
 });
 
+// --- AC5b: Phase 3 command wires integration test output location ---
+
+test('AC5b: test-design command includes integration test output path', () => {
+  const cmd = read('commands/test-design.md');
+  assert.match(cmd, /integration/i,
+    'Command should mention integration tests as a concrete output artifact');
+  // Must specify an actual file path pattern for integration tests
+  assert.match(cmd, /\.integration\.test\./,
+    'Command should specify the [feature].integration.test.* naming convention');
+});
+
+test('AC5b: test-design command lists integration test alongside contract and E2E outputs', () => {
+  const cmd = read('commands/test-design.md');
+  // The rules section should have all three output locations
+  assert.match(cmd, /tests\/contracts\//,
+    'Command should specify tests/contracts/ output');
+  assert.match(cmd, /tests\/e2e\//,
+    'Command should specify tests/e2e/ output');
+  assert.match(cmd, /tests\/integration\//,
+    'Command should specify tests/integration/ output for integration tests');
+});
+
 // --- Source/installed sync for test-design command ---
 
 test('source and installed test-design command are byte-identical', () => {
