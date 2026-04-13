@@ -299,6 +299,65 @@ test('AC8c: handoff.json write instruction appears after checkpoint instruction 
 });
 
 // ---------------------------------------------------------------------------
+// Checkpoint durability: handoff schema accepts checkpoint_pending field
+// ---------------------------------------------------------------------------
+
+test('Checkpoint durability: handoff.schema.json accepts optional checkpoint_pending field', () => {
+  const rawSchema = read('schemas/handoff.schema.json');
+  const schema = JSON.parse(rawSchema);
+  assert.ok(
+    schema.properties && schema.properties.checkpoint_pending,
+    'handoff.schema.json must define a checkpoint_pending property'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Ticket-not-found: specify must not silently skip fidelity
+// ---------------------------------------------------------------------------
+
+test('Ticket-not-found: commands/specify.md instructs blocking or asking user on missing ticket', () => {
+  const cmd = read('commands/specify.md');
+  assert.match(
+    cmd,
+    /degrade|ask.*user.*proceed|not.*silently.*skip|stop.*ticket.*not.*found|ticket.*not.*found.*ask/i,
+    'commands/specify.md must not silently skip fidelity when ticket is not found — must ask user or block'
+  );
+});
+
+test('Ticket-not-found: prd-writing skill documents degraded-mode warning for missing ticket', () => {
+  const skill = read('skills/prd-writing/SKILL.md');
+  const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(section, 'Ticket Fidelity Procedure section must exist');
+  assert.match(
+    section[0],
+    /degrade|warning|ask.*user|block|not.*silently/i,
+    'Ticket Fidelity Procedure must document non-silent handling of missing tickets'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Checkpoint asymmetry: specify proceeds with assumptions, architect blocks
+// ---------------------------------------------------------------------------
+
+test('Checkpoint asymmetry: commands/specify.md proceeds with assumptions on user abandonment', () => {
+  const cmd = read('commands/specify.md');
+  assert.match(
+    cmd,
+    /proceed|continue|assumption.*unanswered|unanswered.*assumption/i,
+    'commands/specify.md must instruct proceeding with assumptions if user abandons clarification'
+  );
+});
+
+test('Checkpoint asymmetry: commands/architect.md blocks until user responds', () => {
+  const cmd = read('commands/architect.md');
+  assert.match(
+    cmd,
+    /do not finalize|must not.*commit|block|wait.*approv|not.*advance.*without/i,
+    'commands/architect.md must instruct blocking until user provides feedback'
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Skill size budget fitness function
 // ---------------------------------------------------------------------------
 

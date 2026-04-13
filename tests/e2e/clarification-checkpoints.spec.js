@@ -132,17 +132,41 @@ test('E2E sync: all files in the architecture boundary table have matching insta
 });
 
 // ---------------------------------------------------------------------------
-// Error state: ticket not found — skill procedure must handle gracefully
+// E2E Chain 5: Checkpoint durability — handoff schema + command instructions
 // ---------------------------------------------------------------------------
 
-test('E2E error state: prd-writing skill Ticket Fidelity Procedure documents ticket-not-found handling', () => {
+test('E2E chain: checkpoint_pending field in schema and commands instruct writing it', () => {
+  // Schema accepts the field
+  const rawSchema = read('schemas/handoff.schema.json');
+  const schema = JSON.parse(rawSchema);
+  assert.ok(
+    schema.properties && schema.properties.checkpoint_pending,
+    'handoff.schema.json must define checkpoint_pending'
+  );
+
+  // At least one command references checkpoint_pending
+  const specify = read('commands/specify.md');
+  const architect = read('commands/architect.md');
+  const combined = specify + architect;
+  assert.match(
+    combined,
+    /checkpoint_pending/,
+    'At least one command must reference checkpoint_pending for session durability'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Error state: ticket not found — must NOT silently skip fidelity
+// ---------------------------------------------------------------------------
+
+test('E2E error state: prd-writing skill Ticket Fidelity Procedure blocks or asks user on missing ticket', () => {
   const skill = read('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
     section[0],
-    /not found|skip|proceed|error/i,
-    'Procedure must document behavior when ticket file is not found'
+    /degrade|ask.*user|block|not.*silently|warning/i,
+    'Procedure must not silently skip fidelity when ticket is not found — must block or ask user'
   );
 });
 
