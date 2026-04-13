@@ -20,9 +20,12 @@
 | 2 | [ISS-013](tickets/ISS-013.md) | P2 — Medium | Architecture | — | Revise skill size convention and adopt progressive disclosure |
 | 4 | [ISS-024](tickets/ISS-024.md) | P1 — High | Feature | ISS-013 | Add reviewer independence and boundary-tracing rules to code-review skill |
 | 5 | [ISS-033](tickets/ISS-033.md) | P2 — Medium | Feature | ISS-013 | Require reviewers to verify against the source specification or ticket |
+| 5 | [ISS-041](tickets/ISS-041.md) | P1 — High | Bug | ISS-024, ISS-014, ISS-033 | Existing checkpoint.test.js fixtures must include source_spec after schema change |
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
 | 7 | [ISS-014](tickets/ISS-014.md) | P2 — Medium | Feature | ISS-013 | Make gate reviewers adversarial and require separate context for review phases |
 | 8 | [ISS-036](tickets/ISS-036.md) | P1 — High | Feature | ISS-013 | Add command↔skill wiring verification to prevent artifact-slot drift |
+| 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | ISS-024, ISS-014, ISS-033 | Add downstream-impact, drift-check, and reproduction steps to code-review skill |
+| 8 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
 | 9 | [ISS-029](tickets/ISS-029.md) | P2 — Medium | Feature | — | Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect` |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-024, ISS-014 | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
@@ -46,9 +49,6 @@
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
 | 30 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | — | Make backlog management skill configurable for different backlog systems |
 | 31 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | — | Support Codex, Gemini, and other LLMs as first-class coding agents |
-| 3 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, and reproduction steps to code-review skill |
-| 32 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
-| 33 | [ISS-041](tickets/ISS-041.md) | P1 — High | Bug | — | Existing checkpoint.test.js fixtures must include source_spec after schema change |
 
 ---
 
@@ -75,13 +75,15 @@ Batch 2: ISS-022 + ISS-024 + ISS-014 + ISS-033  (parallel branches, no file over
    │    ISS-022 — integration test coverage in Phase 3
    │    Touches: skills/tdd/SKILL.md, commands/test-design.md, PIPELINE_GUIDE.md
    │
-   └─ Branch B: feature/ISS-024-014-033-review-hardening
+   └─ Branch B: feature/ISS-024-014-033-review-hardening  ← REQUEST_CHANGES (Phase 6)
         ISS-024 — reviewer independence + boundary tracing
         ISS-014 — adversarial reviewers + separate context
         ISS-033 — verify against source spec/ticket
-        Touches: skills/code-review/SKILL.md, commands/review.md, reviewer roles
+        ISS-041 — fix existing checkpoint fixtures (bug introduced by this branch)
+        Touches: skills/code-review/SKILL.md, commands/review.md, reviewer roles,
+                 tests/fixtures/handoff/, tests/node/checkpoint.test.js
 
-Batch 2.5: ISS-036 + ISS-029 + ISS-027           (parallel branches, no file overlap)
+Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040  (parallel branches, no file overlap)
    ├─ Branch A: feature/ISS-036-wiring-verification
    │    ISS-036 — command↔skill wiring contract tests
    │    Touches: tests/node/, commands/implement.md, commands/test-design.md
@@ -95,11 +97,24 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027           (parallel branches, no file ove
    │    WHY HERE: Prevents the #2 defect class (PRD drifts from ticket).
    │    Earlier = fewer rework cycles in all subsequent features.
    │
-   └─ Branch C: feature/ISS-027-codex-review-hardening
-        ISS-027 — install-path checks + installer contract test (new AC7)
-        Touches: codex/reviewers/review-code.md, tests/node/
-        WHY HERE: Prevents the #3 BLOCKING defect class (init.sh misses files).
-        No file overlap with A or B.
+   ├─ Branch C: feature/ISS-027-codex-review-hardening
+   │    ISS-027 — install-path checks + installer contract test (new AC7)
+   │    Touches: codex/reviewers/review-code.md, tests/node/
+   │    WHY HERE: Prevents the #3 BLOCKING defect class (init.sh misses files).
+   │    No file overlap with A, B, D, or E.
+   │
+   ├─ Branch D: feature/ISS-039-code-review-skill-hardening
+   │    ISS-039 — downstream-impact, drift-check, reproduction steps for Claude review
+   │    Touches: skills/code-review/SKILL.md, commands/review.md, tests/node/
+   │    Depends on: Batch 2 Branch B (same files). No overlap with A/B/C/E.
+   │    WHY HERE: Claude-side counterpart to ISS-027 (Codex). RCA showed Claude's
+   │    review skill missed 4 findings Codex caught — same defect classes.
+   │
+   └─ Branch E: feature/ISS-040-checkpoint-js-detection
+        ISS-040 — detectPhase() recognize .js/.mjs test files
+        Touches: hooks/checkpoint.js, tests/node/, tests/fixtures/
+        No overlap with A/B/C/D. WHY HERE: Bug exposed during review-hardening
+        RCA. checkpoint.js misclassifies JS-based test suites.
 
 Batch 3: ISS-001 (solo)                          branch: feature/ISS-001-invariants-audit
    Depends on: ISS-024 + ISS-014 + ISS-036 (review layer hardened + wiring tests)
@@ -109,19 +124,26 @@ Batch 3: ISS-001 (solo)                          branch: feature/ISS-001-invaria
 
 ### File overlap matrix (why these groupings)
 
-| Ticket | `skills/tdd/` | `skills/code-review/` | `commands/review.md` | `commands/test-design.md` | `commands/specify.md` | `codex/reviewers/` | `tests/node/` | New skill |
-|--------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| ISS-022 | ✓ | | | ✓ | | | | |
-| ISS-024 | | ✓ | ✓ | | | | | |
-| ISS-014 | | ✓ | ✓ | | | | | |
-| ISS-033 | | ✓ | ✓ | | | | | |
-| ISS-036 | | | | ✓ | | | ✓ | |
-| ISS-029 | | | | | ✓ | | | |
-| ISS-027 | | | | | | ✓ | ✓ | |
-| ISS-001 | | | | | | | | ✓ |
+| Ticket | `skills/tdd/` | `skills/code-review/` | `commands/review.md` | `commands/test-design.md` | `commands/specify.md` | `codex/reviewers/` | `hooks/checkpoint.js` | `tests/node/` | `tests/fixtures/` | New skill |
+|--------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| ISS-022 | ✓ | | | ✓ | | | | | | |
+| ISS-024 | | ✓ | ✓ | | | | | | | |
+| ISS-014 | | ✓ | ✓ | | | | | | | |
+| ISS-033 | | ✓ | ✓ | | | | | | | |
+| ISS-041 | | | | | | | | ✓ | ✓ | |
+| ISS-036 | | | | ✓ | | | | ✓ | | |
+| ISS-029 | | | | | ✓ | | | | | |
+| ISS-027 | | | | | | ✓ | | ✓ | | |
+| ISS-039 | | ✓ | ✓ | | | | | ✓ | | |
+| ISS-040 | | | | | | | ✓ | ✓ | ✓ | |
+| ISS-001 | | | | | | | | | | ✓ |
 
 Batch 2 Branch A and B → no overlap, safe in parallel.
-Batch 2.5 A/B/C → no overlap between each other; ISS-036 touches `commands/test-design.md`
+  ISS-041 is a bug in Branch B; fix it there before merge.
+Batch 2.5 A/B/C/D/E → no overlap between each other.
+  ISS-039 (D) depends on Batch 2 Branch B (same `skills/code-review/`, `commands/review.md`).
+  ISS-040 (E) has no dependency on Batch 2 but sequenced here for batch simplicity.
+  ISS-036 touches `commands/test-design.md`
   which ISS-022 also touches, so ISS-036 must wait for Batch 2 Branch A to merge.
 ISS-001 depends on ISS-024 + ISS-014 + ISS-036 → must wait for Batch 2 + 2.5.
 
@@ -160,4 +182,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-012 benefits from ISS-006, ISS-014, and ISS-037** — review-history, reviewer independence, and a deterministic latest-review locator make the Codex loop more credible.
 - **ISS-019 is sequenced near ISS-017** — both touch the same skill files. Adjacent sessions amortize read cost.
 - **ISS-007 before ISS-008** is a risk-reducing preference. Backups make CLAUDE.md sync safer.
+- **ISS-041 at Order 5** is a bug in the review-hardening branch (Batch 2 Branch B). The `source_spec` schema change broke existing checkpoint fixtures. Must be fixed as part of the REQUEST_CHANGES rework before that branch merges.
+- **ISS-039 at Order 8** is the Claude-side counterpart to ISS-027 (Codex). RCA from the review-hardening Phase 6 showed Claude's code-review skill missed 4 findings Codex caught — all systemic methodology gaps (downstream impact, drift, test suite, reproduction). Depends on Batch 2 Branch B (same files: `skills/code-review/SKILL.md`, `commands/review.md`). No overlap with Batch 2.5 A/B/C/E.
+- **ISS-040 at Order 8** is a pre-existing bug in `checkpoint.js` exposed during review-hardening RCA. `detectPhase()` hard-codes `.ts` test extensions, misclassifying `.js`-based test suites. No file overlap with anything in Batch 2.5, so it runs as a parallel branch.
 - **ISS-038 at Order 31** is intentionally separate from ISS-005. ISS-005 validates the current framework through dogfooding; ISS-038 is the broader architecture effort to make Codex, Gemini, and future LLMs first-class authoring agents rather than Claude-centric adapters.
