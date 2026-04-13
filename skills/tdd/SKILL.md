@@ -1,7 +1,7 @@
 ---
 name: tdd
 description: Test-Driven Development execution — Red/Green/Refactor cycle with commit protocol
-version: "1.2.0"
+version: "1.3.0"
 ---
 
 # Skill: Test-Driven Development
@@ -43,11 +43,31 @@ Use Arrange / Act / Assert and plain-English test names that describe behavior, 
 6. Most likely race condition
 7. Boundary values and important edge cases
 
+## Three-Level Test Coverage
+
+Every feature must have tests at three levels:
+
+```text
+Unit/Contract:  Tests modules in isolation. Existing practice.
+Integration:    Calls production entry point, asserts feature effect in output.
+                Naming: [feature].integration.test.{js,ts,py}
+E2E:            Full system shells. Existing practice.
+```
+
+An integration test calls the production entry point (not the module directly) and asserts the feature's effect is visible in the output. A test that calls the module directly is a unit test, regardless of how many modules it touches.
+
+Integration tests require the architecture doc to include a Call Chain or Integration Points section. If missing, the QA agent must:
+1. Add a `// ARCH GAP: No Call Chain section in architecture.md — integration target chosen by QA` comment at the top of the integration test file
+2. Set `known_risks: ["Missing Call Chain in arch doc — integration target chosen by QA"]` in handoff.json
+Phase 3 may proceed but the gap must be explicitly recorded in both locations.
+
 ## Coverage Rules
 
 - Aim for 100% coverage of new logic paths, including error branches.
 - Never mock what you do not own.
 - Tests should be readable enough to explain the feature to a new maintainer.
+- For any AC referencing a real-world data type, read the production schema/type/enum definition before writing fixtures. Confirm fixture values match exactly. Do not invent stand-in shapes.
+- When widening a validation constraint (e.g., enum → string), list degenerate values now admitted and add a test for each. Minimum required set: empty string, whitespace-only, and max-length boundary.
 
 ## Property-Based Testing
 

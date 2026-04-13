@@ -1,29 +1,32 @@
 {
-  "feature": "skill-size-convention",
+  "feature": "integration-test-coverage",
   "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "goal": "Pipeline complete. Feature merged and documented. Ready for next feature cycle.",
+  "scope": "Post-merge documentation and changelog updates. No further phases for this feature.",
   "relevant_files": [
     "CHANGELOG.md",
-    "release-notes/2026-04-13_v0.8.0.md",
-    "docs/CLAUDE.md"
+    "docs/CLAUDE.md",
+    "release-notes/2026-04-13_v0.9.0_integration-test-coverage.md"
   ],
   "acceptance_criteria": [
-    "AC1: skill size budget revised with ~150 prose / ~250 total",
-    "AC2: Progressive disclosure pattern documented",
-    "AC3: Stop conditions footer rule documented",
-    "AC4: verification-gate pilot converted",
-    "AC5: Migration audit completed",
-    "AC6: Contract tests pass",
-    "AC7: Phase command smoke test passes",
-    "AC8: Size budget enforced",
-    "AC9: Root/docs CLAUDE.md conventions synced"
+    "CHANGELOG.md updated with integration-test-coverage entries under [Unreleased]",
+    "Release note created at release-notes/2026-04-13_v0.9.0_integration-test-coverage.md",
+    "docs/CLAUDE.md timestamp updated to 2026-04-13",
+    "New Known Gotcha added: integration tests require Call Chain/Integration Points in arch doc (ISS-023 dependency)"
   ],
   "verification_commands": [
-    "head -30 CHANGELOG.md",
-    "ls -l release-notes/2026-04-13_v0.8.0.md",
-    "grep 'Last updated' docs/CLAUDE.md"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' docs/CLAUDE.md",
+    "ls release-notes/ | tail -1"
+  ],
+  "constraints": [
+    "No source code changes required — Phase 7 is documentation-only",
+    "All feature ACs (AC1-AC8) already passed in Phase 6 review"
+  ],
+  "known_risks": [
+    "ISS-023 (architecture call chains as Phase 2 requirement) is a soft dependency; integration tests work without call chains but are more effective with them",
+    "Review noted that this feature's own architecture.md lacks Call Chain section — recorded as example gap, not blocking"
   ],
   "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T09:15:00Z"
+  "timestamp": "2026-04-13T12:57:49Z"
 }

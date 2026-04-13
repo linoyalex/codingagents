@@ -185,6 +185,7 @@ prevents the test suite from mirroring the implementation's bugs.
 3. API contract: correct request shape → correct response shape
 4. Permission boundary: unauthorized user cannot access this endpoint
 5. The most likely race condition identified in the architecture
+6. Integration test: at least one test that calls the production entry point and asserts the feature's effect is visible in the output
 
 ---
 
