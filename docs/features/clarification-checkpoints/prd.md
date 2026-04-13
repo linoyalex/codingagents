@@ -1,12 +1,12 @@
-## Feature: Pipeline Tier Routing, Ticket Fidelity & Clarification Checkpoints
-**Generated:** 2026-04-13T21:00:00Z
+## Feature: Clarification Checkpoints & Ticket Fidelity
+**Generated:** 2026-04-13T22:30:00Z
 **Phase:** Specify | Date: 2026-04-13
 **Source ticket:** [ISS-029](../../issues/tickets/ISS-029.md)
 
 ### User Story
 As a pipeline operator,
-I want the agent to infer a pipeline tier matching change risk, verify PRD fidelity against the source ticket, and ask clarification questions before finalizing,
-So that small changes get fast paths, PRDs faithfully represent ticket intent, and ambiguity is caught before it compounds downstream.
+I want `/specify` to verify PRD fidelity against the source ticket and ask clarification questions before finalizing, and `/architect` to present proposed architecture for review before committing,
+So that ambiguity is caught before it compounds downstream and PRDs faithfully represent ticket intent.
 
 ### Acceptance Criteria
 
@@ -14,10 +14,21 @@ So that small changes get fast paths, PRDs faithfully represent ticket intent, a
   Given `/specify` receives a ticket reference (e.g., ISS-NNN),
   When the product-owner agent writes acceptance criteria,
   Then it must transcribe the ticket's ACs into Given/When/Then format — not paraphrase, broaden, or weaken them. If the PRD AC diverges from the ticket AC in scope, severity, or specificity, the agent must flag the divergence explicitly as an assumption rather than silently drifting.
-  Additionally:
-  - **(AC0a) Convention citation:** When citing a project convention, the agent must verify the value against the current `docs/CLAUDE.md` (canonical) with fallback to root `CLAUDE.md`. Do not rely on remembered or stale values.
-  - **(AC0b) Internal contradiction check:** After writing all ACs, the agent must check that no two ACs make mutually exclusive claims about the same field or behavior.
-  - **(AC0c) Open-ended scope:** When a ticket uses open-ended scope ("and any other relevant X"), the agent must either enumerate candidates or ask the user which apply — not silently drop the clause.
+
+- [ ] **AC0a (Convention citation verification):**
+  Given the agent cites a project convention (e.g., line budgets, naming rules),
+  When writing or referencing the value,
+  Then it must verify the cited value against the current `docs/CLAUDE.md` (canonical) with fallback to root `CLAUDE.md` — do not rely on remembered or stale values.
+
+- [ ] **AC0b (Internal contradiction check):**
+  Given the agent has written all ACs,
+  When performing a self-check,
+  Then no two ACs may make mutually exclusive claims about the same field or behavior.
+
+- [ ] **AC0c (Open-ended scope handling):**
+  Given a ticket uses open-ended scope ("and any other relevant X"),
+  When the agent processes that clause,
+  Then it must either enumerate the candidates or ask the user which ones apply — not silently drop the open-ended clause.
 
 - [ ] **AC1 (Clarification gate):**
   Given a feature request is ambiguous or underspecified,
@@ -61,36 +72,6 @@ So that small changes get fast paths, PRDs faithfully represent ticket intent, a
   When contract tests or structural checks run,
   Then they verify: (a) checkpoint instruction language exists in the command files, (b) the command does not contain unconditional commit/finalize steps after the checkpoint section, and (c) the handoff is not written before the checkpoint instruction.
 
-- [ ] **AC9 (Tier inference):**
-  Given the agent receives a task (ticket reference, free-text request, or `/specify` invocation),
-  When it begins processing,
-  Then it infers a pipeline tier (convention, bugfix, small feature, full feature) from context signals (ticket type, file count, change scope, security surface) and states the inferred tier at the start of the response before proceeding.
-
-- [ ] **AC10 (Tier override):**
-  Given an inferred tier,
-  When the operator overrides it (e.g., "run the full pipeline" or "this is just a convention fix"),
-  Then the agent adjusts the phase set accordingly.
-
-- [ ] **AC11 (Security escalation):**
-  Given a change touches auth, security, user input handling, API keys, or prompt injection surfaces,
-  When the agent infers a tier,
-  Then it must escalate to full feature tier regardless of other signals — never convention or bugfix for security-sensitive changes.
-
-- [ ] **AC12 (Tier documentation):**
-  Given the tier routing system is implemented,
-  When an operator reads CLAUDE.md or pipeline documentation,
-  Then they find tier definitions, inference heuristics, phase sets, and override mechanism documented.
-
-- [ ] **AC13 (Tier in handoff):**
-  Given a tier is inferred or overridden,
-  When handoff.json is written,
-  Then it includes the tier so downstream phases know which phase set applies.
-
-- [ ] **AC14 (Tier verification):**
-  Given the tier routing is implemented,
-  When deterministic tests run,
-  Then they verify the tier routing table and heuristics are present in command/skill files and that handoff.json schema accepts the tier field.
-
 ### Screen States
 
 | Screen | Empty | Loading | Populated | Error | Awaiting Input | Success |
@@ -98,11 +79,11 @@ So that small changes get fast paths, PRDs faithfully represent ticket intent, a
 | `/specify` clarification | No ambiguity detected — skip to PRD | Analyzing ticket for gaps | Questions displayed | Ticket not found or unreadable | Waiting for user answers; unanswered Qs shown | Answers incorporated; PRD proceeds |
 | `/specify` fidelity check | No ticket reference — skip check | Comparing ticket ACs to PRD ACs | Divergences flagged as assumptions | Ticket ACs cannot be parsed | N/A | All ACs transcribed faithfully |
 | `/architect` review | N/A | Drafting architecture | Proposal summary displayed | Generation failed | Waiting for feedback; revision cycle in progress | Feedback incorporated; artifact committed |
-| Tier inference | No context signals — default to full | Analyzing ticket type and scope | Inferred tier stated | Conflicting signals — ask user | Waiting for operator override confirmation | Tier confirmed; phase set selected |
 
 ### Out of Scope
-- Changes to phases 3–7 commands (beyond handoff schema for tier field)
+- Changes to phases 3–7 commands
 - Automated ambiguity detection heuristics (agent uses judgment with documented triggers)
+- Pipeline tier routing / tier inference (not in ISS-029 scope)
 - Changes to `/implement`, `/review`, or `/document` commands
 
 ### Dependencies
@@ -110,7 +91,9 @@ So that small changes get fast paths, PRDs faithfully represent ticket intent, a
 - **Assumption:** AC0 ticket fidelity applies only when `/specify` receives an explicit ticket reference.
 - **Assumption:** `docs/CLAUDE.md` is the canonical convention source; root `CLAUDE.md` is the template for target projects.
 - **Prerequisite:** `commands/specify.md` and `commands/architect.md` must exist and be editable.
-- **Prerequisite:** `schemas/handoff.schema.json` must be editable for the tier field (AC13).
+
+### Fidelity Note
+This PRD transcribes ISS-029 ACs 0–8 faithfully. The previous revision (rev2) added AC9–AC14 covering "tier inference" and "tier routing" which are **not present in ISS-029**. Those ACs have been removed as scope creep. If tier routing is desired, it should be tracked as a separate ticket.
 
 ### Codex Review Findings Addressed
 - [HIGH] AC1 ambiguity threshold → added non-exhaustive clarification triggers
@@ -120,7 +103,7 @@ So that small changes get fast paths, PRDs faithfully represent ticket intent, a
 - [MEDIUM] /architect flow under-specified → added revision cycle language in AC5; "Awaiting Input" state in screen table
 
 ### RICE Score
-Reach: High (every feature cycle) | Impact: High (prevents #2 defect class + token waste) | Confidence: High | Effort: High (expanded scope) | **Score: 7**
+Reach: High (every feature cycle) | Impact: High (prevents #2 defect class) | Confidence: High | Effort: Medium | **Score: 9**
 
 ### Definition of Done
 - All ACs pass in staging
