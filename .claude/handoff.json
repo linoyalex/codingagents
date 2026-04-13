@@ -1,13 +1,12 @@
 {
   "feature": "clarification-checkpoints",
-  "phase": 4,
-  "goal": "Implement feature using strict TDD",
-  "scope": "Phase 5 implementation only",
+  "phase": 6,
+  "goal": "Document the clarification-checkpoints feature: update CHANGELOG.md, write a release-notes entry, and update CLAUDE.md conventions if any new patterns were introduced",
+  "scope": "Phase 7 documentation only — CHANGELOG.md, release-notes/, CLAUDE.md conventions update",
   "relevant_files": [
-    "docs/features/clarification-checkpoints/architecture.md",
-    "tests/contracts/clarification-checkpoints.test.js",
-    "tests/e2e/clarification-checkpoints.spec.js",
-    "tests/integration/clarification-checkpoints.integration.test.js"
+    "docs/features/clarification-checkpoints/prd.md",
+    "docs/features/clarification-checkpoints/review.md",
+    "CHANGELOG.md"
   ],
   "acceptance_criteria": [
     "AC0", "AC0a", "AC0b", "AC0c",
@@ -15,11 +14,14 @@
     "AC6", "AC7", "AC8"
   ],
   "verification_commands": [
-    "node --test tests/contracts/clarification-checkpoints.test.js",
-    "node --test tests/e2e/clarification-checkpoints.spec.js",
-    "node --test tests/integration/clarification-checkpoints.integration.test.js"
+    "ls release-notes/",
+    "grep -n 'clarification-checkpoints\\|ISS-029' CHANGELOG.md"
+  ],
+  "known_risks": [
+    "HIGH finding in integration test (line 120: || should be &&) — logged but not blocking merge; document as known gap",
+    "MEDIUM finding: checkpoint_pending schema has no enum constraint — document as follow-up (ISS-044 or new ticket)"
   ],
   "source_spec": "docs/issues/tickets/ISS-029.md",
-  "produced_by": "security-reviewer",
-  "timestamp": "2026-04-13T21:38:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T00:00:00Z"
 }
