@@ -1,5 +1,5 @@
 ## Architecture: Integration Test Coverage for Phase 3
-**Generated:** 2026-04-13T11:00:00Z
+**Generated:** 2026-04-13T12:00:00Z
 **ADR:** ADR-003 | Date: 2026-04-13
 
 ### Decision
@@ -56,16 +56,17 @@ Placement: inside the Coverage Rules section after fixture validation.
 
 ### Phase 3 Command Verification (AC5)
 
-Add to `commands/test-design.md` post-commit verification:
-```bash
-grep -rn "import\|require" tests/ | grep -v node_modules | grep -i "<feature>" | head -5
-# At least one test must import from a production entry point, not just test utilities
-```
+Add to `commands/test-design.md` blocking verification: "At least one test must import the
+production entry point AND contain an assertion on visible output. Import-only shells, utility
+imports, or tests that call modules directly do not satisfy this check." This is a blocking
+gate — Phase 3 cannot complete without it.
 
 ### Architecture Dependency (AC7)
 
-Add note to TDD skill: "Integration tests are most effective when the architecture doc includes
-a Call Chain or Integration Points section. If missing, flag as a gap in the test plan header."
+Add note to TDD skill: "Integration tests require the architecture doc to include a Call Chain
+or Integration Points section. If missing, QA agent must add a warning comment at the top of the
+test file noting the gap and flag it in the handoff. Phase 3 may proceed but the gap must be
+explicitly recorded."
 
 ### Module Boundaries
 
@@ -78,7 +79,7 @@ a Call Chain or Integration Points section. If missing, flag as a gap in the tes
 | Failure | Impact | Mitigation |
 |---------|--------|------------|
 | Skill exceeds size budget | Blocked by ISS-013 contract test | Budget check runs in CI |
-| False positive on entry-point grep | Phase 3 verification fails for valid tests | Grep is advisory, not blocking; human can override |
+| False positive on entry-point check | Phase 3 verification blocks for valid tests | QA agent reviews manually; check requires import + assertion, reducing false positives |
 | Arch doc missing Call Chain section | Integration tests designed without wiring context | AC7 requires flagging the gap, not blocking |
 
 ### Fitness Functions
