@@ -378,7 +378,6 @@ test('AC8: enforcement detects over-budget split skill on disk (negative test)',
 
   const lines = ['---', 'name: over-budget-split', 'description: test', '---', ''];
   for (let i = 1; i <= 130; i++) lines.push(`Prose line ${i}.`);
-  lines.push('', '[See reference: skills/over-budget-split/extra.md]');
   fs.writeFileSync(path.join(fixtureSkillDir, 'SKILL.md'), lines.join('\n'));
   // Add a reference file so isProgressiveDisclosure returns true
   fs.writeFileSync(path.join(fixtureSkillDir, 'extra.md'), '# Extra detail\nSome content.\n');
