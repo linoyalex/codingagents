@@ -46,6 +46,9 @@
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
 | 30 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | — | Make backlog management skill configurable for different backlog systems |
 | 31 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | — | Support Codex, Gemini, and other LLMs as first-class coding agents |
+| 3 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, and reproduction steps to code-review skill |
+| 32 | [ISS-040](tickets/ISS-040.md) | P2 — Medium | Bug | — | checkpoint.js detectPhase() should recognize .js and .mjs test files |
+| 33 | [ISS-041](tickets/ISS-041.md) | P1 — High | Bug | — | Existing checkpoint.test.js fixtures must include source_spec after schema change |
 
 ---
 
@@ -130,7 +133,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 
 - **Wave 1 — Codex review method hardening (1):** Strengthen Codex’s code review prompt/process so installer paths, sync drift, and misleading tests are caught earlier and more consistently.
 - **Wave 2 — Skill convention (2):** Revise skill size convention before adding content to skills. Unblocks all skill content changes in Waves 3–5. **Reliability milestone prerequisite.**
-- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered.
+- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude's code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA.
 - **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection and automatic status on fresh context.
 - **Wave 5 — Release and planning structure (12):** Introduce semver and connect backlog planning to major/minor/patch release intent.
 - **Wave 6 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews.
