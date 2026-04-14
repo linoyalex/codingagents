@@ -125,14 +125,23 @@ function isCopyLine(line) {
  * to prevent false positives from echo/log statements that mention directories.
  */
 function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
-  // 1. Literal installed path (e.g., .claude/skills/tdd/SKILL.md)
-  if (activeContent.includes(installedPath)) return true;
-
-  // 2. Source path reference (e.g., skills/tdd/SKILL.md in a loop)
-  if (activeContent.includes(sourceRelPath)) return true;
-
-  // For ancestor matching, check per-line with copy-command context
+  // All checks are per-line and restricted to copy-command lines to prevent
+  // false positives from echo/log statements that mention file paths.
+  // (Codex review feedback, 2026-04-14: steps 1-2 were full-content includes()
+  // which matched inert mentions like echo "checking skills/tdd/SKILL.md".)
   const lines = activeContent.split('\n');
+
+  // 1. Literal installed path in a copy-command line (e.g., cp ... .claude/skills/tdd/SKILL.md)
+  for (const line of lines) {
+    if (!isCopyLine(line)) continue;
+    if (line.includes(installedPath)) return true;
+  }
+
+  // 2. Source path reference in a copy-command line (e.g., cp skills/tdd/SKILL.md ...)
+  for (const line of lines) {
+    if (!isCopyLine(line)) continue;
+    if (line.includes(sourceRelPath)) return true;
+  }
 
   // 3. Ancestor directory coverage — check if any parent directory of the
   //    installed path appears in a copy-command line (covers recursive cp, wildcards)
@@ -402,6 +411,25 @@ test('isCoveredByScript: no reference means no coverage', () => {
   assert.ok(
     !isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
     'Script with no relevant references must not pass coverage check'
+  );
+});
+
+test('isCoveredByScript: echo/log mentioning source path does NOT satisfy contract', () => {
+  // Regression: Codex review (2026-04-14) reproduced this with:
+  //   echo "checking skills/tdd/SKILL.md exists" → returned true
+  // Steps 1-2 now require copy-command context, same as steps 3-4.
+  const script = 'echo "checking skills/tdd/SKILL.md exists"';
+  assert.ok(
+    !isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'echo/log lines mentioning source paths must not satisfy coverage — only copy commands count'
+  );
+});
+
+test('isCoveredByScript: echo/log mentioning installed path does NOT satisfy contract', () => {
+  const script = 'echo "verifying .claude/skills/tdd/SKILL.md"';
+  assert.ok(
+    !isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'echo/log lines mentioning installed paths must not satisfy coverage — only copy commands count'
   );
 });
 

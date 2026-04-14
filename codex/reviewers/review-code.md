@@ -97,9 +97,9 @@ If there are no findings, say so explicitly:
 
 When reviewing changes to framework files (skills, commands, hooks), verify the installer coverage:
 
-- Check that `init.sh` and `upgrade.sh` include active copy lines for every changed or added file.
-- Verify that the installed path (e.g., `.claude/skills/foo/SKILL.md`) appears in a non-comment line.
-- Flag any source file that is present in the repo but absent from active lines in `init.sh` or `upgrade.sh`.
+- Open `init.sh` and `upgrade.sh` and confirm each changed or added source file is operationalized — i.e., it reaches the target project on both fresh install and upgrade.
+- The installer may use any valid mechanism: literal `cp` lines, directory copies (`cp -r`), loops, manifests, or helper functions. Do not require per-file copy lines if a directory-level or glob-based mechanism already covers the file.
+- Flag any source file that has no plausible installation path in either script (not covered by any mechanism).
 
 Key installer scripts: `init.sh` (fresh install) and `upgrade.sh` (incremental upgrade).
 
