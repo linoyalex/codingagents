@@ -1,28 +1,22 @@
 {
   "feature": "codex-review-hardening",
-  "phase": 5,
-  "goal": "Re-review after addressing all four review findings (BLOCKING, HIGH, MEDIUM, LOW)",
-  "scope": "Phase 6 re-review — verify fixes for false-positive guard, dead code removal, AC5 deferral, and clean working tree",
+  "phase": 6,
+  "goal": "Post-merge documentation update — update CHANGELOG.md and CLAUDE.md timestamp to reflect the codex-review-hardening feature landing",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/codex-review-hardening/review.md",
-    "tests/node/installer-coverage.test.js",
-    "tests/node/codex-review-method.test.js",
-    "docs/memory/review-process.md",
-    "init.sh",
-    "upgrade.sh"
+    "docs/features/codex-review-hardening/prd.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "BLOCKING: working tree is clean (git status --short shows no uncommitted changes to committed files)",
-    "HIGH: isCoveredByScript() ancestor matching requires copy-command context — echo/log lines rejected",
-    "MEDIUM: review-process.md defers to codex-rules.md for Codex-specific guidance",
-    "LOW: per-file cp lines removed from init.sh/upgrade.sh — no dead code to confuse maintainers"
+    "CHANGELOG.md updated with codex-review-hardening feature entry",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "git status --short",
-    "node --test tests/node/codex-review-method.test.js",
-    "node --test tests/node/installer-coverage.test.js"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T15:00:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T18:00:00Z"
 }
