@@ -1,0 +1,202 @@
+/**
+ * Contract tests for implement-known-risks feature (RED state)
+ *
+ * Derived from: docs/features/implement-known-risks/prd.md + architecture.md
+ *
+ * Primary production-wiring test seam:
+ *   The combination of AC1 (known_risks instruction in commands/implement.md GREEN
+ *   section) + AC2 (known_risks checklist item in skills/tdd/SKILL.md) proves the
+ *   developer is explicitly told to read and act on known_risks during Phase 5.
+ *   Contract test (AC3) verifies both using structural anchors.
+ *
+ * Cases covered:
+ *   Happy:   known_risks instruction present in GREEN section; checklist item in TDD skill
+ *   Edge:    empty known_risks or missing handoff requires no developer action (AC4)
+ *   Misuse:  malformed handoff.json halts before developer reaches GREEN (AC5)
+ */
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT_DIR = path.resolve(__dirname, '..', '..');
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
+}
+
+// ---------------------------------------------------------------------------
+// AC1: commands/implement.md GREEN section includes known_risks instruction
+// ---------------------------------------------------------------------------
+
+test('AC1: commands/implement.md GREEN section contains a known_risks read instruction', () => {
+  const implement = read('commands/implement.md');
+  // Structural anchor: find the GREEN step section, then check for known_risks
+  const greenSection = implement.match(/Step 2 GREEN[\s\S]*?(?=Step 3 REFACTOR|$)/);
+  assert.ok(greenSection, 'commands/implement.md must have a "Step 2 GREEN" section');
+  assert.match(
+    greenSection[0],
+    /known_risks/,
+    'The GREEN section of commands/implement.md must contain a known_risks instruction'
+  );
+});
+
+test('AC1: known_risks instruction tells developer to read from handoff.json', () => {
+  const implement = read('commands/implement.md');
+  const greenSection = implement.match(/Step 2 GREEN[\s\S]*?(?=Step 3 REFACTOR|$)/);
+  assert.ok(greenSection, 'commands/implement.md must have a "Step 2 GREEN" section');
+  assert.match(
+    greenSection[0],
+    /handoff\.json/,
+    'The known_risks instruction must reference handoff.json as the source'
+  );
+});
+
+test('AC1: known_risks instruction includes address-or-defer guidance', () => {
+  const implement = read('commands/implement.md');
+  const greenSection = implement.match(/Step 2 GREEN[\s\S]*?(?=Step 3 REFACTOR|$)/);
+  assert.ok(greenSection, 'commands/implement.md must have a "Step 2 GREEN" section');
+  assert.match(
+    greenSection[0],
+    /address|defer/i,
+    'The known_risks instruction must tell the developer to address or defer each risk'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// AC2: skills/tdd/SKILL.md GREEN phase includes known_risks checklist item
+// ---------------------------------------------------------------------------
+
+test('AC2: skills/tdd/SKILL.md contains a known_risks verification item', () => {
+  const tdd = read('skills/tdd/SKILL.md');
+  assert.match(
+    tdd,
+    /known_risks/,
+    'skills/tdd/SKILL.md must contain a known_risks reference'
+  );
+});
+
+test('AC2: known_risks item is associated with the GREEN phase in TDD skill', () => {
+  const tdd = read('skills/tdd/SKILL.md');
+  // Structural anchor: known_risks must appear in the TDD Cycle section or Top Rules,
+  // near the GREEN line — architecture says "under GREEN phase guidance"
+  const tddCycleSection = tdd.match(/## TDD Cycle[\s\S]*?(?=\n## [^#]|$)/);
+  const topRulesSection = tdd.match(/## Top Rules[\s\S]*?(?=\n## [^#]|$)/);
+  const hasCycleRef = tddCycleSection && /known_risks/.test(tddCycleSection[0]);
+  const hasTopRef = topRulesSection && /known_risks/.test(topRulesSection[0]);
+  assert.ok(
+    hasCycleRef || hasTopRef,
+    'known_risks must appear in the "TDD Cycle" or "Top Rules" section of skills/tdd/SKILL.md (GREEN phase context)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// AC3: Contract test verifies both anchors using structural matching
+// (This test IS the AC3 — it proves the structural anchor pattern works)
+// ---------------------------------------------------------------------------
+
+test('AC3: both known_risks anchors are present — implement command AND tdd skill', () => {
+  const implement = read('commands/implement.md');
+  const tdd = read('skills/tdd/SKILL.md');
+
+  // Structural anchor 1: commands/implement.md GREEN section + known_risks
+  const greenSection = implement.match(/Step 2 GREEN[\s\S]*?(?=Step 3 REFACTOR|$)/);
+  assert.ok(greenSection, 'commands/implement.md must have a GREEN section');
+  assert.match(greenSection[0], /known_risks/, 'GREEN section must reference known_risks');
+
+  // Structural anchor 2: skills/tdd/SKILL.md + known_risks
+  assert.match(tdd, /known_risks/, 'TDD skill must reference known_risks');
+});
+
+// ---------------------------------------------------------------------------
+// AC4: Empty known_risks or missing handoff requires no developer action
+// ---------------------------------------------------------------------------
+
+test('AC4: commands/implement.md known_risks instruction handles empty/missing case gracefully', () => {
+  const implement = read('commands/implement.md');
+  // The instruction must not require action when known_risks is empty or absent
+  // Structural anchor: look for conditional language (if present, when present, etc.)
+  const greenSection = implement.match(/Step 2 GREEN[\s\S]*?(?=Step 3 REFACTOR|$)/);
+  assert.ok(greenSection, 'commands/implement.md must have a GREEN section');
+  assert.match(
+    greenSection[0],
+    /if present|if.*known_risks|when present|empty|no action|skip/i,
+    'The known_risks instruction must indicate no action is needed when risks are empty or absent'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// AC5: Malformed handoff.json halts via existing resolve-feature.js error handling
+// ---------------------------------------------------------------------------
+
+test('AC5: resolve-feature.js exists and validates handoff.json (pre-existing guard)', () => {
+  const resolveFeature = read('hooks/resolve-feature.js');
+  // The guard must call validateHandoff or equivalent
+  assert.match(
+    resolveFeature,
+    /validateHandoff/,
+    'hooks/resolve-feature.js must call validateHandoff to catch malformed handoff.json'
+  );
+});
+
+test('AC5: resolve-feature.js exits non-zero on invalid handoff when no explicit args provided', () => {
+  const resolveFeature = read('hooks/resolve-feature.js');
+  // Must exit with non-zero status on failure
+  assert.match(
+    resolveFeature,
+    /process\.exit\(1\)/,
+    'hooks/resolve-feature.js must exit(1) when handoff validation fails'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Line budget: TDD skill must stay under 120 lines after the addition
+// ---------------------------------------------------------------------------
+
+test('BUDGET: skills/tdd/SKILL.md stays under 120 lines after known_risks addition', () => {
+  const tdd = read('skills/tdd/SKILL.md');
+  const lineCount = tdd.trimEnd().split('\n').length;
+  assert.ok(
+    lineCount <= 120,
+    `skills/tdd/SKILL.md has ${lineCount} lines — must stay under 120-line budget`
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Byte-identity: source and installed copies must match
+// ---------------------------------------------------------------------------
+
+test('SYNC: commands/implement.md source and installed copy are byte-identical', () => {
+  const source = read('commands/implement.md');
+  const installed = read('.claude/commands/implement.md');
+  assert.equal(
+    source,
+    installed,
+    'commands/implement.md and .claude/commands/implement.md must be byte-identical'
+  );
+});
+
+test('SYNC: skills/tdd/SKILL.md source and installed copy are byte-identical', () => {
+  const source = read('skills/tdd/SKILL.md');
+  const installed = read('.claude/skills/tdd/SKILL.md');
+  assert.equal(
+    source,
+    installed,
+    'skills/tdd/SKILL.md and .claude/skills/tdd/SKILL.md must be byte-identical'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Permission boundary: known_risks is prose for human reading only
+// ---------------------------------------------------------------------------
+
+test('TRUST BOUNDARY: architecture documents known_risks as prose for human reading, not executable', () => {
+  const arch = read('docs/features/implement-known-risks/architecture.md');
+  assert.match(
+    arch,
+    /prose.*human|human.*reading|must not.*interpolat|must not.*shell/i,
+    'Architecture must document that known_risks is prose for human reading, not for execution'
+  );
+});
