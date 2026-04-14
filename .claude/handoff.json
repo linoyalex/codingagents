@@ -1,30 +1,23 @@
 {
   "feature": "wiring-verification",
-  "phase": 4,
-  "goal": "Implement feature using strict TDD",
-  "scope": "Phase 5 implementation only",
+  "phase": 6,
+  "goal": "Fix two blocking review findings, then re-submit for review",
+  "scope": "Developer must address F1 (exists() guard in checkCommandSkillWiring) and F2 (stale Phase 4 handoff in diff), then a fresh Phase 6 review pass is required before Phase 7",
   "relevant_files": [
-    "docs/features/wiring-verification/architecture.md",
-    "tests/contracts/wiring-verification.test.ts",
-    "tests/e2e/wiring-verification.spec.ts"
+    "docs/features/wiring-verification/review.md",
+    "lib/wiring-check.js",
+    ".claude/handoff.json"
   ],
   "acceptance_criteria": [
-    "AC1: Contract test verifies command contains output instructions for each skill artifact (pattern + path)",
-    "AC2: Test catches known tdd/test-design integration-test gap",
-    "AC3: Malformed registry produces parse error naming skill",
-    "AC4: Phase 5 verification step in commands/implement.md",
-    "AC5: Phase 3 verification step in commands/test-design.md",
-    "AC6: Registry format: Markdown table with Artifact|Pattern|Path|Condition columns",
-    "AC7: Skills with no Required Artifacts section pass",
-    "AC8: Conditional artifacts: full pattern+path check (not relaxed — Condition column is informational only)",
-    "AC9: Multiple output paths: passes if at least one matches",
-    "AC10: No regression on existing tests",
-    "AC11: Negative test fixture with mock skill+command and known gap"
+    "F1 resolved: checkCommandSkillWiring throws a named error when skill file is missing, not ENOENT",
+    "F2 resolved: git diff main...HEAD shows Phase 6 handoff, not Phase 4",
+    "All existing tests still pass after fix"
   ],
   "verification_commands": [
-    "npm test"
+    "node --test tests/node/command-skill-wiring.test.js",
+    "git diff main...HEAD -- .claude/handoff.json | grep 'phase.*6'"
   ],
   "source_spec": "docs/issues/tickets/ISS-036.md",
-  "produced_by": "security-reviewer",
-  "timestamp": "2026-04-13T21:38:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T15:00:00Z"
 }
