@@ -1,26 +1,22 @@
 {
-  "feature": "review-hardening",
-  "phase": 7,
-  "goal": "Pipeline complete. Feature ready for merge to main.",
-  "scope": "No further phases. Documentation cycle closed.",
+  "feature": "clarification-checkpoints",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
+    "docs/features/clarification-checkpoints/prd.md",
     "CHANGELOG.md",
-    "CLAUDE.md",
-    "release-notes/2026-04-13_v5.5.0_review-hardening.md",
-    "docs/features/review-hardening/prd.md"
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated with v5.5.0 entry covering all 18 ACs",
-    "Release note created in release-notes/ with review findings",
-    "CLAUDE.md conventions updated with separate-context and source_spec guidance",
-    "CLAUDE.md timestamp updated to 2026-04-13"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
     "head -20 CHANGELOG.md",
-    "grep -i 'last updated' CLAUDE.md",
-    "ls release-notes/ | tail -1"
+    "grep -i 'last updated' CLAUDE.md"
   ],
-  "source_spec": "docs/features/review-hardening/prd.md",
-  "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T22:25:00Z"
+  "source_spec": "docs/issues/tickets/ISS-029.md",
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-13T23:45:00Z"
 }

@@ -20,6 +20,9 @@ Before reading any implementation files, run:
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
 - For the rest of this command, use that resolved feature slug in place of `$ARGUMENTS`.
 
+If .claude/handoff.json has `checkpoint_pending: "architecture-review"`, resume the review
+checkpoint from the previous session rather than restarting the phase.
+
 Your task: produce docs/features/$ARGUMENTS/architecture.md
 
 Rules:
@@ -32,7 +35,34 @@ Rules:
 - Include the architecture skill's reliability fields: decision confidence, revisit trigger, rollback/fallback, and trust boundaries when relevant
 - If a key architectural assumption is still ambiguous, record it explicitly instead of smoothing it over
 - Output must be under 200 lines
-- Run Phase 2 verification from verification-gate skill
+
+## Review Checkpoint
+
+After drafting the architecture document, present a summary of the proposed architecture
+to the user and request user review before finalizing. Wait for user feedback and approval.
+Do not advance without user response.
+
+Before stopping, write .claude/handoff.json with all required fields so the checkpoint
+survives session interruption:
+  feature: $ARGUMENTS, phase: 2, goal: "Review architecture proposal with user",
+  scope: "Phase 2 architecture review", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
+  acceptance_criteria: ["pending-architecture-review"], verification_commands: ["cat .claude/handoff.json"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
+  checkpoint_pending: "architecture-review", produced_by: "architect", timestamp: current ISO 8601
+Signal that the phase is awaiting review — this is not yet complete. The phase is still in
+review until the user approves.
+
+Wait for user feedback. Do not finalize or commit until the user responds.
+
+If the user requests changes: incorporate the feedback, revise the architecture, and re-present
+the summary. Multiple revision cycles are allowed. Continue until the user approves.
+
+If the user approves: clear `checkpoint_pending`, then proceed to finalize.
+
+Do not finalize the architecture without explicit user approval. The phase must not advance
+without the user confirming the architecture is acceptable.
+
+After approval, run Phase 2 verification from verification-gate skill, then:
 - Commit when done with message: "arch: $ARGUMENTS architecture decision record"
 
 After committing, write .claude/handoff.json with:

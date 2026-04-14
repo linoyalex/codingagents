@@ -106,6 +106,143 @@ test('restore-context logs error to stderr on malformed handoff JSON', (t) => {
   );
 });
 
+// Checkpoint resumption: no-ticket fixture produces resumable restore-context output
+test('restore-context output from no-ticket fixture includes request context and pending questions', (t) => {
+  const projectDir = makeTempDir(t, 'codingagents-fixture-restore-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  // Use the actual fixture file — this is the exact reproduction path the Codex reviewer used
+  const fixturePath = path.join(ROOT_DIR, 'tests', 'fixtures', 'handoff', 'checkpoint-no-ticket.json');
+  fs.copyFileSync(fixturePath, path.join(claudeDir, 'handoff.json'));
+
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Must contain the original request summary (from goal field)
+  assert.match(result.stdout, /search filters|dashboard/i,
+    'Restored no-ticket checkpoint must include original request context from goal');
+  // Must contain the pending clarification questions (from scope field)
+  assert.match(result.stdout, /filter fields|persist across sessions/i,
+    'Restored no-ticket checkpoint must include pending questions from scope');
+  // Must signal checkpoint pending
+  assert.match(result.stdout, /checkpoint.*pending|pending.*checkpoint/i,
+    'Restored no-ticket checkpoint must signal checkpoint_pending');
+});
+
+// Checkpoint resumption: session-state uses current-phase model, not next-phase
+test('restore-context logs current-phase model for checkpoint resumptions', (t) => {
+  // Arrange: Phase 1 clarification checkpoint — agent is product-owner, model is haiku
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-model-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'test-feature',
+    phase: 1,
+    goal: 'Resolve clarification questions',
+    scope: 'Phase 1 clarification gate',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/test-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: session-state should log current-phase agent/model, not next-phase
+  const sessionState = JSON.parse(
+    fs.readFileSync(path.join(claudeDir, '.session-state.json'), 'utf8')
+  );
+  // Phase 1 current agent is product-owner with haiku, NOT architect with opus (next phase)
+  assert.equal(sessionState.agent, 'product-owner',
+    'Checkpoint resumption must log current-phase agent (product-owner), not next-phase (architect)');
+  assert.match(sessionState.model, /haiku/,
+    'Checkpoint resumption must log current-phase model (haiku), not next-phase (opus)');
+});
+
+// Checkpoint resumption: restore-context includes request context for no-ticket checkpoints
+test('restore-context output includes goal with request context for checkpoint handoffs', (t) => {
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-goal-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'new-feature',
+    phase: 1,
+    goal: 'Resolve clarification for: Add user authentication with OAuth',
+    scope: 'Phase 1 clarification gate — questions: 1) Which OAuth providers? 2) Session storage?',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/new-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: restored output should contain the request summary from goal
+  assert.match(result.stdout, /OAuth/i,
+    'Restored output must include the original request context from the goal field');
+  // And the pending questions from scope
+  assert.match(result.stdout, /OAuth providers|Session storage/i,
+    'Restored output must include the pending questions from the scope field');
+});
+
+// Checkpoint resumption: restore-context.js surfaces checkpoint_pending
+test('restore-context surfaces checkpoint_pending in restored output', (t) => {
+  // Arrange
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-restore-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'test-feature',
+    phase: 1,
+    goal: 'Resolve clarification questions before PRD finalization',
+    scope: 'Phase 1 clarification gate',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/test-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: stdout must contain checkpoint_pending so the resumed agent knows
+  // to resume the checkpoint rather than restarting the phase
+  assert.match(
+    result.stdout,
+    /checkpoint_pending|checkpoint.*pending|awaiting.*clarification|resume.*clarification/i,
+    'restore-context must surface checkpoint_pending state in restored output'
+  );
+});
+
+// Sync: restore-context.js source/installed copies
+test('Sync: hooks/restore-context.js matches .claude/helpers/restore-context.js', () => {
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'restore-context.js'), 'utf8');
+  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'restore-context.js'), 'utf8');
+  assert.equal(source, installed, 'Source and installed copies of restore-context.js must be byte-identical');
+});
+
 // AC5: only spec docs exist in feature dir after phases 1–3
 test('pre-implementation feature directory contains only spec artifacts', () => {
   // Arrange: simulate what phases 1–3 produce for dogfood-pipeline
