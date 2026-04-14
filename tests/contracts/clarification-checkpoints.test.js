@@ -448,6 +448,78 @@ test('Checkpoint durability: handoff.schema.json accepts optional checkpoint_pen
   );
 });
 
+test('Checkpoint durability: checkpoint handoff in specify includes all required schema fields', () => {
+  const cmd = read('commands/specify.md');
+  const rawSchema = read('schemas/handoff.schema.json');
+  const schema = JSON.parse(rawSchema);
+  const requiredFields = schema.required || [];
+  // Extract the checkpoint handoff section (between "Before stopping" and the next step/section)
+  const checkpointSection = cmd.match(/Before stopping.*?checkpoint_pending.*?timestamp[^\n]*/s);
+  assert.ok(checkpointSection, 'commands/specify.md must have a checkpoint handoff section with all fields');
+  for (const field of requiredFields) {
+    assert.match(
+      checkpointSection[0],
+      new RegExp(field),
+      `Checkpoint handoff in specify must include required field: ${field}`
+    );
+  }
+});
+
+test('Checkpoint durability: checkpoint handoff in architect includes all required schema fields', () => {
+  const cmd = read('commands/architect.md');
+  const rawSchema = read('schemas/handoff.schema.json');
+  const schema = JSON.parse(rawSchema);
+  const requiredFields = schema.required || [];
+  // Extract the checkpoint handoff section
+  const checkpointSection = cmd.match(/Before stopping.*?checkpoint_pending.*?timestamp[^\n]*/s);
+  assert.ok(checkpointSection, 'commands/architect.md must have a checkpoint handoff section with all fields');
+  for (const field of requiredFields) {
+    assert.match(
+      checkpointSection[0],
+      new RegExp(field),
+      `Checkpoint handoff in architect must include required field: ${field}`
+    );
+  }
+});
+
+test('Final handoff: commands/specify.md includes source_spec in Phase 1 handoff', () => {
+  const cmd = read('commands/specify.md');
+  // Find the final handoff section (after committing)
+  const finalHandoff = cmd.match(/After committing.*?write.*?handoff\.json.*?timestamp[^\n]*/s);
+  assert.ok(finalHandoff, 'commands/specify.md must have a final handoff section');
+  assert.match(
+    finalHandoff[0],
+    /source_spec/,
+    'Final handoff in specify must include source_spec field'
+  );
+});
+
+test('Final handoff: commands/architect.md includes source_spec in Phase 2 handoff', () => {
+  const cmd = read('commands/architect.md');
+  const finalHandoff = cmd.match(/After committing.*?write.*?handoff\.json.*?timestamp[^\n]*/s);
+  assert.ok(finalHandoff, 'commands/architect.md must have a final handoff section');
+  assert.match(
+    finalHandoff[0],
+    /source_spec/,
+    'Final handoff in architect must include source_spec field'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Read-scope consistency: no contradictory instructions
+// ---------------------------------------------------------------------------
+
+test('Read-scope: commands/specify.md does not contain contradictory "read nothing except" instruction', () => {
+  const cmd = read('commands/specify.md');
+  // The old instruction "Read nothing except this feature request — no src/, no existing files"
+  // contradicts Step 1 which requires reading ticket + docs/CLAUDE.md
+  assert.doesNotMatch(
+    cmd,
+    /read\s+nothing\s+except\s+this\s+feature\s+request/i,
+    'commands/specify.md must not contain "Read nothing except this feature request" — it contradicts ticket/CLAUDE.md reading in Step 1'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Ticket-not-found: specify must not silently skip fidelity
 // ---------------------------------------------------------------------------

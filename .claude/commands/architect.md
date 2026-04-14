@@ -42,7 +42,13 @@ After drafting the architecture document, present a summary of the proposed arch
 to the user and request user review before finalizing. Wait for user feedback and approval.
 Do not advance without user response.
 
-Write `checkpoint_pending: "architecture-review"` to .claude/handoff.json before stopping.
+Before stopping, write .claude/handoff.json with all required fields so the checkpoint
+survives session interruption:
+  feature: $ARGUMENTS, phase: 2, goal: "Review architecture proposal with user",
+  scope: "Phase 2 architecture review", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
+  acceptance_criteria: ["pending-architecture-review"], verification_commands: ["cat .claude/handoff.json"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
+  checkpoint_pending: "architecture-review", produced_by: "architect", timestamp: current ISO 8601
 Signal that the phase is awaiting review — this is not yet complete. The phase is still in
 review until the user approves.
 
@@ -63,6 +69,7 @@ After committing, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 2, goal: "Write failing test shells from specs",
   scope: "Phase 3 test design only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls tests/contracts/$ARGUMENTS.test.ts"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "architect", timestamp: current ISO 8601
 
 Then print:

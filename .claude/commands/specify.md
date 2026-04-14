@@ -42,8 +42,13 @@ questions whose answers would not change the PRD):
 - Required PRD fields cannot be inferred from the request
 
 If any trigger fires: ask the minimum necessary clarification questions, then STOP and
-wait for the user to respond before finalizing the PRD. Write
-`checkpoint_pending: "clarification"` to .claude/handoff.json before stopping.
+wait for the user to respond before finalizing the PRD. Before stopping, write
+.claude/handoff.json with all required fields so the checkpoint survives session interruption:
+  feature: <feature-slug>, phase: 1, goal: "Resolve clarification questions before PRD finalization",
+  scope: "Phase 1 clarification gate", relevant_files: ["docs/issues/tickets/ISS-NNN.md"],
+  acceptance_criteria: ["pending-clarification"], verification_commands: ["cat .claude/handoff.json"],
+  source_spec: "docs/issues/tickets/ISS-NNN.md" (or "docs/features/<feature-slug>/prd.md" if no ticket),
+  checkpoint_pending: "clarification", produced_by: "product-owner", timestamp: current ISO 8601
 
 If the user provides partial answers or declines to answer: record each unanswered question as an explicit assumption in the Dependencies section, then proceed.
 Do not block indefinitely on optional clarification.
@@ -59,7 +64,7 @@ answers into the PRD, then:
   (e.g. "Add user auth flow" → "user-auth", "Search filters for dashboard" → "search-filters")
 - Create docs/features/<feature-slug>/ if it doesn't exist
 - Write the PRD to docs/features/<feature-slug>/prd.md
-- Read nothing except this feature request — no src/, no existing files
+- Read only the feature request, the ticket (if referenced in Step 1), and docs/CLAUDE.md (for convention verification) — no src/, no unrelated files
 - product-owner writes: User Story, Acceptance Criteria (Given/When/Then), Out of Scope
 - ux-designer adds: Screen States table (Empty / Loading / Populated / Error / Success per screen)
 - Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.
@@ -74,6 +79,7 @@ After committing, write .claude/handoff.json with:
   feature: <feature-slug>, phase: 1, goal: "Produce architecture decision record",
   scope: "Phase 2 architecture only", relevant_files: ["docs/features/<feature-slug>/prd.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls docs/features/<feature-slug>/architecture.md"],
+  source_spec: "docs/features/<feature-slug>/prd.md",
   produced_by: "product-owner", timestamp: current ISO 8601
 
 Then print:

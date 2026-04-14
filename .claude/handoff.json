@@ -17,10 +17,9 @@
     "grep -i 'last updated' CLAUDE.md"
   ],
   "known_risks": [
-    "HIGH finding in integration test (line 120: || should be &&) — logged but not blocking merge; document as known gap",
-    "MEDIUM finding: checkpoint_pending schema has no enum constraint — document as follow-up (ISS-044 or new ticket)"
+    "MEDIUM finding: checkpoint_pending schema has no enum constraint — document as follow-up (ISS-044)"
   ],
   "source_spec": "docs/issues/tickets/ISS-029.md",
   "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T12:45:00Z"
+  "timestamp": "2026-04-13T18:00:00Z"
 }

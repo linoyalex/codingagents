@@ -117,7 +117,7 @@ test('Integration: commands/specify.md wires complete flow: skill load → fidel
   assert.ok(commitIdx >= 0, 'Commit step must exist');
 
   assert.ok(skillLoadIdx < fidelityIdx, 'Skill load must come before fidelity step');
-  assert.ok(fidelityIdx < clarificationIdx || clarificationIdx < commitIdx,
+  assert.ok(fidelityIdx < clarificationIdx && clarificationIdx < commitIdx,
     'Both fidelity and clarification must appear before commit');
   assert.ok(clarificationIdx < commitIdx, 'Clarification gate must come before commit');
 });
