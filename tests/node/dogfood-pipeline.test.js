@@ -106,6 +106,76 @@ test('restore-context logs error to stderr on malformed handoff JSON', (t) => {
   );
 });
 
+// Checkpoint resumption: session-state uses current-phase model, not next-phase
+test('restore-context logs current-phase model for checkpoint resumptions', (t) => {
+  // Arrange: Phase 1 clarification checkpoint — agent is product-owner, model is haiku
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-model-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'test-feature',
+    phase: 1,
+    goal: 'Resolve clarification questions',
+    scope: 'Phase 1 clarification gate',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/test-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: session-state should log current-phase agent/model, not next-phase
+  const sessionState = JSON.parse(
+    fs.readFileSync(path.join(claudeDir, '.session-state.json'), 'utf8')
+  );
+  // Phase 1 current agent is product-owner with haiku, NOT architect with opus (next phase)
+  assert.equal(sessionState.agent, 'product-owner',
+    'Checkpoint resumption must log current-phase agent (product-owner), not next-phase (architect)');
+  assert.match(sessionState.model, /haiku/,
+    'Checkpoint resumption must log current-phase model (haiku), not next-phase (opus)');
+});
+
+// Checkpoint resumption: restore-context includes request context for no-ticket checkpoints
+test('restore-context output includes goal with request context for checkpoint handoffs', (t) => {
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-goal-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'new-feature',
+    phase: 1,
+    goal: 'Resolve clarification for: Add user authentication with OAuth',
+    scope: 'Phase 1 clarification gate — questions: 1) Which OAuth providers? 2) Session storage?',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/new-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: restored output should contain the request summary from goal
+  assert.match(result.stdout, /OAuth/i,
+    'Restored output must include the original request context from the goal field');
+  // And the pending questions from scope
+  assert.match(result.stdout, /OAuth providers|Session storage/i,
+    'Restored output must include the pending questions from the scope field');
+});
+
 // Checkpoint resumption: restore-context.js surfaces checkpoint_pending
 test('restore-context surfaces checkpoint_pending in restored output', (t) => {
   // Arrange

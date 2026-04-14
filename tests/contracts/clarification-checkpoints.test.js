@@ -448,6 +448,30 @@ test('Checkpoint durability: handoff.schema.json accepts optional checkpoint_pen
   );
 });
 
+test('Checkpoint durability: specify checkpoint handoff instructs including request context in goal', () => {
+  const cmd = read('commands/specify.md');
+  // The checkpoint handoff section must instruct including the original request summary
+  // so that restore-context.js can surface it on session resumption
+  const checkpointSection = cmd.match(/Before stopping.*?checkpoint_pending.*?timestamp[^\n]*/s);
+  assert.ok(checkpointSection, 'Checkpoint handoff section must exist');
+  assert.match(
+    checkpointSection[0],
+    /request|summary|original.*feature|feature.*request|\$ARGUMENTS/i,
+    'Checkpoint handoff goal must instruct including the original request context so resumed sessions can continue'
+  );
+});
+
+test('Checkpoint durability: specify checkpoint handoff instructs including pending questions in scope', () => {
+  const cmd = read('commands/specify.md');
+  const checkpointSection = cmd.match(/Before stopping.*?checkpoint_pending.*?timestamp[^\n]*/s);
+  assert.ok(checkpointSection, 'Checkpoint handoff section must exist');
+  assert.match(
+    checkpointSection[0],
+    /question|clarification.*asked|pending.*question/i,
+    'Checkpoint handoff scope must instruct including the pending clarification questions'
+  );
+});
+
 test('Checkpoint durability: checkpoint handoff in specify includes all required schema fields', () => {
   const cmd = read('commands/specify.md');
   const rawSchema = read('schemas/handoff.schema.json');
