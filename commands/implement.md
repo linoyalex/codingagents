@@ -37,6 +37,7 @@ Rules:
     Name the happy, edge, and misuse/abuse cases you are covering when relevant
     Write the minimum code to make tests pass (no over-engineering)
     Do not optimize only for the current tests; implement a general solution for valid inputs
+    If present in .claude/handoff.json, review the known_risks array and address or defer each risk with a rationale before proceeding
     Run tests → must pass
     Run lint + typecheck → fix ALL errors before proceeding:
       npm run lint -- --fix    # auto-fix what's safe

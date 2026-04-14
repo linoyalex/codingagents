@@ -19,6 +19,7 @@ version: "1.3.0"
 ```text
 RED:      Run tests -> confirm they fail for the intended reason -> commit "test: [feature] failing tests"
 GREEN:    Write minimum code to pass -> run tests -> all pass -> commit "feat: [feature] passing"
+          Before committing GREEN, review known_risks from handoff.json (if present) and address or defer each with a rationale.
 REFACTOR: Clean up -> tests still pass -> commit "refactor: [feature] cleanup"
 ```
 
