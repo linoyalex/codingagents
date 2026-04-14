@@ -157,6 +157,7 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 - **Phrase-bound tests break under refinement** — a test that asserts `assert.match(skill, /exact sentence here/i)` fails if the guidance is reworded for clarity. Use structural anchors instead: `assert.match(skill, /^## Stop Conditions$/m)` survives rewording. See ISS-010 rework findings for details.
 - **Feature slug naming mismatch** — The project's own feature slugs use uppercase prefixes (e.g., `ISS-009-resolve-feature-coverage`), but `FEATURE_SLUG_RE` regex in resolve-feature.js only accepts lowercase. This forces callers to rely on handoff.json fallback. Not a blocker (fallback works correctly), but limits the explicit-arg path. Tracked separately; fix when renaming slugs across the codebase.
 - **upgrade.sh idempotency gap** — resolve-feature.js copy is guarded by `if [ "$CORE_NEEDS_UPGRADE" = true ]`, so projects with recent core versions that re-run upgrade.sh won't receive the file if core is already up to date but the file is missing. Low risk in practice, but noted for future improvements to installer idempotency.
+- **Gate commands must stay symmetric** — `commands/review.md` and `commands/security-gate.md` must both contain `Source Spec Verification`, `Separate Context Check`, and `Symmetric Gate Enforcement` sections. If one gate adds a check, the other must add it too. Contract tests assert this invariant across both files simultaneously. ISS-039 discovered that a missing section in `security-gate.md` caused every reviewer following the symmetric enforcement instruction to file a false-positive HIGH finding.
 - **Integration tests depend on architecture documentation** — The TDD skill (ISS-022) now requires integration tests to understand call chains and entry points. If the Phase 2 architecture doc lacks a "Call Chain" or "Integration Points" section, the Phase 3 QA agent must note this gap in a comment and mark it in the handoff. Phase 2 architects should include these sections proactively to avoid Phase 3 delays. Future work (ISS-023) will make call chains a Phase 2 requirement.
 
 ---
@@ -173,4 +174,4 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 ---
 
 *Last updated: 2026-04-14*
-*Updated by: documentation-specialist (v5.7.0 — wiring-verification)*
+*Updated by: documentation-specialist (v5.8.0 — code-review-skill-hardening)*

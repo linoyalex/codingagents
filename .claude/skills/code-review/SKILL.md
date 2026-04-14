@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: Diff-based code review methodology with structured findings and verdict format
-version: "1.0.0"
+version: "1.1.0"
 ---
 
 # Skill: Code Review
@@ -12,7 +12,8 @@ version: "1.0.0"
 2. **Check big picture** — does the approach match the architecture? Any structural concerns?
 3. **Check tests** — are the right things tested? Are edge cases covered?
 4. **Review implementation** — read the diff for correctness, clarity, and convention compliance
-5. **Check integration** — does it work with the rest of the system? Any breaking changes?
+5. **Trace downstream impact** — if the diff touches schema files, trace producers and consumers. [See reference: .claude/skills/code-review/impact-analysis.md]
+6. **Check integration** — does it work with the rest of the system? Any breaking changes?
 
 ## Reading the Diff
 
@@ -46,6 +47,14 @@ git diff main...HEAD | grep -n "\.skip\|xtest\|xit\b"
 git diff main...HEAD | grep -n "as any\|: any"
 ```
 
+## Source/Installed Drift Check
+
+Verify source and installed copies are in sync for any `commands/`, `skills/`, or `hooks/` files in the diff. [See reference: .claude/skills/code-review/automated-checks.md]
+
+## Test Suite Execution
+
+Run test suites covering files touched by the diff. Report pass/fail. [See reference: .claude/skills/code-review/automated-checks.md]
+
 ## Finding Classification
 
 | Severity | Meaning | Action |
@@ -55,6 +64,10 @@ git diff main...HEAD | grep -n "as any\|: any"
 | **MEDIUM** | Code quality, naming, or convention issue | Fix if straightforward |
 | **LOW** | Stylistic preference or minor improvement | Optional |
 | **NIT** | Trivial observation | No action needed |
+
+## Reproduction Requirement
+
+Before finalizing any BLOCKING or HIGH finding, reproduce it with actual commands and document the evidence. [See reference: .claude/skills/code-review/reproduction.md]
 
 ## Conventional Comments Format
 
@@ -143,6 +156,10 @@ The reviewer must form their own expectations before reading the diff or develop
 - **Be specific** — "this could be better" is not feedback; "this function handles 3 concerns and should be split" is
 - **Separate style from substance** — blocking on naming conventions wastes time; blocking on missing auth checks saves the product
 - **Fresh context only** — never review code you wrote in the same session
+
+## Symmetric Gate Enforcement
+
+When verifying a gate-phase check (e.g., `produced_by`, `source_spec`, `separate context`), confirm the same check exists in both `commands/review.md` and `commands/security-gate.md`. If one gate has a check the other lacks, raise a HIGH finding.
 
 ---
 **STOP CONDITIONS (end of file):**

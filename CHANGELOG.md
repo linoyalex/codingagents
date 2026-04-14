@@ -13,6 +13,34 @@ No unreleased changes documented yet.
 
 ---
 
+## [5.8.0] — 2026-04-14
+
+### Added
+- **Schema impact tracing in code review (AC1)** — review methodology now instructs reviewers to grep for all producers and consumers of any changed schema, tracing fields through the schema → validate → transform chain
+- **Source/installed drift check in code review (AC2)** — Quick Automated Checks now compare each touched source file against its installed copy and flag divergence; includes a pre-diff caveat to verify against the committed version, not the working tree
+- **Test suite execution requirement in code review (AC3)** — reviewers now run the project's test suite as part of review, determining the appropriate test command from project configuration and running suites covering files touched by the diff
+- **Finding reproduction requirement (AC4)** — BLOCKING and HIGH findings must be reproduced with actual commands before final severity assignment; unverifiable findings are marked "unverified" and cannot receive BLOCKING severity without escalation
+- **Structural anchor regression tests (AC5)** — 64 contract, integration, and E2E tests verify all new methodology sections using heading/label anchors, not phrase-binding
+- **Symmetric gate enforcement (AC6)** — reviewers must confirm every gate check (`produced_by`, `source_spec`, `separate context`) exists in both `commands/review.md` and `commands/security-gate.md`; missing checks in either gate command are raised as HIGH findings
+
+### Changed
+- **code-review skill expanded with progressive disclosure** — added 3 sibling reference files (`impact-analysis.md`, `automated-checks.md`, `reproduction.md`) and Symmetric Gate Enforcement section to SKILL.md; skill remains within size budget
+- **commands/security-gate.md updated** — added Symmetric Gate Enforcement section to match `commands/review.md`, closing the gate divergence that caused false-positive HIGH findings
+
+### Fixed
+- **Gate command divergence (F1)** — `commands/security-gate.md` previously lacked Source Spec Verification, Separate Context Check, and Symmetric Gate Enforcement sections that existed in `commands/review.md`; all three now present in both gate commands
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [5.7.0] — 2026-04-14
 
 ### Added

@@ -42,6 +42,10 @@ First read the `source_spec` field from `.claude/handoff.json`. This is the orig
 
 Check the `produced_by` field in the incoming handoff. If `produced_by` matches the current reviewer role (security-reviewer), halt: "Security gate requires separate context: current role matches handoff.produced_by." The same role must not author and review.
 
+## Symmetric Gate Enforcement
+
+When verifying a gate-phase check (e.g., `produced_by`, `source_spec`, `separate context`), confirm the identical check exists in both `commands/review.md` and `commands/security-gate.md`. If one gate has a check the other lacks, raise a HIGH finding.
+
 Your task: design-time security audit for feature: $ARGUMENTS
 
 Rules:

@@ -1,5 +1,5 @@
 {
-  "feature": "wiring-verification",
+  "feature": "code-review-skill-hardening",
   "phase": 7,
   "goal": "Pipeline complete. Merge to main after final checks.",
   "scope": "No further phases",
@@ -16,7 +16,7 @@
     "head -20 CHANGELOG.md",
     "ls release-notes/ | tail -1"
   ],
-  "source_spec": "docs/issues/tickets/ISS-036.md",
+  "source_spec": "docs/features/code-review-skill-hardening/prd.md",
   "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-14T14:15:00Z"
+  "timestamp": "2026-04-14T20:00:00Z"
 }
