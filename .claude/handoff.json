@@ -1,27 +1,23 @@
 {
   "feature": "implement-known-risks",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 7,
+  "goal": "Phase 7 complete — post-merge documentation updated.",
+  "scope": "Documentation finalization only. Feature ready for release.",
   "relevant_files": [
-    "docs/features/implement-known-risks/architecture.md",
+    "CHANGELOG.md",
+    "CLAUDE.md",
     "docs/features/implement-known-risks/prd.md"
   ],
   "acceptance_criteria": [
-    "AC1: commands/implement.md GREEN section includes known_risks read instruction",
-    "AC2: TDD skill GREEN phase checklist includes known_risks verification item",
-    "AC3: Contract test verifies known_risks instruction using structural anchors",
-    "AC4: Empty known_risks array or missing handoff requires no developer action",
-    "AC5: Malformed handoff.json halts via existing error handling"
+    "CHANGELOG.md updated with 5.6.0 release entry",
+    "CLAUDE.md timestamp reflects 2026-04-13",
+    "All 5 ACs from PRD satisfied and documented"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/implement-known-risks/review.md"
+    "grep -A 5 '## \\[5.6.0\\]' CHANGELOG.md",
+    "grep 'Last updated: 2026-04-13' CLAUDE.md"
   ],
   "source_spec": "docs/features/implement-known-risks/prd.md",
-  "known_risks": [
-    "Missing Call Chain in arch doc — integration target chosen by QA"
-  ],
-  "produced_by": "developer",
-  "timestamp": "2026-04-14T03:55:00Z"
+  "produced_by": "documentation-specialist",
+  "timestamp": "2026-04-13T17:45:00Z"
 }
