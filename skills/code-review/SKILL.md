@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: Diff-based code review methodology with structured findings and verdict format
-version: "1.0.0"
+version: "1.1.0"
 ---
 
 # Skill: Code Review
