@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T20:30:00Z
+**Generated:** 2026-04-14T21:00:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -56,7 +56,7 @@ So that my project stays current with new conventions, architecture notes, and k
 - **No-op detection:** Byte-identical comparison on managed block content (after trailing whitespace normalization). Markers are the canonical anchor.
 - **Malformed marker handling:** Unpaired markers → warn + skip section, continue (exit 0).
 - **Non-interactive fallback:** If stdin is not a terminal (`! [ -t 0 ]`), skip interactive prompts. Default to keeping existing CLAUDE.md with a message about `--sync-claude-md`.
-- **Pre-sync backup:** Before modifying an existing `CLAUDE.md`, the sync saves a copy to `CLAUDE.md.pre-sync` and prints restore instructions. This provides immediate rollback without requiring git or the full ISS-007 backup system. The backup is overwritten on each subsequent sync run.
+- **Pre-sync backup:** Before modifying an existing `CLAUDE.md` (only when changes are pending), the sync saves a copy to `CLAUDE.md.pre-sync` and prints restore instructions. No-op syncs skip backup creation, preserving any existing `.pre-sync` from a prior run. When changes are pending and a `.pre-sync` already exists, it is overwritten with the current file.
 - ISS-007 (full backup support) is not a hard blocker — marker-based sync is non-destructive to content outside markers, and the pre-sync backup provides a lightweight safety net
 
 ### RICE Score

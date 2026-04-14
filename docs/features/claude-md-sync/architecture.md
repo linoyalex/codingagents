@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T20:30:00Z
+**Generated:** 2026-04-14T21:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -189,8 +189,10 @@ Both `init.sh` and `upgrade.sh` print a CLAUDE.md status line in their final sum
 
 The `CLAUDE_MD_STATUS` variable is set during the CLAUDE.md step and printed at the end.
 Possible values:
-- `"synced N sections"` — all sections processed successfully
+- `"synced N sections"` — all sections processed successfully (steady-state)
 - `"synced N sections (M skipped — see warnings above)"` — partial success with malformed markers
+- `"migrated N sections (markers added)"` — legacy migration completed
+- `"migrated N sections (markers added, M skipped)"` — legacy migration with some sections skipped
 - `"copied template"` — first-time init without sync
 - `"overwritten with template"` — user chose overwrite at prompt
 - `"kept existing"` — user declined overwrite (legacy path, if retained)
