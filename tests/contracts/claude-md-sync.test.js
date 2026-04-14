@@ -367,6 +367,13 @@ test('AC7b: backup creation failure aborts sync, original unchanged', () => {
     assert.fail('should have exited non-zero when backup cannot be created');
   } catch (err) {
     assert.notEqual(err.status, 0, 'must exit non-zero on backup failure');
+    // Must emit a user-visible error message about the backup failure
+    const output = (err.stdout || '') + (err.stderr || '');
+    assert.match(
+      output,
+      /backup|pre-sync/i,
+      'must emit user-visible error message about backup failure'
+    );
   }
 
   // Original file must be byte-identical — not modified
@@ -403,7 +410,7 @@ test('AC3c: legacy migration inserts markers and preserves user content', () => 
   }
 });
 
-test('AC3c: legacy migration with preserved lines shows advisory', () => {
+test('AC3c: legacy migration with preserved lines shows inline advisory with count', () => {
   const source = '## Known Gotchas\n- Framework gotcha\n';
   const target = [
     '## Known Gotchas',
@@ -413,10 +420,11 @@ test('AC3c: legacy migration with preserved lines shows advisory', () => {
   const { stdout, exitCode, tmpDir } = runSyncFunction(source, target, 'upgrade');
   try {
     assert.equal(exitCode, 0);
+    // Must show inline advisory with preserved-line count per AC5
     assert.match(
       stdout,
-      /preserved|review/i,
-      'output must include preserved-line advisory for migrated section'
+      /\[migrated.*\d+\s*(line|lines)\s*preserved/i,
+      'output must show [migrated, N lines preserved — review for stale text] inline format'
     );
   } finally {
     cleanupDir(tmpDir);

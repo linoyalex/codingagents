@@ -287,9 +287,13 @@ test('E2E: backup creation failure aborts sync, original file unchanged', () => 
   // Make backup path unwritable by creating it as a directory
   fs.mkdirSync(path.join(tmpDir, 'CLAUDE.md.pre-sync'));
 
-  const { exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+  const { stdout, stderr, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
 
   assert.notEqual(exitCode, 0, 'must exit non-zero on backup failure');
+
+  // Must emit user-visible error about backup failure
+  const output = (stdout || '') + (stderr || '');
+  assert.match(output, /backup|pre-sync/i, 'must emit error message about backup failure');
 
   // Original must be unchanged
   const afterContent = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
@@ -385,7 +389,12 @@ test('E2E: upgrade --sync-claude-md on legacy CLAUDE.md performs migration', () 
       'user content must be preserved after migration'
     );
 
-    assert.match(stdout, /migrated/i, 'output must report migration');
+    // Must report migration with inline preserved-line count per AC5
+    assert.match(
+      stdout,
+      /\[migrated.*\d+\s*(line|lines)\s*preserved/i,
+      'output must show [migrated, N lines preserved — review for stale text] inline format'
+    );
   } finally {
     cleanupDir(tmpDir);
   }
