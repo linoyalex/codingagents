@@ -42,6 +42,10 @@ Check the `produced_by` field in the incoming handoff. If `produced_by` matches 
 
 Even if the role check passes, independently re-derive your coverage expectations from the source_spec. Do not trust framing carried over from the authoring phase.
 
+## Symmetric Gate Enforcement
+
+When verifying any gate-phase check (e.g., `produced_by`, `source_spec`, `separate context`), confirm the identical check exists in both `commands/review.md` and `commands/security-gate.md`. If one gate has a check the other lacks, raise a HIGH finding.
+
 Your task: review the current branch against main.
 
 Rules:
