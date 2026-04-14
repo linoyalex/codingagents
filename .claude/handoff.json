@@ -1,22 +1,26 @@
 {
   "feature": "codex-review-hardening",
-  "phase": 6,
-  "goal": "Post-merge documentation update",
-  "scope": "Phase 7 documentation only",
+  "phase": 5,
+  "goal": "Diff-based code review in fresh context",
+  "scope": "Phase 6 review only",
   "relevant_files": [
-    "docs/features/codex-review-hardening/prd.md",
-    "CHANGELOG.md",
-    "CLAUDE.md"
+    "docs/features/codex-review-hardening/architecture.md",
+    "docs/features/codex-review-hardening/prd.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated",
-    "CLAUDE.md timestamp updated"
+    "AC1: install-path tracing rule in review-code.md",
+    "AC2: test-truthfulness rule in review-code.md",
+    "AC3: parser edge-case checklist in review-code.md",
+    "AC4: unchanged-file scope rule in review-code.md",
+    "AC5: docs/memory/codex-rules.md updated",
+    "AC6: structural anchor tests for AC1-AC4",
+    "AC7: installer coverage contract test"
   ],
   "verification_commands": [
-    "head -20 CHANGELOG.md",
-    "grep -i 'last updated' CLAUDE.md"
+    "git diff main...HEAD",
+    "node --test tests/node/codex-review-method.test.js tests/node/installer-coverage.test.js"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
-  "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T23:15:00Z"
+  "produced_by": "developer",
+  "timestamp": "2026-04-14T03:10:00Z"
 }
