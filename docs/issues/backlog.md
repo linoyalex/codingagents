@@ -16,7 +16,6 @@
 
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
-| ~~1~~ | ~~[ISS-027](tickets/ISS-027.md)~~ | ~~P2 — Medium~~ | ~~Feature~~ | ~~—~~ | ~~Harden Codex code review method for install-path, sync-drift, and test-truthfulness checks~~ *(moved to in-progress)* |
 | 4 | [ISS-024](tickets/ISS-024.md) | P1 — High | Feature | ISS-013 | Add reviewer independence and boundary-tracing rules to code-review skill |
 | 5 | [ISS-033](tickets/ISS-033.md) | P2 — Medium | Feature | ISS-013 | Require reviewers to verify against the source specification or ticket |
 | 5 | [ISS-041](tickets/ISS-041.md) | P1 — High | Bug | ISS-024, ISS-014, ISS-033 | Existing checkpoint.test.js fixtures must include source_spec after schema change |

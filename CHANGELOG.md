@@ -13,6 +13,34 @@ No unreleased changes documented yet.
 
 ---
 
+## [5.5.0] — 2026-04-13
+
+### Added
+- **Install-path tracing rule in Codex review method (AC1)** — `codex/reviewers/review-code.md` now requires reviewers to inspect `init.sh` and `upgrade.sh` when a diff introduces a new helper, script, or path dependency, using any valid installer mechanism (literal copies, directory copies, loops, manifests)
+- **Test-truthfulness verification rule (AC2)** — Codex reviewers must now verify that each test's assertion body proves what the test name claims, especially for sync/parity/regression tests; misleading test names are flagged as MAJOR
+- **Parser/validator edge-case checklist (AC3)** — when a diff modifies a parser or validator, reviewers must enumerate malformed-input shapes (empty, boundary, wrong types, missing/extra fields) and verify direct test coverage for each
+- **Unchanged-file scope expansion rule (AC4)** — reviewers must now check unchanged files that install, generate, copy, or operationalize a changed file; scope expansion must be deliberate and documented
+- **Codex review expectations updated in process docs (AC5)** — `docs/memory/codex-rules.md` updated with a "Review Method Rules" section summarizing all four new rules; `docs/memory/review-process.md` defers to `codex-rules.md` as the canonical source of truth
+- **Structural anchor tests for review method rules (AC6)** — 19 deterministic tests verify each of the four new rules exists in `review-code.md` via heading-level regex anchors and keyword presence, plus section-scoped AC5 tests and an integration cohesion test
+- **Mechanism-agnostic installer coverage contract test (AC7)** — 24 tests verify every source file (`skills/*/SKILL.md`, `commands/*.md`, `hooks/*.js`) is operationalized by `init.sh` and `upgrade.sh` via any mechanism; includes `activeLines()` comment filter, `isInertLine()` false-positive guard, exclusion cap (5 per script), and phantom-exclusion detection
+
+### Changed
+- **docs/memory/review-process.md deduplicated** — removed duplicated file-ownership table; now defers to `codex-rules.md` as the single source of truth for Codex review conventions
+
+### Fixed
+- No bug fixes in this release
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [5.4.0] — 2026-04-13
 
 > Upgrade warning: `5.4.0` introduces a new Phase 3 gating factor. Upgrading agents mid-feature-cycle is strongly discouraged because existing test-design outputs may not satisfy the new integration-test artifact and verification requirements.
