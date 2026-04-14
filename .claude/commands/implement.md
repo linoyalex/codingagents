@@ -60,6 +60,7 @@ Then write .claude/handoff.json with:
   feature: <feature>, phase: 5, goal: "Diff-based code review in fresh context",
   scope: "Phase 6 review only", relevant_files: ["docs/features/<feature>/architecture.md", "docs/features/<feature>/prd.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["git diff main...HEAD", "ls docs/features/<feature>/review.md"],
+  source_spec: "docs/features/<feature>/prd.md",
   produced_by: "developer", timestamp: current ISO 8601
 
 Then print:

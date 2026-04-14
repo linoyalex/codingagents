@@ -1,0 +1,17 @@
+# Architecture Review: clarification-checkpoints
+**Generated:** 2026-04-13T20:58:41Z
+
+## Findings
+- [HIGH] [Decision / Failure Modes] The architecture relies entirely on instruction-file sequencing and explicitly avoids hooks, schema changes, or any other persisted checkpoint state. That leaves the new human checkpoints fragile across turn boundaries and session resumes: once the agent stops to wait for clarification or architecture feedback, there is no defined durable marker for "checkpoint pending" beyond conversational context. For a feature whose core contract is "do not silently finalize or advance," that is an under-addressed recovery risk.
+- [HIGH] [Failure Modes: Ticket file not found] The proposed fallback for a missing ticket is to "report error, skip fidelity check, proceed with clarification gate." That bypasses the feature's primary safeguard exactly when the source of truth cannot be read. If `/specify` can continue to produce a PRD after an unreadable ticket without a stronger stop condition or explicit degraded-mode contract, the architecture permits silent loss of the ticket-fidelity guarantee.
+- [MEDIUM] [Files Modified / Implementation Notes] The design has hidden coupling between the source files it plans to edit and the installed `.claude` copies that the runtime actually uses. The module-boundary table lists only `commands/*.md`, `skills/prd-writing/SKILL.md`, and one test file as modified, but the implementation notes later say the installed `.claude/commands/*` and `.claude/skills/*` copies must also be updated in sync. That deployment dependency is real behaviorally, yet it is not first-class in the design or in the proposed test surface.
+- [MEDIUM] [Structural Contract Tests] AC8 is implemented as structural ordering checks only, but the architecture leans on those checks to justify behavior such as "no hidden auto-advance" and "handoff not written before checkpoint." Ordering assertions are useful, but they do not verify the more failure-prone behaviors introduced here: remaining in review across multiple turns, resuming after user feedback, or avoiding finalization after a no-response path. The architecture understates that gap in coverage.
+- [MEDIUM] [Failure Modes: User abandons clarification] The specified fallback says that if the user abandons clarification, the agent records unanswered questions as assumptions and proceeds to PRD. That is a materially different path from the `/architect` checkpoint, where "user never responds" leaves the phase incomplete. The asymmetry may be valid, but the architecture does not justify it or define the boundary between "partial/declined answer that may proceed" and "no response yet, must remain blocked," which makes the human-checkpoint model harder to reason about operationally.
+
+## Open Questions
+- What is the authoritative mechanism for recognizing and resuming a pending checkpoint if the session is interrupted after `/specify` or `/architect` has already stopped for user input?
+- Should an unreadable or unparsable ticket block `/specify` from finalizing entirely when a ticket reference was explicitly provided, or is degraded-mode PRD generation acceptable for this feature?
+- If runtime behavior depends on `.claude` copies being updated in sync with source docs, where is that synchronization enforced and verified in the architecture rather than left as an implementation note?
+
+## Recommendation
+- Rework before implementation

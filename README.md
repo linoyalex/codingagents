@@ -22,25 +22,34 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 ---
 
-## What's new in v5
+## What's new in v5.5
 
-- **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases (advancing phases must write it before completion). Schema-validated by the Stop hook as a blocking gate, and failed gates keep the previous handoff instead of advancing. For human session resumability, use `/session-note` separately.
-- **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution. Retry cycles are tracked separately from first-pass costs.
-- **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits to prevent context bloat.
-- **Deployment tooling** — `init.sh` and `upgrade.sh` replace the manual 6-step copy process. Version tracking via `.claude/.codingagents-version`.
-- **Fail-closed phase commands** — Phases 2-7 resolve the feature through `.claude/helpers/resolve-feature.js` and stop on malformed args, stale fallback state, or slug/handoff mismatch instead of guessing.
-- **Codex review layer** (optional) — independent cross-model review at four pipeline checkpoints, with shared token tracking.
-- **Baseline metrics** — budget targets per phase with a reporting script to compare actuals against targets.
+- **Reviewer Independence** — code-review skill now includes a Reviewer Independence section: read PRD before developer handoff, treat claims as hypotheses to falsify, grep adjacent symbols, verify test coverage by reading fixtures, trace schema fields through parse/validate/transform chains.
+- **Adversarial gate reviewers** — ROLE_CODE_REVIEWER and ROLE_SECURITY explicitly adopt an adversarial-but-constructive stance. Reviewers challenge hidden assumptions, verify bypass paths, check stale state, and flag contradictory artifacts.
+- **Separate context enforcement** — gate review phases (4, 6) require separate context from the authoring phase — not just a fresh session. Pipeline phases tagged as (authoring) vs (gate/review) in CLAUDE.md.
+- **Source spec verification** — `source_spec` field required in `handoff.json`. Reviewers load the source specification (PRD or ticket) before reading the diff. Commands halt if `source_spec` is missing or unresolvable.
+- **Three-level test coverage** — TDD skill requires unit, integration, and E2E tests. Integration tests must call the production entry point and assert visible effects. Fixture validation and degenerate-input rules added.
+- **Skill size convention** — skills budget is ~150 lines instructional prose (templates excluded), 250 total triggers progressive disclosure split. Pipeline-gating skills must end with stop conditions footer.
+
+### Earlier in v5
+
+- **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases. Schema-validated by the Stop hook as a blocking gate.
+- **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution.
+- **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits.
+- **Deployment tooling** — `init.sh` and `upgrade.sh` with version tracking via `.claude/.codingagents-version`.
+- **Fail-closed phase commands** — Phases 2-7 resolve the feature through `resolve-feature.js` and stop on malformed args or mismatches.
+- **Codex review layer** (optional) — independent cross-model review at four pipeline checkpoints.
+- **Baseline metrics** — budget targets per phase with reporting script.
 
 ## Current release line
 
 - Canonical major line: `5.x`
 - Generation baseline: `5.0.0` from `version5-codex+token-governance`
-- Current published release: `5.4.0`
+- Current published release: `5.5.0`
 
-`5.4.0` adds a new Phase 3 gating factor: test design now requires an explicit integration-test output slot plus visible-effect verification against the production entry point.
+`5.5.0` hardens the review layer with three complementary changes: (1) Reviewer Independence methodology — reviewers read the PRD before the developer handoff and treat claims as hypotheses to falsify, (2) adversarial stance enforced in gate roles with separate-context requirement (not just fresh session), and (3) `source_spec` field now required in `handoff.json` — reviewers load the source specification before reading the diff.
 
-**Upgrade warning:** upgrading agents in the middle of an active feature cycle is strongly discouraged for `5.4.0` and later releases that change gates, schema expectations, command contracts, or required artifacts. If you are already mid-feature, finish the current cycle before upgrading when possible. If you have already upgraded, run `/status` first and be prepared to regenerate artifacts from the last stable phase rather than forcing older outputs through the new gate.
+**Upgrade warning:** `5.5.0` introduces a new required handoff field (`source_spec`) and new gate role requirements. Upgrading in the middle of an active feature cycle is strongly discouraged. If you are already mid-feature, finish the current cycle before upgrading when possible. If you have already upgraded, run `/status` first and be prepared to regenerate artifacts from the last stable phase rather than forcing older outputs through the new gate.
 
 See [RELEASE.md](RELEASE.md) for the canonical `5.x` mapping and release-process rules, and [QUICKSTART.md](QUICKSTART.md) for operator-safe upgrade guidance.
 
@@ -123,6 +132,7 @@ Every advancing phase writes `.claude/handoff.json` at the end of its phase with
 | `relevant_files` | Yes | Files the next agent should read first |
 | `acceptance_criteria` | Yes | ACs that carry forward |
 | `verification_commands` | Yes | Commands to verify the next phase's output |
+| `source_spec` | Yes | Path to source specification (PRD or ticket) for reviewer verification |
 | `constraints` | No | Hard constraints for the next phase |
 | `known_risks` | No | Open questions or risks |
 | `produced_by` | No | Agent role that produced this handoff |
@@ -200,7 +210,7 @@ Skills are a key architectural concept (introduced in v4, extended in v5). Each 
 | `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, property-based testing, coverage thresholds |
 | `security-audit` | security-gate | OWASP Top 10 checklist, serverless threat vectors, auth verification, severity levels |
 | `structured-logging` | implement, security-gate | Structured log format, log levels, PII scrubbing, security event requirements |
-| `code-review` | review | Conventional comments format, finding cap, diff reading, feedback taxonomy |
+| `code-review` | review | Reviewer Independence methodology, source-spec-first verification, boundary tracing, conventional comments, finding cap |
 | `release-docs` | document | Changelog format, release notes template, process learnings, CLAUDE.md updates |
 | `verification-gate` | all phases | Phase-specific verification, handoff validation, universal checklist, no-go criteria, retrospective protocol |
 
@@ -317,7 +327,7 @@ The three hook scripts in `hooks/` handle context preservation, structured hando
 | Content type | Location | Loaded | Max size |
 |---|---|---|---|
 | Project conventions, agent routing | `CLAUDE.md` | Always | ~250 lines |
-| Reusable procedures | `skills/*.md` | On demand | ~100 lines each |
+| Reusable procedures | `skills/*.md` | On demand | ~150 prose lines (250 total triggers split) |
 | Phase-specific context | `.claude/handoff.json` | At session start | ~50 lines |
 | Per-feature specs | `docs/` | By phase spec | No hard limit |
 | Agent memory | `.claude/agent-memory/` | On demand | ~100 lines each |
@@ -449,7 +459,7 @@ Rules:
 - **v3** — phase-gated pipeline, model tier assignments, slash commands, lifecycle hooks, token budget documentation
 - **v4** — extracted skills from roles (separation of concerns), YAML frontmatter on all commands for VS Code, standardised output paths (`docs/reviews/`, `docs/security/`), release notes generation in documentation phase, verification-gate skill for all phases
 - **v4.1** — new structured-logging skill (cross-cutting: architect, security, developer, reviewer), retrospective protocol for self-improving feedback loops, conventional comments format in code-review, property-based testing in TDD, architectural fitness functions, serverless/edge threat vectors in security-audit, process learnings in release-docs
-- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs
+- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs. v5.2+ added artifact timestamps. v5.3 added skill size convention with progressive disclosure. v5.4 added three-level test coverage (unit/integration/E2E). v5.5 added reviewer independence, adversarial gate roles, separate-context enforcement, and source_spec-anchored reviews.
 
 ---
 

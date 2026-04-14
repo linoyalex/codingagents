@@ -45,6 +45,7 @@ After committing, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 3, goal: "Design-time security audit",
   scope: "Phase 4 security gate only", relevant_files: ["docs/features/$ARGUMENTS/prd.md", "docs/features/$ARGUMENTS/architecture.md"],
   acceptance_criteria: [from the PRD], verification_commands: ["ls docs/features/$ARGUMENTS/security-audit.md"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "qa", timestamp: current ISO 8601
 
 Then print:

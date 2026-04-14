@@ -63,6 +63,11 @@
       "type": "string",
       "format": "date-time",
       "description": "ISO 8601 timestamp when this handoff was written."
+    },
+    "checkpoint_pending": {
+      "type": "string",
+      "enum": ["clarification", "architecture-review"],
+      "description": "Set when the command has stopped at a human checkpoint and is awaiting user input. Values: 'clarification' (specify gate) or 'architecture-review' (architect gate). Clear this field when the checkpoint is resolved."
     }
   },
   "additionalProperties": false

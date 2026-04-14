@@ -13,7 +13,7 @@ No unreleased changes documented yet.
 
 ---
 
-## [5.5.0] — 2026-04-13
+## [5.6.0] — 2026-04-13
 
 ### Added
 - **Install-path tracing rule in Codex review method (AC1)** — `codex/reviewers/review-code.md` now requires reviewers to inspect `init.sh` and `upgrade.sh` when a diff introduces a new helper, script, or path dependency, using any valid installer mechanism (literal copies, directory copies, loops, manifests)
@@ -32,6 +32,33 @@ No unreleased changes documented yet.
 
 ### Security
 - No security changes in this release
+
+---
+
+## [5.5.0] — 2026-04-13
+
+### Added
+- **Reviewer Independence methodology in code-review skill** — new section guides reviewers to read PRD before handoff, treat developer claims as hypotheses to falsify, trace field schemas through the validate/transform chain, verify test coverage by reading fixtures, and cross-reference PRD vs implementation to catch stale state and hidden assumptions
+- **Adversarial stance enforced in gate roles** — both ROLE_CODE_REVIEWER and ROLE_SECURITY now include explicit adversarial-but-constructive requirements: challenge hidden assumptions, verify bypass paths, check for stale state, verify trust boundaries, and flag contradictory artifacts
+- **Separate context requirement for gate phases** — Phase 6 (code review) and Phase 4 (security gate) now require separate context from authoring phases (not just a fresh session), enforced via `produced_by` check in role headers and documented in review headers
+- **Pipeline phase tagging** — CLAUDE.md pipeline section now explicitly marks phases 1–3 and 5 as (authoring), and phases 4 and 6 as (gate/review), making the adversarial/independent distinction visible
+- **source_spec field required in handoff.json** — new mandatory field points reviewers to the source specification (PRD path for features, ticket file or GitHub URL for bugfixes); reviewers load source_spec before reading diff
+- **Source-spec-first prompt injection** — review.md and security-gate.md commands now generate prompts that load the source specification first, then verify diff matches PRD rather than trusting developer framing
+- **Handoff source_spec validation in checkpoint.js** — three-level validation: regex pattern check (only `docs/` paths or GitHub URLs allowed), path traversal guard (no `..` segments, no absolute paths), and file-existence check
+- **Reviewer Independence verification tests** — new regression suite verifies adversarial stance in both gate roles, separate context enforcement, read-only constraint on gate phases, and pipeline phase tagging
+
+### Changed
+- **code-review skill expanded** — added Reviewer Independence section covering PRD-first methodology, hypothesis falsification, field tracing, fixture verification, and cross-reference patterns; skill remains within size budget
+- **All 7 phase commands updated with source_spec** — architect, test-design, security-gate, implement, review, document command handoff templates now include source_spec field pointing to PRD or ticket
+- **Gate role templates updated** — both ROLE_CODE_REVIEWER and ROLE_SECURITY include separate-context header, adversarial stance guidance, and read-only constraint enforcement
+
+### Fixed
+- **detectPhase() now recognizes .js/.mjs test files** — helper properly detects TypeScript/JavaScript test files in tests/node/ and doesn't misclassify them as implementation files
+- **Handoff source_spec resolution** — review phase no longer silently proceeds without a source spec; checkpoint.js now validates file existence and halts with explicit error if source_spec is missing or unresolvable
+
+### Security
+- **Path traversal defense in source_spec validation** — checkpoint.js enforces schema pattern, guards against `..` path segments, rejects absolute paths, and verifies file existence before accepting handoff.source_spec
+- **Reviewers enforce separate identity from authoring phase** — gate reviewers can no longer be the same agent session as implementation; separate context prevents implicit trust inheritance and hidden assumption propagation
 
 ### Deprecated
 - N/A

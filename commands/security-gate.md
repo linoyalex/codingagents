@@ -55,6 +55,7 @@ If there are NO BLOCKING findings, write .claude/handoff.json with:
   feature: $ARGUMENTS, phase: 4, goal: "Implement feature using strict TDD",
   scope: "Phase 5 implementation only", relevant_files: ["docs/features/$ARGUMENTS/architecture.md", "tests/contracts/$ARGUMENTS.test.ts", "tests/e2e/$ARGUMENTS.spec.ts"],
   acceptance_criteria: [from the PRD], verification_commands: ["npm test"],
+  source_spec: "docs/features/$ARGUMENTS/prd.md",
   produced_by: "security-reviewer", timestamp: current ISO 8601
 Then print: "Phase 4 complete — NO BLOCKING findings. Next: /implement $ARGUMENTS"
 

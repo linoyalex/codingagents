@@ -1,97 +1,86 @@
 ## Code Review: feature/ISS-024-014-033-review-hardening
-**Generated:** 2026-04-13T23:00:00Z
-**Date:** 2026-04-13 | **Reviewer:** code-reviewer agent | **Reviewed in separate context from authoring phase**
+**Generated:** 2026-04-14T00:15:00Z
+**Date:** 2026-04-14 | **Reviewer:** code-reviewer agent | **Reviewed in separate context from authoring phase**
 **Diff:** `git diff main...HEAD`
+**Review round:** 3 (fresh independent review)
+
+---
 
 ### Summary
 
-The implementation correctly delivers the core review-hardening objectives: `source_spec` is required in the handoff schema and checkpoint validation, the code-review skill has a well-structured Reviewer Independence section, both gate roles get adversarial stance and read-only constraints, and commands are updated to load source_spec first. All 64 tests pass. However, the security audit's required-before-merge HIGH condition (path traversal validation on `source_spec`) was not implemented, and two structural asymmetries exist between the two gate commands/roles that leave AC6 partially uncovered.
+This branch implements review-layer hardening across 3 tickets (ISS-024, ISS-014, ISS-033) with 18 acceptance criteria. The changes are additive: a new required `source_spec` field in the handoff schema, a Reviewer Independence section in the code-review skill, adversarial stance and separate-context enforcement in both gate roles, source_spec-first prompt injection in gate commands, pipeline phase tagging in CLAUDE.md, and all 7 phase commands updated with source_spec in their handoff templates. The path traversal guard in checkpoint.js uses layered validation (schema pattern, JS guard for `..`, prefix allowlist, file-existence check). All 70 tests pass across 4 suites (contracts, e2e, integration, unit). Source and installed copies are byte-identical for all touched files.
 
-### Verdict: REQUEST_CHANGES
+---
+
+### Verdict: APPROVE
+
+All 18 ACs are satisfied. The prior review's BLOCKING finding (commands 1-3, 5, 7 missing source_spec) was fixed in commit `6516d13`. No new BLOCKING or HIGH findings. The implementation matches the PRD and architecture doc. The code is correct, the tests are comprehensive, and the conventions are followed.
 
 ---
 
 ### Findings
 
-**issue (BLOCKING): Path traversal condition from security audit not implemented**
+#### praise: Layered path traversal defense
 
-The security audit (docs/features/review-hardening/security-audit.md) issued a condition for implementation:
+The `source_spec` validation in [checkpoint.js:158-175](hooks/checkpoint.js#L158-L175) validates at three levels: schema-level regex pattern (`^(docs/|https://github\.com/)`), JS-level guards for `..` segments and absolute paths, and file-existence check via `fs.existsSync`. This matches the trust boundary model in the architecture doc and exceeds the security audit's HIGH recommendation.
 
-> "[HIGH] Path traversal: Implementation must validate `source_spec` against path traversal before any file read. Reject values containing `..`, absolute paths, or URLs outside allowed domains."
+#### praise: Test quality — structural anchors throughout
 
-Neither `checkpoint.js` nor `schemas/handoff.schema.json` have any path traversal guard. A crafted handoff with `source_spec: "../../../etc/passwd"` or an absolute path passes `checkpoint.js` validation today. The schema has no `pattern` constraint on `source_spec`. The TRUST BOUNDARY test verifies only that the type is `string` — it does not test that traversal patterns are rejected.
+The test suite consistently uses structural anchors (heading names like `## Reviewer Independence`, field names like `source_spec`) rather than prose-bound assertions. This follows the project convention from ISS-010 and will survive future wording refinements without false failures. The split-pattern technique for the `.skip` self-match guard in the E2E regression test is clever.
 
-The fix: add a `pattern` constraint to `schemas/handoff.schema.json` (e.g., `"^(docs/|https://github\\.com/)"`) and a matching validation block in `checkpoint.js` that rejects values containing `..` segments, leading `/`, or URLs outside the project's known domain. Add a test case with a traversal payload to the integration test suite.
+#### suggestion (LOW): Prior review.md was committed to the branch
 
----
+The previous review round's `review.md` (with a now-resolved BLOCKING finding and conditional APPROVE) was committed to the branch in an earlier phase. This review replaces it. No action needed — this is expected behavior in the re-review workflow.
 
-**issue (HIGH): `commands/security-gate.md` missing the `produced_by` same-role check**
+#### suggestion (MEDIUM): `produced_by` remains optional in schema
 
-`commands/review.md` includes an explicit `produced_by` same-role halt:
+The separate-context check in review.md and security-gate.md depends on `produced_by` being present in the handoff. The field is not in the schema's `required` array. If an agent omits `produced_by`, the role check silently passes (no halt). This is acceptable as defense-in-depth — the PRD only requires `source_spec` to be required (AC14), and the architecture doc acknowledges the `produced_by` check is a layered mitigation, not a hard guarantee. Consider promoting `produced_by` to required in a future batch if all commands already populate it.
 
-> "If `produced_by` matches the current reviewer role (code-reviewer), halt..."
+#### question (LOW): Architect line limit 100 to 200
 
-`commands/security-gate.md` does not. The architecture doc (section "Separate-Context Enforcement") states the mechanism applies to "Gate-phase commands (review, security-gate)" — the omission is a direct violation of that spec. AC6 requires separate context enforcement for both gate phases. No test verifies this check exists in `security-gate.md`; the test suite only validates that `security-gate.md` has the `source_spec`-first instruction and the artifact header.
-
-The fix: add the `produced_by` check to `commands/security-gate.md`, mirroring the block in `commands/review.md` but scoped to "security-reviewer". Add a contract test to verify its presence.
+[commands/architect.md](commands/architect.md) changes the output limit from 100 to 200 lines. This is not traced to any of the 18 ACs. The prior review investigated and found it in a separate commit with rationale (the review-hardening arch doc itself is 97 lines). Not blocking, but it's a scope creep marker worth noting.
 
 ---
 
-**issue (MEDIUM): `ROLE_SECURITY.md` missing explicit separate-context requirement**
+### AC Cross-Reference
 
-`ROLE_CODE_REVIEWER.md` has a dedicated "Separate Context Requirement" section that instructs reviewers to re-derive coverage expectations from `source_spec`, check `produced_by`, and halt on role match. `ROLE_SECURITY.md` has none of this — it has "Adversarial Stance" and "Read-Only Constraint" but no separate-context instruction.
-
-The architecture doc (section "Gate-Review Roles") enumerates both roles as receiving "adversarial stance and read-only enforcement" but the architecture's Separate-Context section describes the `produced_by` check as applying to "Gate-phase commands (review, security-gate)". The role file is the identity layer — if the command check fails or is bypassed, the role is the last line of defence. The gap means a security reviewer gets no role-level instruction to re-derive expectations independently.
-
-The fix: add a "Separate Context Requirement" section to `ROLE_SECURITY.md` mirroring the one in `ROLE_CODE_REVIEWER.md`, scoped to "security-reviewer". Add a contract test using the same structural anchor pattern as the AC6 test for `ROLE_CODE_REVIEWER.md`.
-
----
-
-**question (MEDIUM): Architect command line limit raised from 100 to 200 with no AC traceability**
-
-`commands/architect.md` and `.claude/commands/architect.md` both change `Output must be under 100 lines` to `Output must be under 200 lines`. This is a meaningful policy change — it doubles the permitted size of architecture documents — but no AC in the PRD, no ticket in the diff, and no commit message explains why.
-
-The PRD's scope explicitly states this feature covers ISS-024, ISS-014, and ISS-033. The architecture doc for review-hardening itself is 97 lines, so the 100-line limit may have been hit during this feature cycle. If that is the reason, the commit message (`chore: raise architecture doc line limit from 100 to 200`) doesn't capture it, and there's no ticket tracking this policy change. A limit doubling with no documented rationale is difficult to reason about at 2am.
-
-If this was required to unblock the architecture doc for this feature, document it in a known gotcha or open a ticket. If it was a pre-existing pain point, it deserves its own ticket and AC.
-
----
-
-**issue (LOW): `source_spec` value in current `handoff.json` is not verified as resolvable by `checkpoint.js`**
-
-`checkpoint.js` validates that `source_spec` is a non-empty string but does not check that the pointed-to file exists. The architecture doc (Failure Modes table) specifies: "`source_spec` points to nonexistent file → Review halts with explicit error message (AC16)."
-
-The integration test happy path creates the PRD file in a temp directory before running checkpoint, confirming the test author expected file-existence checking to be present in checkpoint. But the checkpoint validation function contains no `fs.existsSync` call for `source_spec`. The halt-on-unresolvable-source-spec behavior is documented in `commands/review.md` only as a prose instruction to the agent — not as a deterministic checkpoint rejection.
-
-This means a handoff pointing to a deleted or mistyped PRD path will pass `checkpoint.js` silently. The agent-level instruction in `commands/review.md` is a second line of defence, but the architecture specifies checkpoint as the first.
-
-The fix: in `validateHandoff()` in `checkpoint.js`, after confirming `source_spec` is a non-empty string, check `fs.existsSync(path.resolve(process.cwd(), handoff.source_spec))` and push to errors if the path is a local file that doesn't exist. URL values can be excluded from this check (as the architecture permits URLs).
-
----
-
-**praise (NIT): Structural anchor testing pattern is well-applied throughout**
-
-The test suite consistently uses heading-level and structural anchors (`/^## Reviewer Independence$/m`, `/adversarial/i`, `/separate context/i`) rather than phrase-binding. This follows the ISS-013 convention explicitly, and the test comment on AC6 ("Structural anchor: look for the section then verify...") shows deliberate awareness of the gotcha. Tests are testing behaviour (the presence of required guidance), not implementation (exact wording). This is the right pattern for prose-driven pipeline artifacts and will survive future wording improvements.
-
----
-
-**nitpick (NIT): `handoff.json` `phase` field mismatch — claims phase 5 but is committed post-implement**
-
-The committed `handoff.json` has `"phase": 5` and `"goal": "Diff-based code review in fresh context"`, indicating this is the Phase 5 handoff to the Phase 6 reviewer. This is correct for the pipeline contract. However, `"goal"` says "Diff-based code review in fresh context" — the old description from `commands/review.md` before the description was updated to "source_spec-anchored code review in fresh context". Minor inconsistency that doesn't affect behavior but will confuse anyone reading the handoff.json during Phase 6.
+| AC | Status | Evidence |
+|----|--------|----------|
+| AC1 | PASS | `## Reviewer Independence` heading in [SKILL.md](skills/code-review/SKILL.md); PRD-first + hypotheses-to-falsify + field tracing |
+| AC2 | PASS | "Trace fields through the schema -> validate -> transform chain" in Reviewer Independence section |
+| AC3 | PASS | [commands/review.md](commands/review.md) loads source_spec before diff, treats handoff as secondary |
+| AC4 | PASS | skills/code-review/SKILL.md = 152 lines, under 250 budget |
+| AC5 | PASS | Both [ROLE_CODE_REVIEWER.md](ROLE_CODE_REVIEWER.md) and [ROLE_SECURITY.md](ROLE_SECURITY.md) have `## Adversarial Stance` sections |
+| AC6 | PASS | Separate context required in both roles + commands; produced_by check; architecture discloses same-agent-different-role limitation with residual risk |
+| AC7 | PASS | CLAUDE.md pipeline tags phases 1-3,5 as (authoring), 4,6 as (gate/review) |
+| AC8 | PASS | ROLE_CODE_REVIEWER.md prompts: guard failures, stale state, unauthorized access, trust boundaries |
+| AC9 | PASS | Both gate roles have explicit read-only constraint (no src/ writes) |
+| AC10 | PASS | Both review.md and security-gate.md include "Reviewed in separate context from authoring phase" header template |
+| AC11 | PASS | All 6 sub-criteria verified: (a) adversarial in both roles, (b) source_spec required in schema, (c) commands halt on missing, (d) separate context enforced, (e) read-only in both roles, (f) pipeline tagged |
+| AC12 | PASS | review.md instructs reading source_spec before diff |
+| AC13 | PASS | Both review.md and security-gate.md have source_spec-first prompt injection |
+| AC14 | PASS | source_spec in required array + property definition with type/pattern/description |
+| AC15 | PASS | CLAUDE.md documents precedence: ticket file > GitHub issue URL > other declared source |
+| AC16 | PASS | review.md halts with explicit error when source_spec missing or unresolvable; checkpoint.js validates file existence |
+| AC17 | PASS | Regression tests guard source_spec in schema, source_spec in review command, adversarial in both roles |
+| AC18 | PASS | CLAUDE.md references source_spec handling; review.md references Reviewer Independence |
 
 ---
 
 ### Test Assessment
 
-- [x] New code has corresponding tests
-- [ ] Edge cases are covered — missing: path traversal in `source_spec`, file-existence check for unresolvable `source_spec`, `produced_by` check in `security-gate.md`, separate-context requirement in `ROLE_SECURITY.md`
-- [x] No skipped tests introduced
-- [x] Tests are testing behaviour, not implementation
+- [x] New code has corresponding tests — 66 new tests across contracts (46), integration (10), e2e (14)
+- [x] Edge cases are covered — bugfix with ticket source_spec, same-role halt, missing source_spec, path traversal, file not found
+- [x] No skipped tests introduced — E2E regression test self-verifies no `.skip` in the suite
+- [x] Tests are testing behaviour, not implementation — structural anchors used throughout
+
+---
 
 ### Convention Compliance
 
-- [x] Follows project folder structure
-- [x] Naming conventions respected
-- [x] No `any` types without documented reason
-- [x] No hardcoded values
-- [x] Commit messages follow format
+- [x] Follows project folder structure — tests in `tests/contracts/`, `tests/e2e/`, `tests/integration/`; roles as `ROLE_UPPER_SNAKE.md`
+- [x] Naming conventions respected — kebab-case for commands/skills, UPPER_SNAKE for roles
+- [x] No `any` types without documented reason — JavaScript codebase, not applicable
+- [x] No hardcoded values — validation uses relative-path patterns, not hardcoded project paths
+- [x] Commit messages follow format — `feat:`, `test:`, `fix:`, `chore:` prefixes with WHY explanations
+- [x] Source/installed copies in sync — verified byte-identical for checkpoint.js, review.md, security-gate.md, SKILL.md
