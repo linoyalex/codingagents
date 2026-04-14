@@ -130,103 +130,109 @@ test('E2E: init without flag, existing CLAUDE.md, non-interactive keeps existing
 });
 
 // ---------------------------------------------------------------------------
-// E2E: init.sh interactive prompt — overwrite choice
+// E2E: init.sh interactive prompt tests (PTY-backed via `script` command)
+//
+// These use the macOS/Linux `script` command to create a real pseudo-terminal
+// so that `[ -t 0 ]` evaluates true and the interactive branch is exercised.
 // ---------------------------------------------------------------------------
 
-test('E2E: init interactive prompt with "o" overwrites CLAUDE.md', () => {
-  const tmpDir = makeTempDir('init-interactive-overwrite');
+/**
+ * Helper: run init.sh under a real PTY using `script` command.
+ * Sends `input` to stdin of the PTY-wrapped process.
+ * Returns { output, exitCode, tmpDir }.
+ */
+function runInitUnderPty(tmpDir, input) {
+  const initPath = path.join(ROOT_DIR, 'init.sh');
+  const outputFile = path.join(tmpDir, 'pty-output.log');
+
+  // Create a wrapper script that feeds input to init.sh under a PTY
+  const wrapperPath = path.join(tmpDir, 'pty-wrapper.sh');
+  const escapedInput = input.replace(/'/g, "'\\''");
+  fs.writeFileSync(wrapperPath, [
+    '#!/usr/bin/env bash',
+    `cd "${tmpDir}"`,
+    `printf '${escapedInput}' | script -q "${outputFile}" bash "${initPath}" 2>&1`,
+    'exit $?',
+  ].join('\n'), { mode: 0o755 });
+
+  try {
+    execSync(`bash "${wrapperPath}"`, {
+      cwd: tmpDir,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 30000,
+    });
+    const output = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
+    return { output, exitCode: 0, tmpDir };
+  } catch (err) {
+    const output = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
+    return { output, exitCode: err.status, tmpDir };
+  }
+}
+
+test('E2E: init interactive prompt with "o" overwrites CLAUDE.md (PTY)', () => {
+  const tmpDir = makeTempDir('init-pty-overwrite');
   fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), '# Old project content\n');
 
   try {
-    // Send "o" as stdin to choose overwrite
-    const { stdout, exitCode } = runScript('init.sh', '', {
-      cwd: tmpDir,
-      input: 'o\n',
-    });
+    const { output, exitCode } = runInitUnderPty(tmpDir, 'o\n');
 
-    assert.equal(exitCode, 0);
+    assert.equal(exitCode, 0, 'init.sh should exit 0 after overwrite choice');
     const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
-    // Should be the template, not the old content
     assert.ok(
       !claudeMd.includes('Old project content'),
       'old content must be replaced after overwrite choice'
     );
-    assert.match(stdout, /overwrite|CLAUDE\.md:/i, 'output must confirm overwrite');
+    assert.match(output, /overwrite|CLAUDE\.md:/i, 'PTY output must confirm overwrite');
   } finally {
     cleanupDir(tmpDir);
   }
 });
 
-// ---------------------------------------------------------------------------
-// E2E: init.sh interactive prompt — exit choice
-// ---------------------------------------------------------------------------
-
-test('E2E: init interactive prompt with "e" exits with sync instructions', () => {
-  const tmpDir = makeTempDir('init-interactive-exit');
+test('E2E: init interactive prompt with "e" exits with sync instructions (PTY)', () => {
+  const tmpDir = makeTempDir('init-pty-exit');
   const originalContent = '# My project CLAUDE.md\n';
   fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
 
   try {
-    const { stdout, exitCode } = runScript('init.sh', '', {
-      cwd: tmpDir,
-      input: 'e\n',
-    });
+    const { output, exitCode } = runInitUnderPty(tmpDir, 'e\n');
 
-    // Should exit cleanly
     assert.equal(exitCode, 0, 'exit choice should exit 0');
-    // Original file unchanged
     const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
     assert.equal(claudeMd, originalContent, 'CLAUDE.md must be unchanged after exit choice');
-    // Output mentions --sync-claude-md
-    assert.match(stdout, /sync-claude-md/, 'output must mention --sync-claude-md on exit');
+    assert.match(output, /sync-claude-md/, 'PTY output must mention --sync-claude-md on exit');
   } finally {
     cleanupDir(tmpDir);
   }
 });
 
-// ---------------------------------------------------------------------------
-// E2E: init.sh interactive prompt — invalid input defaults to exit
-// ---------------------------------------------------------------------------
-
-test('E2E: init interactive prompt with invalid input defaults to exit', () => {
-  const tmpDir = makeTempDir('init-interactive-invalid');
+test('E2E: init interactive prompt with invalid input defaults to exit (PTY)', () => {
+  const tmpDir = makeTempDir('init-pty-invalid');
   const originalContent = '# My project CLAUDE.md\n';
   fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
 
   try {
-    const { stdout, exitCode } = runScript('init.sh', '', {
-      cwd: tmpDir,
-      input: 'x\n',
-    });
+    const { output, exitCode } = runInitUnderPty(tmpDir, 'x\n');
 
-    // Should default to exit (the safer option)
     assert.equal(exitCode, 0, 'invalid input should default to exit (safe)');
     const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
     assert.equal(claudeMd, originalContent, 'CLAUDE.md must be unchanged for invalid input');
-    assert.match(stdout, /sync-claude-md/, 'output must mention --sync-claude-md');
+    assert.match(output, /sync-claude-md/, 'PTY output must mention --sync-claude-md');
   } finally {
     cleanupDir(tmpDir);
   }
 });
 
-// ---------------------------------------------------------------------------
-// E2E: init.sh interactive prompt — EOF defaults to exit
-// ---------------------------------------------------------------------------
-
-test('E2E: init interactive prompt with EOF defaults to exit', () => {
-  const tmpDir = makeTempDir('init-interactive-eof');
+test('E2E: init interactive prompt with EOF defaults to exit (PTY)', () => {
+  const tmpDir = makeTempDir('init-pty-eof');
   const originalContent = '# My project CLAUDE.md\n';
   fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
 
   try {
-    // Empty string = EOF on stdin
-    const { stdout, exitCode } = runScript('init.sh', '', {
-      cwd: tmpDir,
-      input: '',
-    });
+    // Empty input = EOF
+    const { exitCode } = runInitUnderPty(tmpDir, '');
 
     const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
-    // Should default to keeping existing (safe option) — same as non-interactive
     assert.ok(
       claudeMd.includes('My project CLAUDE.md'),
       'CLAUDE.md must be unchanged on EOF'
