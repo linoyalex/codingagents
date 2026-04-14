@@ -1,18 +1,14 @@
-## Code Review: codex-review-hardening (Re-review)
-**Generated:** 2026-04-13T18:00:00Z
-**Date:** 2026-04-13 | **Reviewer:** code-reviewer agent
-**Reviewed in separate context from authoring phase**
+## Code Review: feature/ISS-027-codex-review-hardening
+**Generated:** 2026-04-13T23:15:00Z
+**Date:** 2026-04-13 | **Reviewer:** code-reviewer agent (Claude, fresh context)
+**Reviewed in separate context from authoring phase** | Handoff produced_by: developer
 **Diff:** `git diff main...HEAD`
 
 ---
 
 ### Summary
 
-All four findings from the previous review (BLOCKING, HIGH, MEDIUM, LOW) are verified fixed.
-The working tree is clean, `isCoveredByScript()` correctly rejects echo/log false positives
-via a copy-command guard, `review-process.md` defers to `codex-rules.md`, and the LOW finding
-is resolved by making the test mechanism-agnostic rather than requiring redundant per-file `cp`
-lines. All 37 tests pass. All 7 ACs are satisfied.
+Clean, well-structured implementation of four review-method rules in `codex/reviewers/review-code.md`, process docs update in `docs/memory/codex-rules.md`, and two test files covering structural anchors (AC6) and installer coverage contract (AC7). The mechanism-agnostic `isCoveredByScript()` with copy-command-line restriction is a thoughtful design that avoids the overfit problem flagged in early reviews. All 39 tests pass. All 7 ACs are satisfied. No BLOCKING or HIGH findings.
 
 ### Verdict: APPROVE
 
@@ -20,28 +16,27 @@ lines. All 37 tests pass. All 7 ACs are satisfied.
 
 ### Findings
 
-**[SUGGESTION] `isCoveredByScript()` ancestor matching does not catch paths without trailing delimiter**
+#### 1. suggestion (LOW): `isCoveredByScript()` ancestor matching does not cover space-terminated paths
 
-Location: `tests/node/installer-coverage.test.js`, `isCoveredByScript()` function, steps 3-4
+**File:** tests/node/installer-coverage.test.js, `isCoveredByScript()` steps 3-4
+**Issue:** Ancestor directory checks match `ancestor + '/'`, `ancestor + '"'`, `ancestor + '/*'`, and `ancestor + "'"`, but not `ancestor + ' '` (space) or end-of-line. A hypothetical `cp -r skills .claude` (without trailing `/`) would not match.
+**Suggestion:** Theoretical gap only — the actual `init.sh` uses quoted paths with `/` termination. Consider adding `ancestor + ' '` to the delimiter set for completeness if the installer ever changes style. Not blocking.
 
-The ancestor-directory match checks for `ancestor + '/'`, `ancestor + '"'`, `ancestor + '/*'`,
-and `ancestor + "'"`. It does not check `ancestor + ' '` (space) or end-of-line. A hypothetical
-line `cp -r skills .claude` (without a trailing `/` on the source) would not be caught. This
-is a theoretical gap only — the actual `init.sh` uses `cp -r "$SCRIPT_DIR"/skills/*
-"$TARGET_DIR/.claude/skills/"` which does have trailing `/`, so the production case is covered.
-Suggest adding `|| line.includes(ancestor + ' ')` to the ancestor checks for completeness, but
-this is not blocking given the actual installer content.
+#### 2. suggestion (LOW): AC5 keyword tests match whole-file, not section-scoped
 
----
+**File:** tests/node/codex-review-method.test.js:801-835
+**Issue:** The AC5 tests (e.g., "codex-rules.md references the install-path tracing rule") regex-match against the full file content. Keywords like "assertion" or "parser" could theoretically match in unrelated sections.
+**Suggestion:** Currently `codex-rules.md` is small (~45 lines) so false-positive risk is negligible. If the file grows significantly, consider scoping assertions to the `## Review Method Rules` section. No action needed now.
 
-### Previous Findings Verification
+#### 3. praise: Mechanism-agnostic installer contract design
 
-| Finding | Previous Severity | Verification Status |
-|---------|------------------|---------------------|
-| Working tree contained uncommitted changes to 5 committed files | BLOCKING | FIXED — `git status --short` shows only untracked review artifacts. All working-tree changes have been committed. Test counts match: 18+19=37 tests, all passing. |
-| `isCoveredByScript()` ancestor matching accepted echo/log lines as coverage | HIGH | FIXED — `isCopyLine()` guard added using `\bcp\b` and `\brsync\b` word-boundary patterns. The specific false-positive case (`echo "Installing to .claude/skills/ directory"`) returns false. Verified by explicit regression test: `isCoveredByScript: echo/log mentioning ancestor directory does NOT satisfy contract`. |
-| `review-process.md` carried duplicate Codex file ownership content with no deferral to `codex-rules.md` | MEDIUM | FIXED — `review-process.md` now has a `## Codex-specific guidance` section pointing to `codex-rules.md` as canonical source. Duplicate file ownership bullets removed and replaced with `See docs/memory/codex-rules.md for the authoritative file ownership table.` Verified by passing test `AC5: review-process.md defers to codex-rules.md for Codex-specific guidance`. |
-| Redundant per-file `cp` lines in `init.sh`/`upgrade.sh` appeared as dead code | LOW | ADDRESSED — Developer chose approach (b): made the contract test mechanism-agnostic via `isCoveredByScript()`. The wildcard `cp -r skills/*` in `init.sh` now satisfies the contract directly. No redundant per-file lines are present or needed. `init.sh` and `upgrade.sh` are unchanged in this diff, confirming no dead code was introduced. |
+**File:** tests/node/installer-coverage.test.js
+The `isCoveredByScript()` function with its `isCopyLine()` guard is an excellent solution to the overfit problem. The 7 unit tests covering literal paths, directory copies, loops, no-reference, and echo/log false-positives provide strong regression protection. The `activeLines()` comment filter adds another defense layer. The exclusion cap (5 per script) and phantom-exclusion guard are smart safeguards against escape-hatch abuse.
+
+#### 4. praise: Structural anchor test discipline
+
+**File:** tests/node/codex-review-method.test.js
+All 18 tests use heading-level regex anchors and keyword presence — no phrase-binding. The integration test verifying all four rules coexist in a single document is a good cohesion check. This follows the project's "no phrase-binding" convention correctly.
 
 ---
 
@@ -49,30 +44,28 @@ this is not blocking given the actual installer content.
 
 | AC | Requirement | Verdict | Evidence |
 |----|-------------|---------|----------|
-| AC1 | `review-code.md` requires inspecting installer/upgrade files when diff introduces new dependencies | PASS | `## Install-Path Tracing` section with `init.sh` + `upgrade.sh` references, `**Apply when:**` trigger condition. 3 passing tests. |
-| AC2 | Test-truthfulness rule — check test assertion body proves what its name claims | PASS | `## Test-Truthfulness Verification` section with "test name" + "assertion" keywords and trigger condition. 3 passing tests. |
-| AC3 | Parser edge-case rule — malformed-input matrix for parsers/validators | PASS | `## Parser/Validator Edge-Case Checklist` section with "malformed" keyword and trigger condition. 2 passing tests. |
-| AC4 | Unchanged-file scope guidance | PASS | `## Unchanged-File Scope Expansion` section with "unchanged" + "scope" keywords. 3 passing tests. |
-| AC5 | Process docs updated with stronger Codex review expectations | PASS | `docs/memory/codex-rules.md` updated with `## Review Method Rules` section. `review-process.md` defers to `codex-rules.md`. 6 passing tests including the deferral assertion. |
-| AC6 | Deterministic test/fixture-backed check protects review prompt | PASS | `tests/node/codex-review-method.test.js`: 18 tests covering AC1-AC5 structural anchors, all passing. |
-| AC7 | Installer coverage contract test globs source tree, asserts each file has coverage in init.sh | PASS | `tests/node/installer-coverage.test.js`: 19 tests covering both `init.sh` and `upgrade.sh`, mechanism-agnostic via `isCoveredByScript()`, with `activeLines()` filter, exclusion cap, phantom-exclusion guard, and 5 explicit unit tests of the matching function. All passing. |
+| AC1 | Install-path tracing rule in review-code.md | PASS | `## Install-Path Tracing` with `**Apply when:**` trigger, `init.sh` + `upgrade.sh` refs, mechanism-agnostic guidance |
+| AC2 | Test-truthfulness rule in review-code.md | PASS | `## Test-Truthfulness Verification` with trigger, "test name" + "assertion" behavioral checks |
+| AC3 | Parser edge-case checklist in review-code.md | PASS | `## Parser/Validator Edge-Case Checklist` with trigger, 4-category malformed-input matrix, severity guidance |
+| AC4 | Unchanged-file scope rule in review-code.md | PASS | `## Unchanged-File Scope Expansion` with trigger, deliberate scope expansion, anti-speculation rule |
+| AC5 | docs/memory/codex-rules.md updated | PASS | `## Review Method Rules` with all 4 rules; `review-process.md` defers to `codex-rules.md` |
+| AC6 | Structural anchor tests for AC1-AC4 | PASS | 18 tests: per-rule heading anchors + keyword assertions + integration cohesion test |
+| AC7 | Installer coverage contract test | PASS | 19 tests: mechanism-agnostic `isCoveredByScript()`, `activeLines()` filter, exclusion cap, phantom guard, 7 unit tests |
 
 ---
 
 ### Test Assessment
 
-- [x] New code has corresponding tests — both test files cover their respective ACs directly
-- [x] Edge cases are covered — `activeLines()` tested for comment filtering (positive + negative), `isCoveredByScript()` tested for literal path, directory copy, loop, no-reference, and echo/log false-positive cases
-- [x] No skipped tests introduced — `git diff main...HEAD | grep -n "\.skip\|xtest\|xit\b"` returns empty
-- [x] Tests are testing behaviour, not implementation — contract tests verify installer coverage mechanism-agnostically; structural anchor tests verify section presence without phrase-binding
-
----
+- [x] New code has corresponding tests — both test files directly cover their ACs
+- [x] Edge cases are covered — comment filtering, echo/log false-positives, exclusion cap, phantom exclusion guard
+- [x] No skipped tests introduced — verified via automated check
+- [x] Tests are testing behaviour, not implementation — mechanism-agnostic contract; structural anchors survive rewording
 
 ### Convention Compliance
 
-- [x] Follows project folder structure — tests in `tests/node/`, docs in `docs/features/<feature>/`, process docs in `docs/memory/`, reviewer prompt in `codex/reviewers/`
-- [x] Naming conventions respected — `*.test.js` test files, kebab-case feature directory
-- [x] No `any` types — plain JavaScript, no TypeScript
-- [x] No hardcoded secrets or credentials — confirmed by scan
-- [x] Commit messages follow format — `fix:`, `chore:`, `review:` prefixes used correctly throughout branch history
-- [x] Working tree is clean — no uncommitted changes to committed files
+- [x] Follows project folder structure
+- [x] Naming conventions respected — `*.test.js`, kebab-case feature directory
+- [x] No `any` types — plain JavaScript
+- [x] No hardcoded secrets or credentials
+- [x] Commit messages follow format
+- [x] Structural anchors used, not phrase-binding (per CLAUDE.md convention)
