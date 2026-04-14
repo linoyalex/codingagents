@@ -1,33 +1,28 @@
 {
   "feature": "codex-review-hardening",
   "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only — verify review fixes address BLOCKING and MAJOR findings",
+  "goal": "Re-review after addressing all four review findings (BLOCKING, HIGH, MEDIUM, LOW)",
+  "scope": "Phase 6 re-review — verify fixes for false-positive guard, dead code removal, AC5 deferral, and clean working tree",
   "relevant_files": [
-    "docs/features/codex-review-hardening/architecture.md",
-    "docs/features/codex-review-hardening/prd.md"
+    "docs/features/codex-review-hardening/review.md",
+    "tests/node/installer-coverage.test.js",
+    "tests/node/codex-review-method.test.js",
+    "docs/memory/review-process.md",
+    "init.sh",
+    "upgrade.sh"
   ],
   "acceptance_criteria": [
-    "AC1: Installer/source-of-truth rule in review-code.md",
-    "AC2: Test-truthfulness rule in review-code.md",
-    "AC3: Parser edge-case checklist in review-code.md",
-    "AC4: Unchanged-file scope guidance in review-code.md",
-    "AC5: Process docs updated — codex-rules.md as canonical source",
-    "AC6: Per-rule regression tests for AC1-AC4",
-    "AC7: Installer coverage contract test (init.sh + upgrade.sh, behavior not mechanism)"
+    "BLOCKING: working tree is clean (git status --short shows no uncommitted changes to committed files)",
+    "HIGH: isCoveredByScript() ancestor matching requires copy-command context — echo/log lines rejected",
+    "MEDIUM: review-process.md defers to codex-rules.md for Codex-specific guidance",
+    "LOW: per-file cp lines removed from init.sh/upgrade.sh — no dead code to confuse maintainers"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
+    "git status --short",
     "node --test tests/node/codex-review-method.test.js",
-    "node --test tests/node/installer-coverage.test.js",
-    "ls docs/features/codex-review-hardening/review.md"
-  ],
-  "known_risks": [
-    "Prior review found BLOCKING: init.sh/upgrade.sh cp lines outside guards — FIXED in 648f3d3",
-    "Prior review found MAJOR: dead globSourceFiles/globSync in test — FIXED in 648f3d3",
-    "Prior review found MINOR: missing trigger conditions in review-code.md — FIXED in 648f3d3"
+    "node --test tests/node/installer-coverage.test.js"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
   "produced_by": "developer",
-  "timestamp": "2026-04-13T23:30:00Z"
+  "timestamp": "2026-04-13T15:00:00Z"
 }
