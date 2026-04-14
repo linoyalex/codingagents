@@ -64,8 +64,9 @@ row. On failure, throw a parse error naming the skill (AC3).
 **Stage 3 -- Wiring check.** For each artifact in the registry, locate a dedicated output
 section in the invoking command (heading `## Output`, `### Output`, `## Deliverables`, or
 `### Deliverables`). Search only within that section — not the full file — for:
-(a) the Pattern value (substring match), and (b) at least one Path value (AC9 -- multiple
-paths pass if any one matches). This prevents incidental mentions in examples, notes, or
+(a) the Pattern value (case-sensitive substring match), and (b) at least one Path value
+(AC9 -- multiple paths pass if any one matches). Patterns are matched as case-sensitive
+substrings; commands must use the exact casing from the skill's `## Required Artifacts` table. This prevents incidental mentions in examples, notes, or
 verification bullets from satisfying the check. If the command has no output section, fail
 with `"Command '<command>' has no Output/Deliverables section"`. If pattern or path is
 missing from that section, fail with:
@@ -127,7 +128,7 @@ This fixture is self-contained and does not depend on real skill/command content
 | Alternative | Why rejected |
 |-------------|-------------|
 | JSON/YAML artifact registry instead of Markdown table | Adds a new format to learn; Markdown tables are already used for similar metadata in skills; machine-parseable enough for this use case |
-| Separate parser module in `lib/` | Over-engineering; the parse logic is ~30 lines and only used by this one test file; extract later if reuse emerges |
+| Separate parser module in `lib/` | Initially rejected as over-engineering. **Reconsidered during Phase 6 review:** extraction to `lib/wiring-check.js` was necessary to avoid recursive `node --test` subprocess failures when integration tests imported the wiring algorithm. Now adopted — 3 test layers import it. |
 | Runtime enforcement (hook that blocks commits) | Out of scope per PRD; test-time detection is the v1 goal; runtime enforcement can layer on later without architectural change |
 | Regex-based pattern matching with user-supplied patterns | Security risk (ReDoS); substring match is sufficient for naming patterns like `[feature].integration.test.*` |
 | Scanning installed copies (`.claude/skills/`) instead of source (`skills/`) | Source is authoritative; installed copies may lag behind; existing sync tests (ISS-009) ensure they stay identical |

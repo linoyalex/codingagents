@@ -44,10 +44,10 @@ As a **framework developer maintaining the Phase pipeline**, I want the test sui
   When the wiring contract test evaluates that skill,
   Then it passes without error and logs "Skill has no required artifacts—no wiring to verify."
 
-- [ ] **AC8 (Conditional artifacts — mention check):**
+- [ ] **AC8 (Conditional artifacts — full pattern+path check):**
   Given a skill with a conditional artifact (Condition column non-empty, e.g., "Phase 5 only"),
   When the wiring contract test evaluates that artifact,
-  Then it verifies that the command mentions that artifact by name or pattern (condition evaluation is runtime, not test-time; test only confirms the artifact is acknowledged in the command).
+  Then it applies the same full pattern+path check as unconditional artifacts (the Condition column is informational for human readers; the test does not relax validation based on it).
 
 - [ ] **AC9 (Multiple valid output paths — at least one matches):**
   Given a command that lists multiple acceptable output paths for the same artifact type (e.g., "output may go to `tests/unit/` or `tests/components/unit/`"),
