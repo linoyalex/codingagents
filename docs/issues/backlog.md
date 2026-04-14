@@ -17,13 +17,11 @@
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
-| 8 | ~~[ISS-036](tickets/ISS-036.md)~~ | ~~P1 — High~~ | ~~Feature~~ | ~~ISS-013~~ | ~~Add command↔skill wiring verification to prevent artifact-slot drift~~ → closed 2026-04-14 |
 | 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
 | 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
 | 8 | [ISS-045](tickets/ISS-045.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
-| 9 | ~~[ISS-029](tickets/ISS-029.md)~~ | P2 — Medium | Feature | — | ~~Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect`~~ → closed |
-| 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 | Prevent scope expansion during post-review artifact rework |
-| 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 | Add invariants-audit skill for cross-layer semantic review |
+| 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 (closed) | Prevent scope expansion during post-review artifact rework |
+| 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 (closed) | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
 | 12 | [ISS-032](tickets/ISS-032.md) | P2 — Medium | Feature | — | Automatically run /status on fresh context to orient the agent |
 | 13 | [ISS-030](tickets/ISS-030.md) | P2 — Medium | Architecture | — | Introduce semantic versioning and tie backlog planning to major/minor/patch releases |
