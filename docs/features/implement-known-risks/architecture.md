@@ -1,5 +1,5 @@
 # Architecture: Implement Known-Risks Verification
-**Generated:** 2026-04-13T17:45:00Z
+**Generated:** 2026-04-14T00:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-13
 
 ## Decision
@@ -48,9 +48,12 @@ No new files are created. No files are deleted.
   1. Reads `commands/implement.md` and asserts a `known_risks` substring exists under a GREEN-related structural anchor
   2. Reads `skills/tdd/SKILL.md` and asserts a `known_risks` substring exists
 - **Anchoring strategy:** Use heading-level regex (e.g., `/GREEN/` context) combined with `known_risks` substring match. Do NOT phrase-bind to exact sentences — this follows the ISS-010 structural anchor convention.
+- **Why structural tests are sufficient:** The risk this feature addresses is that the developer is never *told* to read `known_risks`. The fix is adding prose that tells them. A structural-anchor test proves the instruction exists and survives future edits. A stronger behavioral test (e.g., simulating a developer session) would test whether the developer *follows* the instruction, which is outside this feature's scope — the PRD explicitly excludes automated enforcement. The contract test matches the protection level to the problem: presence of guidance, not compliance with it.
 
 ### Source/installed sync
 The existing byte-identity test in `core-skill-contracts.test.js` (`committed .claude copies stay byte-identical`) already covers both `commands/implement.md` and `skills/tdd/SKILL.md`. After editing the source files, the installed copies must be updated to match. No new sync test entries needed.
+
+**Implementation note:** The developer must update both the source file (e.g., `commands/implement.md`) and the committed installed copy (e.g., `.claude/commands/implement.md`) in the same commit. This is a manual copy — there is no build step or `init.sh` invocation during development. The byte-identity test catches drift but only at test time, so same-commit updates are the primary defense.
 
 ## Trust Boundaries
 
@@ -63,7 +66,7 @@ The existing byte-identity test in `core-skill-contracts.test.js` (`committed .c
 | Failure | Impact | Mitigation |
 |---------|--------|------------|
 | Prose instruction is removed in future edit | Developer stops seeing `known_risks` guidance | Contract test fails in CI, blocking merge |
-| `known_risks` field absent from handoff | No impact — instruction says "if present" | AC4 covers this; instruction is no-op when field is missing |
+| `known_risks` field absent from handoff | No impact — instruction says "if present" | AC4 covers this; instruction is no-op when field is missing. Note: a missing `.claude/handoff.json` file is not a supported Phase 5 operating state — `resolve-feature.js` requires it. AC4's "missing handoff" language is a tolerance for instruction wording only: the prose must not break if the field is absent from a readable handoff, but Phase 5 itself will not start without one. |
 | TDD skill exceeds 120-line budget | `core-skill-contracts.test.js` budget test fails | Keep addition to 1-2 lines; refactor existing prose if needed |
 | Source/installed copy drift | Byte-identity test fails | Update both copies in same commit |
 | `resolve-feature.js` parse error on malformed JSON | Phase 5 halts before developer reaches GREEN | Pre-existing guard; AC5 confirms it still works |
