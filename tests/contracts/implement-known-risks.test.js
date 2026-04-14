@@ -71,60 +71,41 @@ test('AC1: known_risks instruction includes address-or-defer guidance', () => {
 // AC2: skills/tdd/SKILL.md GREEN phase includes known_risks checklist item
 // ---------------------------------------------------------------------------
 
-test('AC2: skills/tdd/SKILL.md contains a known_risks verification item', () => {
+test('AC2: one GREEN-scoped checklist item in TDD skill carries known_risks + address/defer + rationale', () => {
   const tdd = read('skills/tdd/SKILL.md');
-  assert.match(
-    tdd,
-    /known_risks/,
-    'skills/tdd/SKILL.md must contain a known_risks reference'
-  );
-});
 
-test('AC2: known_risks item is explicitly GREEN-scoped in the TDD skill', () => {
-  const tdd = read('skills/tdd/SKILL.md');
-  // Extract the GREEN-scoped context: from the GREEN line to the REFACTOR line
-  // within the TDD Cycle section, OR a Top Rules bullet that explicitly mentions GREEN.
-  // This is tighter than "anywhere in TDD Cycle or Top Rules" — it proves the
-  // instruction is a GREEN-phase checklist item, not a detached mention.
+  // Strategy: extract a single GREEN-scoped slice that must contain ALL three
+  // semantics (known_risks, address/defer, rationale). This prevents false
+  // positives from disconnected fragments satisfying different assertions.
+
+  // Path A: TDD Cycle section, GREEN-to-REFACTOR block
   const tddCycleSection = tdd.match(/## TDD Cycle[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(tddCycleSection, 'skills/tdd/SKILL.md must have a "## TDD Cycle" section');
-
-  // Try GREEN-to-REFACTOR scope first (strongest anchor)
   const greenToRefactor = tddCycleSection[0].match(/GREEN[\s\S]*?(?=REFACTOR|$)/);
-  const greenScopeHasRisk = greenToRefactor && /known_risks/.test(greenToRefactor[0]);
 
-  // Fallback: Top Rules bullet that explicitly ties known_risks to GREEN
+  // Path B: Top Rules bullet that contains both GREEN and known_risks on the
+  // same bullet (contiguous lines starting from a "- " marker)
   const topRulesSection = tdd.match(/## Top Rules[\s\S]*?(?=\n## [^#]|$)/);
-  const topRuleGreenScoped = topRulesSection
-    && /known_risks/.test(topRulesSection[0])
-    && /GREEN/i.test(topRulesSection[0]);
+  let topRuleBullet = '';
+  if (topRulesSection) {
+    // Split into bullets (lines starting with "- "), keep continuation lines
+    const bullets = topRulesSection[0].split(/\n(?=- )/).filter(b => b.startsWith('- '));
+    topRuleBullet = bullets.find(b => /known_risks/.test(b) && /GREEN/i.test(b)) || '';
+  }
 
-  assert.ok(
-    greenScopeHasRisk || topRuleGreenScoped,
-    'known_risks must appear in a GREEN-scoped context (between GREEN and REFACTOR in TDD Cycle, or in Top Rules explicitly tied to GREEN)'
-  );
-});
+  // Pick the slice that contains known_risks — exactly one path should match
+  let slice = '';
+  if (greenToRefactor && /known_risks/.test(greenToRefactor[0])) {
+    slice = greenToRefactor[0];
+  } else if (topRuleBullet) {
+    slice = topRuleBullet;
+  }
 
-test('AC2: known_risks checklist item preserves address-or-defer-with-rationale semantics', () => {
-  const tdd = read('skills/tdd/SKILL.md');
-  // The PRD requires "address or defer with rationale". The test must fail if
-  // the instruction degrades to just "address or defer" without the rationale part.
-  // Extract the line(s) containing known_risks and check for both parts.
-  const knownRisksLines = tdd.split('\n').filter(l => /known_risks/.test(l)).join(' ');
-  assert.ok(
-    knownRisksLines.length > 0,
-    'skills/tdd/SKILL.md must contain at least one line referencing known_risks'
-  );
-  assert.match(
-    knownRisksLines,
-    /address|defer/i,
-    'The known_risks item must include address-or-defer language'
-  );
-  assert.match(
-    knownRisksLines,
-    /rationale|reason|why|justif/i,
-    'The known_risks item must require recording rationale for deferral (not just "address or defer" without explanation)'
-  );
+  // All three semantics must be present in the SAME slice
+  assert.ok(slice.length > 0, 'known_risks must appear in a GREEN-scoped slice (GREEN→REFACTOR block or a Top Rules bullet tied to GREEN)');
+  assert.match(slice, /known_risks/, 'The GREEN-scoped slice must contain known_risks');
+  assert.match(slice, /address|defer/i, 'The same slice must include address-or-defer language');
+  assert.match(slice, /rationale|reason|why|justif/i, 'The same slice must require rationale for deferral');
 });
 
 // ---------------------------------------------------------------------------
