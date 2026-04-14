@@ -384,6 +384,58 @@ test('AC6: commands/review.md symmetric gate section instructs checking both gat
   );
 });
 
+test('AC6: commands/security-gate.md contains a symmetric gate enforcement heading', () => {
+  const command = read('commands/security-gate.md');
+  assert.match(
+    command,
+    /symmetric.*gate|gate.*enforcement/i,
+    'commands/security-gate.md must contain a heading matching symmetric gate or gate enforcement (AC6)'
+  );
+});
+
+test('AC6: commands/security-gate.md symmetric gate section references review.md for cross-verification', () => {
+  const command = read('commands/security-gate.md');
+  assert.match(
+    command,
+    /review\.md/,
+    'commands/security-gate.md symmetric gate section must reference commands/review.md for cross-verification'
+  );
+});
+
+test('AC6: symmetric gate invariant — both gate commands have Source Spec Verification', () => {
+  const review = read('commands/review.md');
+  const securityGate = read('commands/security-gate.md');
+  assert.match(review, /^## Source Spec Verification$/m, 'commands/review.md must have Source Spec Verification section');
+  assert.match(securityGate, /^## Source Spec Verification$/m, 'commands/security-gate.md must have Source Spec Verification section');
+});
+
+test('AC6: symmetric gate invariant — both gate commands have Separate Context Check', () => {
+  const review = read('commands/review.md');
+  const securityGate = read('commands/security-gate.md');
+  assert.match(review, /^## Separate Context Check$/m, 'commands/review.md must have Separate Context Check section');
+  assert.match(securityGate, /^## Separate Context Check$/m, 'commands/security-gate.md must have Separate Context Check section');
+});
+
+test('AC6: symmetric gate invariant — both gate commands have Symmetric Gate Enforcement', () => {
+  const review = read('commands/review.md');
+  const securityGate = read('commands/security-gate.md');
+  assert.match(review, /^## Symmetric Gate Enforcement$/m, 'commands/review.md must have Symmetric Gate Enforcement section');
+  assert.match(securityGate, /^## Symmetric Gate Enforcement$/m, 'commands/security-gate.md must have Symmetric Gate Enforcement section');
+});
+
+// ---------------------------------------------------------------------------
+// F4: Structural anchor for pre-diff caveat in automated-checks.md
+// ---------------------------------------------------------------------------
+
+test('AC2: automated-checks.md pre-diff caveat instructs verifying against committed version, not working tree', () => {
+  const content = readOrFail('skills/code-review/automated-checks.md');
+  assert.match(
+    content,
+    /pre.diff|committed.*version|working.tree/i,
+    'automated-checks.md must contain a pre-diff caveat instructing verification against committed version, not working-tree version'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Drift Sync: Source files byte-equal installed copies
 // ---------------------------------------------------------------------------

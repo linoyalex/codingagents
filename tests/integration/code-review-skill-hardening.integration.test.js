@@ -1,7 +1,7 @@
 /**
  * Integration tests for code-review-skill-hardening feature (RED state)
  *
- * // ARCH GAP: No Call Chain section in architecture.md — integration target chosen by QA
+ * // ARCH GAP (ISS-023): No Call Chain section in architecture.md — integration target chosen by QA
  *
  * Derived from: docs/features/code-review-skill-hardening/prd.md + architecture.md
  * Ticket: ISS-039

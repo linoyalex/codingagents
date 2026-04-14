@@ -111,10 +111,17 @@ test('E2E chain: commands/review.md has symmetric gate enforcement with cross-ga
   assert.match(command, /security-gate\.md/, 'Must reference security-gate.md');
 });
 
-test('E2E chain: commands/security-gate.md exists and is verifiable by the symmetric gate check', () => {
-  assert.ok(
-    exists('commands/security-gate.md'),
-    'commands/security-gate.md must exist — AC6 requires verifying symmetric checks across both gate commands'
+test('E2E chain: commands/security-gate.md has symmetric gate enforcement satisfying the AC6 invariant', () => {
+  const securityGate = readOrFail('commands/security-gate.md');
+  assert.match(
+    securityGate,
+    /^## Symmetric Gate Enforcement$/m,
+    'commands/security-gate.md must have a Symmetric Gate Enforcement section — AC6 requires symmetric checks across both gate commands'
+  );
+  assert.match(
+    securityGate,
+    /review\.md/,
+    'commands/security-gate.md symmetric gate section must reference review.md for cross-verification'
   );
 });
 
@@ -201,7 +208,7 @@ test('E2E regression: no skipped tests in the code-review-skill-hardening test s
   const e2eTest = read('tests/e2e/code-review-skill-hardening.spec.js');
 
   const combined = contractTest + integrationTest + e2eTest;
-  // Build pattern dynamically so this source file does not self-match
+  // String concatenation prevents this file from self-matching when the test scans its own source
   const SKIP_PATTERN = new RegExp(['\\.s' + 'kip\\s*\\(', '\\bxte' + 'st\\s*\\(', '\\bxi' + 't\\s*\\('].join('|'));
   const foundSkips = SKIP_PATTERN.test(combined);
   assert.equal(
