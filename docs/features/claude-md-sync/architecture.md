@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T19:30:00Z
+**Generated:** 2026-04-14T20:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -115,10 +115,10 @@ if --sync-claude-md flag:
         - different → replace content between markers → report [updated]
      c. If no markers found (legacy migration):
         - Locate section by heading text
-        - Treat all existing content under that heading as user content
+        - Strip template scaffolding (placeholder comments + current-template-matching lines)
         - Insert managed markers with framework content at top of section
-        - Place existing user content below closing marker (within same heading)
-        - Report [migrated]
+        - Place remaining content below closing marker (within same heading)
+        - Report [migrated] (with preserved-line count if any remain)
      d. If markers malformed/unpaired: report warning, skip section
   3. All content outside managed markers is untouched
   4. Set CLAUDE_MD_STATUS based on full outcome:
@@ -168,11 +168,13 @@ After migration:
 ```
 
 Template placeholder is replaced by managed content; only the user's custom line is preserved.
-If any lines are preserved, the output prints:
-`"  known-gotchas  [migrated] — 1 line preserved as user content (review for stale framework text)"`
-This surfaces the risk of stale text from older template versions without false-stripping.
-The user can delete any stale lines after reviewing. Subsequent syncs replace only the
-content between markers.
+The preserved-line advisory is part of the per-section action line (not a separate block):
+```
+  known-gotchas  [migrated, 1 line preserved — review for stale text]
+```
+This is the single canonical output for a migrated section with preserved content. No
+separate warning block. The user can delete any stale lines after reviewing. Subsequent
+syncs replace only the content between markers.
 
 ### End-of-Script Status Confirmation (AC7)
 
@@ -253,7 +255,7 @@ be deleted.
 ### Fitness Functions
 
 1. **Marker integrity:** After sync, every `managed:start:<id>` has exactly one matching `managed:end:<id>` in the target file — verified by test
-2. **User content preservation:** Content outside markers is byte-identical before and after sync — verified by test
+2. **User content preservation (steady-state):** For files with existing markers, content outside markers is byte-identical before and after sync — verified by test. Does not apply to legacy migration, which intentionally strips template scaffolding and repositions remaining content.
 3. **Filter correctness:** No framework-internal bullet appears in the synced output — verified by test against known exclusion list
 
 ### Rejected Alternatives
