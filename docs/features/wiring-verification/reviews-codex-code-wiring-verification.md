@@ -12,12 +12,15 @@
 - [MAJOR] [tests/contracts/wiring-verification.test.js:152, tests/e2e/wiring-verification.spec.js:110] The AC8 assertions use negative regexes like `skip.*condition|condition.*skip` against the entire wiring test source. That pattern matches harmless comments such as `Missing section -> skip (AC7)` followed later by `Condition column...`, so the AC8 contract and E2E tests fail even though the implementation does not skip conditional artifacts. This makes the suite brittle and self-failing on documentation text rather than behavior.
   - **Resolution:** AC8 tests replaced with behavioral assertions that call `parseRequiredArtifacts` and `checkArtifactWiring` directly against fixture data. No source-text grepping or negative regexes remain. Fixed in Phase 5 fix cycle 2 (commit 1dd55f0), further strengthened in commit 7eb7036.
 
+- [MAJOR] [lib/wiring-check.js:166, 101, 142] Blank-cell parser defect: `split('|').map(trim).filter(Boolean)` silently drops empty table cells, causing column misalignment when interior cells are blank (e.g., empty Condition column `| |`). Affects `parseRequiredArtifacts` (line 166), `parseSkillReferences` (line 101), and header validation (line 142). A blank Pattern or Path cell would have its value silently replaced by the next column's content.
+  - **Resolution:** Replaced `filter(Boolean)` with `slice(1, -1)` in all three locations — drops only the leading/trailing empty strings from pipe delimiters while preserving blank interior cells. Added 3 contract tests proving: (1) blank Condition cell parses as `''` without column shift, (2) blank interior Pattern cell stays empty rather than collapsing, (3) `parseSkillReferences` preserves column positions.
+
 ## Open Questions
 - None.
 
 ## Merge Recommendation
 - REQUEST CHANGES (original)
-- **Updated: ALL FINDINGS RESOLVED** (2026-04-14) — 3/3 findings addressed. Re-verification: `node --test tests/node/command-skill-wiring.test.js tests/contracts/wiring-verification.test.js tests/integration/wiring-verification.integration.test.js tests/e2e/wiring-verification.spec.js` passes 54/54 tests.
+- **Updated: ALL FINDINGS RESOLVED** (2026-04-14) — original 3 findings + blank-cell parser defect addressed. Re-verification: 57/57 tests pass across all 5 test files.
 
 ## Verification Notes
 - Reviewed `git diff main...HEAD` on `feature/ISS-036-wiring-verification`.

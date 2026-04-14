@@ -152,6 +152,69 @@ test('AC3: parseRequiredArtifacts throws descriptive error for malformed tables'
 });
 
 // ---------------------------------------------------------------------------
+// Blank-cell parser: empty interior cells must not cause column misalignment
+// ---------------------------------------------------------------------------
+
+test('parseRequiredArtifacts: blank Condition cell does not shift columns', () => {
+  // A trailing empty Condition cell (| |) must parse as condition: ''
+  // and NOT collapse other columns via filter(Boolean).
+  const skill = [
+    '# Skill: Test',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Integration test | [feature].integration.test.* | tests/integration/ | |',
+  ].join('\n');
+
+  const artifacts = parseRequiredArtifacts(skill, 'blank-condition-skill');
+  assert.ok(artifacts !== null && artifacts.length === 1);
+  assert.equal(artifacts[0].artifact, 'Integration test');
+  assert.equal(artifacts[0].pattern, '[feature].integration.test.*');
+  assert.deepEqual(artifacts[0].paths, ['tests/integration/']);
+  assert.equal(artifacts[0].condition, '',
+    'Blank Condition cell must parse as empty string, not shift columns');
+});
+
+test('parseRequiredArtifacts: blank interior cell is detected (not silently collapsed)', () => {
+  // If Pattern is blank, the parser must not silently shift Path into Pattern's slot.
+  const skill = [
+    '# Skill: Test',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Integration test | | tests/integration/ | Phase 5 only |',
+  ].join('\n');
+
+  const artifacts = parseRequiredArtifacts(skill, 'blank-pattern-skill');
+  assert.ok(artifacts !== null && artifacts.length === 1);
+  // Pattern must be empty, NOT 'tests/integration/' (which would happen with filter(Boolean))
+  assert.equal(artifacts[0].pattern, '',
+    'Blank Pattern cell must remain empty, not get filled by the next column');
+  assert.deepEqual(artifacts[0].paths, ['tests/integration/']);
+  assert.equal(artifacts[0].condition, 'Phase 5 only');
+});
+
+test('parseSkillReferences: blank interior cell preserves column positions', () => {
+  // If skill name is blank but source path is present, columns must not shift.
+  const command = [
+    '## Skill References',
+    '',
+    '| Skill | Source path |',
+    '|-------|-------------|',
+    '| tdd | skills/tdd/SKILL.md |',
+  ].join('\n');
+
+  const refs = parseSkillReferences(command, 'test-cmd.md');
+  assert.equal(refs.length, 1);
+  assert.equal(refs[0].skill, 'tdd');
+  assert.equal(refs[0].sourcePath, 'skills/tdd/SKILL.md');
+});
+
+// ---------------------------------------------------------------------------
 // AC4: Phase 5 verification step in commands/implement.md
 // ---------------------------------------------------------------------------
 
