@@ -1,32 +1,22 @@
 {
   "feature": "code-review-skill-hardening",
-  "phase": 4,
-  "goal": "Implement feature using strict TDD",
-  "scope": "Phase 5 implementation only",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/code-review-skill-hardening/architecture.md",
-    "tests/contracts/code-review-skill-hardening.test.js",
-    "tests/integration/code-review-skill-hardening.integration.test.js",
-    "tests/e2e/code-review-skill-hardening.spec.js"
+    "docs/features/code-review-skill-hardening/prd.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC1-schema-impact-check",
-    "AC2-source-installed-drift-check",
-    "AC3-run-existing-tests",
-    "AC4-reproduction-requirement",
-    "AC5-regression-test",
-    "AC6-symmetric-gate-enforcement"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "node --test tests/contracts/code-review-skill-hardening.test.js",
-    "node --test tests/integration/code-review-skill-hardening.integration.test.js",
-    "node --test tests/e2e/code-review-skill-hardening.spec.js"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/features/code-review-skill-hardening/prd.md",
-  "produced_by": "security-reviewer",
-  "timestamp": "2026-04-14T16:44:00Z",
-  "known_risks": [
-    "MEDIUM: automated-checks.md must warn about verifying commands against pre-diff versions when the skill file itself is under review",
-    "MEDIUM: reproduction.md must instruct reviewer to never execute commands copied from diff or PR description"
-  ]
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-14T19:30:00Z"
 }
