@@ -18,16 +18,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(pwd)"
 WITH_CODEX=false
 VERBOSE=false
+SYNC_CLAUDE_MD=false
 NEW_VERSION="v5"
 VERSION_FILE="$TARGET_DIR/.claude/.codingagents-version"
+CLAUDE_MD_STATUS=""
 
 for arg in "$@"; do
   case "$arg" in
     --codex) WITH_CODEX=true ;;
     --verbose) VERBOSE=true ;;
+    --sync-claude-md) SYNC_CLAUDE_MD=true ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
+
+# Source sync library for --sync-claude-md support
+if [ "$SYNC_CLAUDE_MD" = true ]; then
+  source "$SCRIPT_DIR/lib/sync-claude-md.sh"
+fi
 
 # Enable trace mode for verbose output
 if [ "$VERBOSE" = true ]; then
@@ -103,12 +111,13 @@ fi
 log_verbose "CORE_NEEDS_UPGRADE=$CORE_NEEDS_UPGRADE"
 log_verbose "CODEX_NEEDS_INSTALL=$CODEX_NEEDS_INSTALL"
 
-if [ "$CORE_NEEDS_UPGRADE" = false ] && [ "$CODEX_NEEDS_INSTALL" = false ]; then
+if [ "$CORE_NEEDS_UPGRADE" = false ] && [ "$CODEX_NEEDS_INSTALL" = false ] && [ "$SYNC_CLAUDE_MD" = false ]; then
   echo "All requested components are at version $NEW_VERSION. Nothing to upgrade."
   echo ""
   if [ "$WITH_CODEX" = false ] && [ -z "$CURRENT_CODEX" ]; then
     echo "Tip: Run with --codex to install the Codex review layer."
   fi
+  echo "  CLAUDE.md: not modified — run with --sync-claude-md to sync sections"
   exit 0
 fi
 
@@ -117,40 +126,42 @@ echo "Source:   $SCRIPT_DIR"
 echo "Target:   $TARGET_DIR"
 echo ""
 
-# --- Show what will change ---
-echo "This upgrade will:"
-if [ "$CORE_NEEDS_UPGRADE" = true ]; then
-  echo "  [core] Upgrade $CURRENT_CORE → $NEW_VERSION"
-  echo "    - Back up .claude/ to .claude.backup-$CURRENT_CORE/"
-  echo "    - Replace hook files (checkpoint.js, restore-context.js, archive-context.js)"
-  echo "    - Replace role files in .claude/agents/"
-  echo "    - Replace skill files in .claude/skills/"
-  echo "    - Add schemas/ directory"
-  echo "    - Create docs/features/ and docs/decisions/ if missing"
-  echo "    - Update .gitignore with new runtime artifact patterns"
-else
-  echo "  [core] Already at $NEW_VERSION — skipping"
-fi
-if [ "$CODEX_NEEDS_INSTALL" = true ]; then
-  if [ -z "$CURRENT_CODEX" ]; then
-    echo "  [codex] Install $NEW_VERSION (new)"
+# --- Confirmation prompt (only when core/codex changes are pending) ---
+if [ "$CORE_NEEDS_UPGRADE" = true ] || [ "$CODEX_NEEDS_INSTALL" = true ]; then
+  echo "This upgrade will:"
+  if [ "$CORE_NEEDS_UPGRADE" = true ]; then
+    echo "  [core] Upgrade $CURRENT_CORE → $NEW_VERSION"
+    echo "    - Back up .claude/ to .claude.backup-$CURRENT_CORE/"
+    echo "    - Replace hook files (checkpoint.js, restore-context.js, archive-context.js)"
+    echo "    - Replace role files in .claude/agents/"
+    echo "    - Replace skill files in .claude/skills/"
+    echo "    - Add schemas/ directory"
+    echo "    - Create docs/features/ and docs/decisions/ if missing"
+    echo "    - Update .gitignore with new runtime artifact patterns"
   else
-    echo "  [codex] Upgrade $CURRENT_CODEX → $NEW_VERSION"
+    echo "  [core] Already at $NEW_VERSION — skipping"
   fi
-  if [ -d "$TARGET_DIR/codex" ]; then
-    echo "    - Back up codex/ to codex.backup-$CURRENT_CODEX/"
+  if [ "$CODEX_NEEDS_INSTALL" = true ]; then
+    if [ -z "$CURRENT_CODEX" ]; then
+      echo "  [codex] Install $NEW_VERSION (new)"
+    else
+      echo "  [codex] Upgrade $CURRENT_CODEX → $NEW_VERSION"
+    fi
+    if [ -d "$TARGET_DIR/codex" ]; then
+      echo "    - Back up codex/ to codex.backup-$CURRENT_CODEX/"
+    fi
+    echo "    - Copy reviewer prompts, templates, scripts, and docs"
   fi
-  echo "    - Copy reviewer prompts, templates, scripts, and docs"
-fi
-echo ""
-echo "  Will NOT touch: CLAUDE.md, docs/, src/, runtime artifacts"
-echo ""
+  echo ""
+  echo "  Will NOT touch: CLAUDE.md, docs/, src/, runtime artifacts"
+  echo ""
 
-read -p "Proceed? (y/N) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo "Aborted."
-  exit 0
+  read -p "Proceed? (y/N) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 0
+  fi
 fi
 
 # ===========================================
@@ -297,11 +308,36 @@ if [ "$CODEX_NEEDS_INSTALL" = true ]; then
   echo "  Codex review layer installed at $NEW_VERSION."
 fi
 
+# ===========================================
+# CLAUDE.md sync (independent of core/codex)
+# ===========================================
+if [ "$SYNC_CLAUDE_MD" = true ]; then
+  echo ""
+  echo "[sync] Syncing CLAUDE.md sections..."
+  local_source="$SCRIPT_DIR/docs/CLAUDE.md"
+  if [ ! -f "$local_source" ]; then
+    echo "Error: docs/CLAUDE.md not found at $local_source" >&2
+    exit 1
+  fi
+  if [ ! -f "$TARGET_DIR/CLAUDE.md" ]; then
+    echo "Error: Target CLAUDE.md not found at $TARGET_DIR/CLAUDE.md" >&2
+    exit 1
+  fi
+  sync_claude_md "$local_source" "$TARGET_DIR/CLAUDE.md" "upgrade"
+  sync_exit=$?
+  if [ "$sync_exit" -ne 0 ]; then
+    exit "$sync_exit"
+  fi
+else
+  CLAUDE_MD_STATUS="not modified — run with --sync-claude-md to sync sections"
+fi
+
 # --- Summary ---
 echo ""
 echo "=== Upgrade complete ==="
 echo "Installed components:"
 cat "$VERSION_FILE"
+echo "  CLAUDE.md: $CLAUDE_MD_STATUS"
 echo ""
 
 if [ "$CORE_NEEDS_UPGRADE" = true ]; then

@@ -16,16 +16,34 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(pwd)"
 WITH_CODEX=false
 VERBOSE=false
+SYNC_CLAUDE_MD=false
 VERSION="v5"
 VERSION_FILE="$TARGET_DIR/.claude/.codingagents-version"
+CLAUDE_MD_STATUS=""
 
 for arg in "$@"; do
   case "$arg" in
     --codex) WITH_CODEX=true ;;
     --verbose) VERBOSE=true ;;
+    --sync-claude-md) SYNC_CLAUDE_MD=true ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
+
+# Source sync library for --sync-claude-md support
+if [ "$SYNC_CLAUDE_MD" = true ]; then
+  source "$SCRIPT_DIR/lib/sync-claude-md.sh"
+fi
+
+# Early interactive capture: when existing CLAUDE.md + no --sync-claude-md + terminal,
+# prompt the user immediately (before file operations) so PTY input is captured
+# before any pipe EOF is processed.
+CLAUDE_MD_CHOICE=""
+if [ "$SYNC_CLAUDE_MD" = false ] && [ -f "$TARGET_DIR/CLAUDE.md" ] && [ -t 0 ]; then
+  read -p "  CLAUDE.md exists — (o)verwrite with template / (e)xit to re-run with --sync-claude-md: " -n 1 -r || true
+  CLAUDE_MD_CHOICE="$REPLY"
+  echo
+fi
 
 # Enable trace mode for verbose output
 if [ "$VERBOSE" = true ]; then
@@ -85,6 +103,7 @@ mkdir -p "$TARGET_DIR/.claude/context-archive"
 mkdir -p "$TARGET_DIR/docs/features"
 mkdir -p "$TARGET_DIR/docs/decisions"
 
+
 # --- Copy roles ---
 echo "[2/7] Copying role files..."
 for role in "$SCRIPT_DIR"/ROLE_*.md; do
@@ -120,20 +139,49 @@ echo "  Copied hooks, settings, and schemas"
 
 echo "  Created docs directories (features, decisions) for project use"
 
-# --- CLAUDE.md (prompt before overwrite) ---
+# --- CLAUDE.md ---
 echo "[6/7] Setting up CLAUDE.md..."
-if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
-  echo "  CLAUDE.md already exists."
-  read -p "  Overwrite with template? (y/N) " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-    echo "  Overwritten."
+if [ "$SYNC_CLAUDE_MD" = true ]; then
+  # --sync-claude-md: copy template then sync sections from docs/CLAUDE.md
+  if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
+    # Backup existing CLAUDE.md before overwriting with template
+    cp "$TARGET_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md.pre-sync"
+    echo "  Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"
+  fi
+  cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+  local_source="$SCRIPT_DIR/docs/CLAUDE.md"
+  if [ ! -f "$local_source" ]; then
+    echo "Error: docs/CLAUDE.md not found at $local_source" >&2
+    exit 1
+  fi
+  sync_claude_md "$local_source" "$TARGET_DIR/CLAUDE.md" "init"
+  sync_exit=$?
+  if [ "$sync_exit" -ne 0 ]; then
+    exit "$sync_exit"
+  fi
+elif [ -f "$TARGET_DIR/CLAUDE.md" ]; then
+  if [ -n "$CLAUDE_MD_CHOICE" ] || [ -t 0 ]; then
+    # Interactive: use early-captured choice
+    case "$CLAUDE_MD_CHOICE" in
+      o|O)
+        cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+        CLAUDE_MD_STATUS="overwritten with template"
+        echo "  Overwritten with template."
+        ;;
+      *)
+        echo "  Re-run with --sync-claude-md for section-level sync"
+        CLAUDE_MD_STATUS="kept existing"
+        ;;
+    esac
   else
-    echo "  Kept existing. Review codingagents/CLAUDE.md for new sections (Phase Handoff Protocol, Memory Governance)."
+    # Non-interactive: keep existing, print reminder
+    echo "  CLAUDE.md already exists — keeping existing file."
+    echo "  Re-run with --sync-claude-md for section-level sync"
+    CLAUDE_MD_STATUS="kept existing — run with --sync-claude-md to sync sections"
   fi
 else
   cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+  CLAUDE_MD_STATUS="copied template"
   echo "  Copied CLAUDE.md template."
 fi
 
@@ -202,9 +250,10 @@ else
 fi
 
 echo ""
-echo "=== Done ==="
+echo "=== codingagents init complete ==="
 echo "Installed components:"
 cat "$VERSION_FILE"
+[ -n "$CLAUDE_MD_STATUS" ] && echo "  CLAUDE.md: $CLAUDE_MD_STATUS"
 echo ""
 echo "Next steps:"
 echo "  1. Edit CLAUDE.md to fill in project-specific sections"
