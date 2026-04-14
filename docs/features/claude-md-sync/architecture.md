@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T18:30:00Z
+**Generated:** 2026-04-14T19:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -64,6 +64,12 @@ sub-bullets) until the next top-level bullet or heading. When an anchor matches,
 block (including wrapped lines and attached examples) is included in the managed content.
 This prevents partial or malformed output from split multi-line bullets.
 
+**Allowlist drift detection:** A contract test verifies that every anchor in the allowlist
+matches at least one block in the current `docs/CLAUDE.md`. If an approved block's first
+line is reworded, the test fails with the stale anchor and the new text, prompting a
+maintainer to update the allowlist. This runs in the existing `node --test` suite alongside
+other sync tests — no additional CI step needed.
+
 ### Marker Format
 
 ```markdown
@@ -127,14 +133,20 @@ When `upgrade.sh --sync-claude-md` encounters a CLAUDE.md without markers, the s
 function migrates each eligible section from heading-based to marker-based ownership.
 
 **Template content stripping:** Before preserving existing content as user-owned, the
-migration strips lines matching two deterministic patterns — no version lookup needed:
-1. **Placeholder comments** — lines matching `<!-- e.g. ... -->` or `<!-- FILL IN -->` (the
-   template's own guidance markers, recognizable by format regardless of framework version)
-2. **Unchecked checklist items** — lines matching `- [ ] <!-- ... -->` (empty template slots)
+migration strips lines matching three categories:
+1. **Placeholder comments** — lines matching `<!-- e.g. ... -->`, `<!-- FILL IN -->`, or
+   `- [ ] <!-- ... -->` (the template's own guidance markers)
+2. **Current template text** — lines byte-identical to the current root template's content
+   for that section (read from `$SCRIPT_DIR/CLAUDE.md` at sync time). This catches concrete
+   framework text from older templates (e.g. unmodified naming rules, folder structure
+   examples) that aren't placeholder comments but are still template boilerplate.
+3. **Blank lines** between stripped content (collapsed to avoid orphaned whitespace)
 
-Any remaining non-blank content is treated as user-authored. This is conservative: if a user
-wrote something that happens to look like a placeholder comment, it would be stripped — but
-that pattern is extremely unlikely in practice. No version file lookup is required.
+Any remaining content is treated as user-authored. The comparison uses the current template
+as the baseline — not a historical version. Lines from older template versions that were
+reworded in the current template will be preserved as user content. This is the safer
+direction: false preservation (user reviews and removes a stale line) is less harmful than
+false stripping (user loses content they wrote).
 
 Before migration (project added one custom gotcha, rest is template):
 ```markdown
@@ -180,13 +192,16 @@ Possible values:
 ```
 Syncing CLAUDE.md sections...
   code-conventions-must-follow  [added]
-  code-conventions-naming       [added]
   architecture-notes            [unchanged]
   known-gotchas                 [updated]
-CLAUDE.md sync complete — 2 added, 1 updated, 1 unchanged
+CLAUDE.md sync complete — 1 added, 1 updated, 1 unchanged
 ```
 
-Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[migrated]` (legacy upgrade), `[skipped:malformed-markers]`
+Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[migrated]` (legacy upgrade), `[skipped: <reason>]`
+
+Skipped sections always appear in the per-section list with their reason (e.g.
+`[skipped: malformed markers]`). The summary line includes skipped counts when non-zero
+(e.g. "1 updated, 1 unchanged, 1 skipped").
 
 ### Write Safety
 
@@ -194,8 +209,10 @@ Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[migrated]` (legacy
 the sync copies it to `CLAUDE.md.pre-sync` in the same directory and prints:
 `"Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"`
 The backup is overwritten on each subsequent sync run (only the most recent pre-sync state
-is preserved). This is distinct from ISS-007's full backup system — it's a single-file
-safety net scoped to the sync operation.
+is preserved). **If backup creation fails** (permissions, disk full, read-only filesystem),
+sync aborts with an error before creating the temp file — the original is never touched.
+This is distinct from ISS-007's full backup system — it's a single-file safety net scoped
+to the sync operation.
 
 **Atomic write:** All modifications are performed on a temp file (`CLAUDE.md.tmp`). Only
 after all sections are processed is the temp file moved to the final path via `mv` (atomic
@@ -212,6 +229,7 @@ be deleted.
 | `docs/CLAUDE.md` missing or unreadable | Error message, abort sync | 1 |
 | Target `CLAUDE.md` missing (upgrade) | Error message, abort sync | 1 |
 | Target `CLAUDE.md` not writable | Error message, abort sync | 1 |
+| Backup creation fails (permissions, disk) | Error message, abort before temp file created | 1 |
 | Interrupted mid-write | Original untouched; temp file left for cleanup | 1 |
 | Managed markers malformed/unpaired | Warning per section, skip that section, continue | 0 |
 | Eligible heading not found in source | Warning, skip section, continue | 0 |

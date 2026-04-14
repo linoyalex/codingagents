@@ -1,12 +1,12 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T18:30:00Z
+**Generated:** 2026-04-14T19:00:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
 ### User Story
 As a framework consumer,
 I want `init.sh` and `upgrade.sh` to optionally sync my project's root `CLAUDE.md` with the framework's reference `docs/CLAUDE.md`,
-So that my project stays current with new conventions, naming rules, folder structure, architecture notes, and known gotchas without losing my project-specific customizations.
+So that my project stays current with new conventions, architecture notes, and known gotchas without losing my project-specific customizations.
 
 ### Acceptance Criteria
 
@@ -18,10 +18,10 @@ So that my project stays current with new conventions, naming rules, folder stru
 - [ ] **AC3b:** Given `upgrade.sh` is run without `--sync-claude-md`, When the script completes, Then a reminder is printed that `--sync-claude-md` is available for section-level sync
 - [ ] **AC3c:** Given an existing project whose `CLAUDE.md` has no managed markers (legacy/pre-sync), When `upgrade.sh --sync-claude-md` is run, Then for each eligible section: the sync locates the section by heading, preserves any existing user content below the managed block, and inserts managed markers with framework content above the user content within that section
 - [ ] **AC4:** Given a root `CLAUDE.md` with user-added content outside managed markers (e.g. project-specific gotchas, custom conventions added below the managed block), When sync runs, Then that user content is preserved unchanged in its original position
-- [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists each eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, or `[migrated]`, plus a summary line with counts
+- [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists every eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, `[migrated]`, or `[skipped]` (with reason), plus a summary line with counts including any skipped sections (e.g. "2 updated, 1 skipped")
 - [ ] **AC6:** Given a root `CLAUDE.md` where a managed section's content is byte-identical to the reference, When sync runs, Then that section is reported as `[unchanged]` and its markers and content are left untouched
 - [ ] **AC7:** Given either `init.sh` or `upgrade.sh` completes (with or without `--sync-claude-md`), When the final summary is printed, Then a CLAUDE.md status line is included (e.g. "CLAUDE.md: synced 3 sections", "CLAUDE.md: kept existing", "CLAUDE.md: copied template", "CLAUDE.md: not modified — run with --sync-claude-md to sync sections")
-- [ ] **AC7b:** Given `--sync-claude-md` is used and a `CLAUDE.md` already exists, When sync begins, Then a pre-sync backup is saved to `CLAUDE.md.pre-sync` and the output includes: "Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"
+- [ ] **AC7b:** Given `--sync-claude-md` is used and a `CLAUDE.md` already exists, When sync begins, Then a pre-sync backup is saved to `CLAUDE.md.pre-sync` and the output includes: "Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md". If the backup cannot be created (permissions, disk full), sync aborts with an error before modifying the original file.
 - [ ] **AC8:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
 - [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, legacy migration (no markers → markers with user content preserved), non-interactive fallback, defensive prompt when existing CLAUDE.md found, and end-of-script status confirmation
 
@@ -51,7 +51,7 @@ So that my project stays current with new conventions, naming rules, folder stru
 
 - `docs/CLAUDE.md` must exist and contain the reference sections with recognizable markdown headings
 - **Managed markers are mandatory for steady-state sync.** Every synced block is wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` pairs. Content inside markers is framework-owned and replaced on sync. Content outside markers is user-owned and never touched.
-- **Legacy migration (no markers):** When `--sync-claude-md` encounters a CLAUDE.md without markers, it locates sections by heading text, strips lines that match the original template (deduplication), inserts managed markers with framework content at the top of the section, and places remaining user-authored content below the closing marker. After migration, subsequent syncs use markers.
+- **Legacy migration (no markers):** When `--sync-claude-md` encounters a CLAUDE.md without markers, it locates sections by heading text, strips template scaffolding (lines matching `<!-- e.g. ... -->`, `<!-- FILL IN -->`, `- [ ] <!-- ... -->`, and lines byte-identical to the current root template's content for that section), inserts managed markers with framework content at the top of the section, and places remaining user-authored content below the closing marker. After migration, subsequent syncs use markers.
 - **Selection rule (fail-closed):** Eligible sections and their IDs: `code-conventions-must-follow`, `architecture-notes`, `known-gotchas`. Only content explicitly listed in a per-section allowlist syncs to consumer projects — new bullets in `docs/CLAUDE.md` do NOT sync until a maintainer approves them. The architecture phase defines the allowlist and filter mechanism. Not synced: `code-conventions-folder-structure` (root template owns consumer folder structure) and `code-conventions-naming` (no approved downstream content — consumers define their own).
 - **No-op detection:** Byte-identical comparison on managed block content (after trailing whitespace normalization). Markers are the canonical anchor.
 - **Malformed marker handling:** Unpaired markers → warn + skip section, continue (exit 0).
