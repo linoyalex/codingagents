@@ -13,6 +13,38 @@ No unreleased changes documented yet.
 
 ---
 
+## [5.5.0] — 2026-04-14
+
+### Added
+- **Command↔skill wiring verification library** — new `lib/wiring-check.js` implements a 4-stage algorithm (discovery, registry parse, wiring check, negative fixture) that verifies every artifact type declared in a skill's `## Required Artifacts` table has a corresponding output instruction in the invoking command's Output section
+- **`## Skill References` table convention for commands** — commands that load skills must declare them in a structural `| Skill | Source path |` table; fail-closed heuristic catches commands with skill-loading prose but no table
+- **`## Required Artifacts` table convention for skills** — skills that require agents to produce named artifacts declare them in a 4-column table (`Artifact | Pattern | Path | Condition`); the wiring checker validates this format and rejects malformed tables with descriptive errors
+- **Artifact Wiring Verification step in Phase 5 and Phase 3** — `commands/implement.md` and `commands/test-design.md` now include a verification step requiring developers and QA agents to confirm all skill artifacts have output slots before committing
+- **Negative test fixture for wiring gaps** — `tests/fixtures/wiring-gap/` contains mock skill and command files with a deliberate artifact gap, proving gap detection works
+- **Conditional artifact enforcement** — artifacts with a non-empty Condition column (e.g., "Phase 5 only") receive the same full pattern+path wiring check as unconditional artifacts; the Condition is informational only
+- **Multi-path wiring support** — wiring check passes when at least one of multiple declared output paths matches the command's Output section
+- **Blank-cell parser validation** — blank Pattern or Path cells in Required Artifacts tables and blank Source path cells in Skill References tables now throw descriptive errors instead of silently bypassing the wiring check
+- **Source/installed sync tests for commands** — byte-identity sync tests now cover `commands/implement.md` and `commands/test-design.md` in addition to skills and hooks
+
+### Changed
+- **All pipeline commands now have `## Skill References` tables** — architect, document, implement, review, security-gate, specify, and test-design commands now explicitly declare their skill dependencies in a structural table
+- **`commands/test-design.md` Output section expanded** — now includes `tests/integration/` path with `[feature].integration.test.*` pattern, closing the gap identified in ISS-022
+
+### Fixed
+- **Blank Pattern cell fail-open bypass** — a blank Pattern cell previously parsed as empty string, causing `String.includes('')` to return true for any command text, silently passing the wiring check; now rejected as malformed
+- **Blank Source path EISDIR error** — a blank Source path in Skill References previously resolved to the repo root directory, throwing a raw EISDIR error; now caught with a descriptive error message
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [5.4.0] — 2026-04-13
 
 > Upgrade warning: `5.4.0` introduces a new Phase 3 gating factor. Upgrading agents mid-feature-cycle is strongly discouraged because existing test-design outputs may not satisfy the new integration-test artifact and verification requirements.
