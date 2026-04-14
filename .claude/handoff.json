@@ -1,33 +1,22 @@
 {
   "feature": "wiring-verification",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/wiring-verification/architecture.md",
-    "docs/features/wiring-verification/prd.md"
+    "docs/features/wiring-verification/prd.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC1: checkCommandSkillWiring passes for commands with correct output wiring",
-    "AC2: test-design Output references integration test pattern and path",
-    "AC3: parseRequiredArtifacts throws descriptive error for malformed tables",
-    "AC4: implement.md includes artifact verification step",
-    "AC5: test-design.md includes artifact verification step",
-    "AC6: tdd skill has Required Artifacts with 4-column format",
-    "AC7: parseRequiredArtifacts returns null for skills without the section",
-    "AC8: conditional artifacts get same full pattern+path check",
-    "AC9: checkArtifactWiring passes when at least one of multiple paths matches",
-    "AC10: existing contract tests still exist",
-    "AC11: negative fixture gap detection throws with actionable error",
-    "F1: checkCommandSkillWiring throws named error on missing skill file",
-    "F4: extractSection preserves sub-headings deeper than target"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "node --test tests/node/command-skill-wiring.test.js",
-    "node --test tests/contracts/wiring-verification.test.js tests/integration/wiring-verification.integration.test.js tests/integration/wiring-verification-e2e-chain.integration.test.js",
-    "git diff main...HEAD"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/issues/tickets/ISS-036.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-13T17:00:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-14T14:10:00Z"
 }

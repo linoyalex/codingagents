@@ -498,6 +498,95 @@ test('F1: checkCommandSkillWiring throws named error when skill file does not ex
 });
 
 // ---------------------------------------------------------------------------
+// Codex Finding 1: blank Pattern cell must not bypass wiring check
+// ---------------------------------------------------------------------------
+
+test('AC3: parseRequiredArtifacts rejects data row with blank Pattern cell (fail-open bypass)', () => {
+  // A blank Pattern cell parses as "" and outputSection.includes('') is always true,
+  // silently passing the wiring check for any command text. This is a fail-open path
+  // that violates AC3 (malformed tables must throw).
+  const blankPatternSkill = [
+    '# Skill: Blank Pattern',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Integration test |  | tests/integration/ | |',
+  ].join('\n');
+
+  assert.throws(
+    () => parseRequiredArtifacts(blankPatternSkill, 'blank-pattern-skill'),
+    (err) => {
+      assert.ok(err.message.includes('blank-pattern-skill'),
+        `Error must name the skill, got: ${err.message}`);
+      assert.ok(
+        err.message.toLowerCase().includes('pattern') ||
+        err.message.toLowerCase().includes('blank') ||
+        err.message.toLowerCase().includes('empty'),
+        `Error must describe the blank cell, got: ${err.message}`
+      );
+      return true;
+    },
+    'Blank Pattern cell must throw a parse error, not silently pass (Codex finding 1)'
+  );
+});
+
+test('AC3: parseRequiredArtifacts rejects data row with blank Path cell', () => {
+  const blankPathSkill = [
+    '# Skill: Blank Path',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Integration test | [feature].integration.test.* |  | |',
+  ].join('\n');
+
+  assert.throws(
+    () => parseRequiredArtifacts(blankPathSkill, 'blank-path-skill'),
+    (err) => {
+      assert.ok(err.message.includes('blank-path-skill'),
+        `Error must name the skill, got: ${err.message}`);
+      return true;
+    },
+    'Blank Path cell must throw a parse error (Codex finding 1 — related)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Codex Finding 2: blank Source path must not cause raw EISDIR
+// ---------------------------------------------------------------------------
+
+test('parseSkillReferences rejects row with blank Source path (EISDIR bypass)', () => {
+  // A blank sourcePath parses as "", exists('') resolves to repo root (true),
+  // and read('') throws raw EISDIR. Must throw a descriptive error instead.
+  const blankSourcePathCommand = [
+    '# Command: Bad Refs',
+    '',
+    '## Skill References',
+    '',
+    '| Skill | Source path |',
+    '|-------|-------------|',
+    '| tdd | |',
+  ].join('\n');
+
+  assert.throws(
+    () => parseSkillReferences(blankSourcePathCommand, 'bad-refs.md'),
+    (err) => {
+      assert.ok(err.message.includes('bad-refs.md'),
+        `Error must name the command, got: ${err.message}`);
+      assert.ok(err.message.includes('tdd'),
+        `Error must name the skill, got: ${err.message}`);
+      assert.notEqual(err.code, 'EISDIR',
+        'Error must not be a raw EISDIR from fs operations');
+      return true;
+    },
+    'Blank Source path must throw a descriptive error, not raw EISDIR (Codex finding 2)'
+  );
+});
+
+// ---------------------------------------------------------------------------
 // AC3: Malformed artifact registry produces parse error naming the skill
 // ---------------------------------------------------------------------------
 

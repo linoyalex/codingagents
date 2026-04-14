@@ -177,8 +177,9 @@ test('parseRequiredArtifacts: blank Condition cell does not shift columns', () =
     'Blank Condition cell must parse as empty string, not shift columns');
 });
 
-test('parseRequiredArtifacts: blank interior cell is detected (not silently collapsed)', () => {
-  // If Pattern is blank, the parser must not silently shift Path into Pattern's slot.
+test('parseRequiredArtifacts: blank Pattern cell throws instead of silently passing wiring check', () => {
+  // Previously, blank Pattern parsed as "" and outputSection.includes('') was always true.
+  // Now the parser rejects blank Pattern cells as malformed (AC3).
   const skill = [
     '# Skill: Test',
     '',
@@ -189,13 +190,11 @@ test('parseRequiredArtifacts: blank interior cell is detected (not silently coll
     '| Integration test | | tests/integration/ | Phase 5 only |',
   ].join('\n');
 
-  const artifacts = parseRequiredArtifacts(skill, 'blank-pattern-skill');
-  assert.ok(artifacts !== null && artifacts.length === 1);
-  // Pattern must be empty, NOT 'tests/integration/' (which would happen with filter(Boolean))
-  assert.equal(artifacts[0].pattern, '',
-    'Blank Pattern cell must remain empty, not get filled by the next column');
-  assert.deepEqual(artifacts[0].paths, ['tests/integration/']);
-  assert.equal(artifacts[0].condition, 'Phase 5 only');
+  assert.throws(
+    () => parseRequiredArtifacts(skill, 'blank-pattern-skill'),
+    /blank Pattern/i,
+    'Blank Pattern cell must throw a parse error, not silently pass wiring check'
+  );
 });
 
 test('parseSkillReferences: blank interior cell preserves column positions', () => {
