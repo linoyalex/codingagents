@@ -2,7 +2,7 @@
   "feature": "codex-review-hardening",
   "phase": 5,
   "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "scope": "Phase 6 review only — verify review fixes address BLOCKING and MAJOR findings",
   "relevant_files": [
     "docs/features/codex-review-hardening/architecture.md",
     "docs/features/codex-review-hardening/prd.md"
@@ -18,9 +18,16 @@
   ],
   "verification_commands": [
     "git diff main...HEAD",
+    "node --test tests/node/codex-review-method.test.js",
+    "node --test tests/node/installer-coverage.test.js",
     "ls docs/features/codex-review-hardening/review.md"
+  ],
+  "known_risks": [
+    "Prior review found BLOCKING: init.sh/upgrade.sh cp lines outside guards — FIXED in 648f3d3",
+    "Prior review found MAJOR: dead globSourceFiles/globSync in test — FIXED in 648f3d3",
+    "Prior review found MINOR: missing trigger conditions in review-code.md — FIXED in 648f3d3"
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
   "produced_by": "developer",
-  "timestamp": "2026-04-13T22:00:00Z"
+  "timestamp": "2026-04-13T23:30:00Z"
 }
