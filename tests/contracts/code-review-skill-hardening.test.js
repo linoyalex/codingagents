@@ -139,6 +139,15 @@ test('AC2: automated-checks.md drift check maps commands/, skills/, hooks/ to in
   );
 });
 
+test('AC2: automated-checks.md drift check instructs raising a finding on any divergence', () => {
+  const content = readOrFail('skills/code-review/automated-checks.md');
+  assert.match(
+    content,
+    /finding|flag|HIGH|divergen/i,
+    'automated-checks.md must instruct the reviewer to raise a finding (at HIGH severity per arch doc) when source/installed drift is detected'
+  );
+});
+
 test('AC2: automated-checks.md drift check includes empty state (no installable paths)', () => {
   const content = readOrFail('skills/code-review/automated-checks.md');
   assert.match(
@@ -186,6 +195,15 @@ test('AC3: automated-checks.md test suite step handles empty state (no test comm
     content,
     /finding|note.*gap|not.*silent/i,
     'automated-checks.md must note missing test command as a finding, not a silent skip'
+  );
+});
+
+test('AC3: automated-checks.md test suite step requires scoping suites to files touched by the diff', () => {
+  const content = readOrFail('skills/code-review/automated-checks.md');
+  assert.match(
+    content,
+    /touch|cover|scope|affected/i,
+    'automated-checks.md must instruct running suites that cover files touched by the diff, not a single generic command'
   );
 });
 
@@ -265,6 +283,25 @@ test('AC4: reproduction.md prohibits BLOCKING severity for unverified findings w
     content,
     /escalat/i,
     'reproduction.md must require escalation before assigning BLOCKING to unverified findings'
+  );
+});
+
+test('AC4: reproduction.md contains a contiguous policy slice with unverified + BLOCKING prohibition + escalation', () => {
+  const content = readOrFail('skills/code-review/reproduction.md');
+  // The policy must contain all three concepts in a single contiguous section:
+  // 1. "unverified" marking, 2. BLOCKING severity prohibition, 3. escalation requirement
+  // Extract the Reproduction Requirement section
+  const section = content.match(/## Reproduction Requirement[\s\S]*?(?=\n## |$)/);
+  assert.ok(section, 'reproduction.md must have a Reproduction Requirement section');
+  const policy = section[0];
+  assert.match(policy, /unverified/i, 'Policy slice must contain "unverified" marking');
+  assert.match(policy, /BLOCKING/i, 'Policy slice must reference BLOCKING severity');
+  assert.match(policy, /escalat/i, 'Policy slice must require escalation');
+  // The negative rule: BLOCKING must not be assigned to unverified findings
+  assert.match(
+    policy,
+    /may not.*BLOCKING|not.*assign.*BLOCKING|BLOCKING.*not.*unverified|prohibit.*BLOCKING/i,
+    'Policy must explicitly prohibit assigning BLOCKING severity to unverified findings without escalation'
   );
 });
 
