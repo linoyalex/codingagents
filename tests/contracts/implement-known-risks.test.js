@@ -20,6 +20,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execSync } = require('node:child_process');
+const os = require('node:os');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
@@ -92,6 +94,25 @@ test('AC2: known_risks item is associated with the GREEN phase in TDD skill', ()
   );
 });
 
+test('AC2: known_risks checklist item in TDD skill preserves address-or-defer semantics', () => {
+  const tdd = read('skills/tdd/SKILL.md');
+  // The known_risks item must carry the "address or defer" meaning from the PRD,
+  // not just be a loose substring. Check that the GREEN-proximate context includes
+  // both known_risks and address/defer language.
+  const tddCycleSection = tdd.match(/## TDD Cycle[\s\S]*?(?=\n## [^#]|$)/);
+  const topRulesSection = tdd.match(/## Top Rules[\s\S]*?(?=\n## [^#]|$)/);
+  const relevantSection = (tddCycleSection && /known_risks/.test(tddCycleSection[0]))
+    ? tddCycleSection[0]
+    : (topRulesSection && /known_risks/.test(topRulesSection[0]))
+      ? topRulesSection[0]
+      : '';
+  assert.match(
+    relevantSection,
+    /address|defer/i,
+    'The known_risks item in TDD skill must preserve address-or-defer semantics (not just a loose substring)'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC3: Contract test verifies both anchors using structural matching
 // (This test IS the AC3 — it proves the structural anchor pattern works)
@@ -114,7 +135,7 @@ test('AC3: both known_risks anchors are present — implement command AND tdd sk
 // AC4: Empty known_risks or missing handoff requires no developer action
 // ---------------------------------------------------------------------------
 
-test('AC4: commands/implement.md known_risks instruction handles empty/missing case gracefully', () => {
+test('AC4: commands/implement.md known_risks instruction handles empty/missing known_risks gracefully', () => {
   const implement = read('commands/implement.md');
   // The instruction must not require action when known_risks is empty or absent
   // Structural anchor: look for conditional language (if present, when present, etc.)
@@ -127,27 +148,68 @@ test('AC4: commands/implement.md known_risks instruction handles empty/missing c
   );
 });
 
+test('AC4: resolve-feature.js succeeds when handoff.json is missing and explicit args are provided (missing-file branch)', () => {
+  // Explicitly cover the "missing .claude/handoff.json file" branch from the PRD.
+  // The developer must be able to proceed normally when the handoff file does not exist,
+  // as long as explicit args are given. This is not just about wording — it exercises
+  // the actual entry point with no handoff file present.
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikr-ac4-'));
+  // Deliberately do NOT create .claude/handoff.json
+
+  let result;
+  try {
+    result = {
+      exitCode: 0,
+      stdout: execSync(
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args implement-known-risks`,
+        { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      ),
+      stderr: '',
+    };
+  } catch (err) {
+    result = { exitCode: err.status || 1, stdout: err.stdout || '', stderr: err.stderr || '' };
+  }
+
+  assert.equal(
+    result.exitCode,
+    0,
+    `resolve-feature.js must succeed with explicit args when handoff.json is missing. stderr: ${result.stderr}`
+  );
+});
+
 // ---------------------------------------------------------------------------
 // AC5: Malformed handoff.json halts via existing resolve-feature.js error handling
 // ---------------------------------------------------------------------------
 
-test('AC5: resolve-feature.js exists and validates handoff.json (pre-existing guard)', () => {
-  const resolveFeature = read('hooks/resolve-feature.js');
-  // The guard must call validateHandoff or equivalent
-  assert.match(
-    resolveFeature,
-    /validateHandoff/,
-    'hooks/resolve-feature.js must call validateHandoff to catch malformed handoff.json'
-  );
-});
+test('AC5: resolve-feature.js halts with visible error on malformed handoff.json (behavioral)', () => {
+  // Exercise the actual production entry point with a malformed fixture,
+  // rather than checking source-code strings. This ensures the guard produces
+  // visible halt behavior, not just that the code _contains_ the right tokens.
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikr-ac5-'));
+  const claudeDir = path.join(tmpDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), '{ INVALID JSON !!!');
 
-test('AC5: resolve-feature.js exits non-zero on invalid handoff when no explicit args provided', () => {
-  const resolveFeature = read('hooks/resolve-feature.js');
-  // Must exit with non-zero status on failure
+  let result;
+  try {
+    result = {
+      exitCode: 0,
+      stdout: execSync(
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args ""`,
+        { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      ),
+      stderr: '',
+    };
+  } catch (err) {
+    result = { exitCode: err.status || 1, stdout: err.stdout || '', stderr: err.stderr || '' };
+  }
+
+  assert.notEqual(result.exitCode, 0, 'resolve-feature.js must exit non-zero on malformed handoff.json');
+  const output = result.stderr + result.stdout;
   assert.match(
-    resolveFeature,
-    /process\.exit\(1\)/,
-    'hooks/resolve-feature.js must exit(1) when handoff validation fails'
+    output,
+    /error|invalid|malformed|parse|handoff/i,
+    'resolve-feature.js must produce a visible error message when handoff.json is malformed'
   );
 });
 

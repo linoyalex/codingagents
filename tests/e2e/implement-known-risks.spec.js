@@ -25,6 +25,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execSync } = require('node:child_process');
+const os = require('node:os');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
@@ -68,7 +70,7 @@ test('E2E chain: commands/implement.md GREEN section has complete known_risks in
 // E2E Chain 2: TDD skill → known_risks checklist item in GREEN context
 // ---------------------------------------------------------------------------
 
-test('E2E chain: skills/tdd/SKILL.md has known_risks in GREEN phase context and stays within budget', () => {
+test('E2E chain: skills/tdd/SKILL.md has known_risks in GREEN phase context with address/defer semantics and stays within budget', () => {
   const tdd = read('skills/tdd/SKILL.md');
 
   // known_risks present
@@ -80,6 +82,14 @@ test('E2E chain: skills/tdd/SKILL.md has known_risks in GREEN phase context and 
   const hasCycleRef = tddCycleSection && /known_risks/.test(tddCycleSection[0]);
   const hasTopRef = topRulesSection && /known_risks/.test(topRulesSection[0]);
   assert.ok(hasCycleRef || hasTopRef, 'known_risks must be in TDD Cycle or Top Rules section');
+
+  // Address-or-defer semantics preserved (Codex review feedback: must not be a loose substring)
+  const relevantSection = (hasCycleRef ? tddCycleSection[0] : hasTopRef ? topRulesSection[0] : '');
+  assert.match(
+    relevantSection,
+    /address|defer/i,
+    'known_risks item in TDD skill must carry address-or-defer semantics'
+  );
 
   // Budget maintained
   const lineCount = tdd.trimEnd().split('\n').length;
@@ -124,21 +134,38 @@ test('E2E sync: skills/tdd/SKILL.md source and installed are byte-identical', ()
 // E2E Chain 4: Pre-existing guard chain (AC5 end-to-end)
 // ---------------------------------------------------------------------------
 
-test('E2E guard chain: resolve-feature.js validates handoff before developer reaches GREEN', () => {
-  // Verify the guard chain: resolve-feature.js → validateHandoff → checkpoint.js
-  const resolveFeature = read('hooks/resolve-feature.js');
+test('E2E guard chain: resolve-feature.js halts on malformed handoff before developer reaches GREEN', () => {
+  // Behavioral test: exercise the actual entry point with malformed JSON
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikr-e2e-'));
+  const claudeDir = path.join(tmpDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), '{ NOT VALID JSON');
 
-  // Must call validateHandoff
-  assert.match(resolveFeature, /validateHandoff/, 'resolve-feature.js must call validateHandoff');
+  let result;
+  try {
+    result = {
+      exitCode: 0,
+      stdout: execSync(
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args ""`,
+        { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      ),
+      stderr: '',
+    };
+  } catch (err) {
+    result = { exitCode: err.status || 1, stdout: err.stdout || '', stderr: err.stderr || '' };
+  }
 
-  // Must exit non-zero on failure
-  assert.match(resolveFeature, /process\.exit\(1\)/, 'resolve-feature.js must exit(1) on validation failure');
+  // Guard must halt (non-zero exit) with visible error
+  assert.notEqual(result.exitCode, 0, 'resolve-feature.js must exit non-zero on malformed handoff');
+  assert.match(
+    result.stderr + result.stdout,
+    /error|invalid|malformed|parse|handoff/i,
+    'resolve-feature.js must produce visible error on malformed handoff'
+  );
 
   // commands/implement.md must invoke resolve-feature.js before GREEN
   const implement = read('commands/implement.md');
   assert.match(implement, /resolve-feature/, 'commands/implement.md must invoke resolve-feature.js');
-
-  // resolve-feature invocation must appear before GREEN section
   const resolveIdx = implement.indexOf('resolve-feature');
   const greenIdx = implement.indexOf('Step 2 GREEN');
   assert.ok(resolveIdx < greenIdx, 'resolve-feature.js must be invoked before the GREEN section');
