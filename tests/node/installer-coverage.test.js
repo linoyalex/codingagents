@@ -151,7 +151,8 @@ function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
     const ancestor = parts.slice(0, i).join('/');
     for (const line of lines) {
       if (!isCopyLine(line)) continue;
-      if (line.includes(ancestor + '/') || line.includes(ancestor + '"')) {
+      if (line.includes(ancestor + '/') || line.includes(ancestor + '"')
+          || line.includes(ancestor + ' ')) {
         return true;
       }
     }
@@ -164,7 +165,8 @@ function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
     for (const line of lines) {
       if (!isCopyLine(line)) continue;
       if (line.includes(ancestor + '/') || line.includes(ancestor + '"')
-          || line.includes(ancestor + '/*') || line.includes(ancestor + "'")) {
+          || line.includes(ancestor + '/*') || line.includes(ancestor + "'")
+          || line.includes(ancestor + ' ')) {
         return true;
       }
     }
@@ -403,6 +405,16 @@ test('isCoveredByScript: loop over source files satisfies contract', () => {
   assert.ok(
     isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
     'Loop referencing skills/ ancestor must cover individual skill files'
+  );
+});
+
+test('isCoveredByScript: space-terminated ancestor directory copy satisfies contract', () => {
+  // Regression: Claude review (2026-04-13) noted ancestor matching didn't cover
+  // space-terminated paths like `cp -r skills .claude` (no trailing /).
+  const script = 'cp -r skills .claude';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Space-terminated ancestor directory in a cp command must satisfy contract'
   );
 });
 

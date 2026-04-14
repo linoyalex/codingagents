@@ -20,6 +20,12 @@ function readCodexRules() {
   return fs.readFileSync(CODEX_RULES_PATH, 'utf8');
 }
 
+function readCodexRulesReviewSection() {
+  const content = readCodexRules();
+  const match = content.match(/## Review Method Rules[\s\S]*?(?=\n## |\n$|$)/);
+  return match ? match[0] : '';
+}
+
 // --- AC1: Install-Path Tracing ---
 
 test('AC1: review-code.md has a section heading anchoring install-path tracing', () => {
@@ -108,39 +114,47 @@ test('AC5: docs/memory/codex-rules.md exists', () => {
   );
 });
 
-test('AC5: codex-rules.md references the install-path tracing rule (AC1)', () => {
-  const content = readCodexRules();
+test('AC5: codex-rules.md has a Review Method Rules section', () => {
+  const section = readCodexRulesReviewSection();
+  assert.ok(
+    section.length > 0,
+    'codex-rules.md must have a ## Review Method Rules section'
+  );
+});
+
+test('AC5: codex-rules.md Review Method Rules references the install-path tracing rule (AC1)', () => {
+  const section = readCodexRulesReviewSection();
   assert.match(
-    content,
+    section,
     /init\.sh|install.path|installer/i,
-    'codex-rules.md does not reference install-path tracing (AC1)'
+    'codex-rules.md Review Method Rules does not reference install-path tracing (AC1)'
   );
 });
 
-test('AC5: codex-rules.md references the test-truthfulness rule (AC2)', () => {
-  const content = readCodexRules();
+test('AC5: codex-rules.md Review Method Rules references the test-truthfulness rule (AC2)', () => {
+  const section = readCodexRulesReviewSection();
   assert.match(
-    content,
+    section,
     /test.truth|truthfulness|test name|assertion/i,
-    'codex-rules.md does not reference test-truthfulness rule (AC2)'
+    'codex-rules.md Review Method Rules does not reference test-truthfulness rule (AC2)'
   );
 });
 
-test('AC5: codex-rules.md references the parser edge-case rule (AC3)', () => {
-  const content = readCodexRules();
+test('AC5: codex-rules.md Review Method Rules references the parser edge-case rule (AC3)', () => {
+  const section = readCodexRulesReviewSection();
   assert.match(
-    content,
+    section,
     /edge.case|malformed|parser/i,
-    'codex-rules.md does not reference parser edge-case rule (AC3)'
+    'codex-rules.md Review Method Rules does not reference parser edge-case rule (AC3)'
   );
 });
 
-test('AC5: codex-rules.md references the unchanged-file scope rule (AC4)', () => {
-  const content = readCodexRules();
+test('AC5: codex-rules.md Review Method Rules references the unchanged-file scope rule (AC4)', () => {
+  const section = readCodexRulesReviewSection();
   assert.match(
-    content,
+    section,
     /unchanged|scope.expan/i,
-    'codex-rules.md does not reference unchanged-file scope rule (AC4)'
+    'codex-rules.md Review Method Rules does not reference unchanged-file scope rule (AC4)'
   );
 });
 
