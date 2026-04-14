@@ -2,6 +2,14 @@
 description: Write a PRD from a feature request (Phase 1)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| prd-writing | skills/prd-writing/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the product-owner subagent and the ux-designer subagent.
 
 First, load your skills:

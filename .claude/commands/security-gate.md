@@ -2,6 +2,15 @@
 description: Design-time security audit (Phase 4)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| security-audit | skills/security-audit/SKILL.md |
+| structured-logging | skills/structured-logging/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the security-reviewer subagent.
 
 First, load your skills:

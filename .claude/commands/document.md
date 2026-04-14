@@ -2,6 +2,14 @@
 description: Post-merge documentation update for a feature (Phase 7)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| release-docs | skills/release-docs/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the documentation-specialist subagent.
 
 First, load your skills:

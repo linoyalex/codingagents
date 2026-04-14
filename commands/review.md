@@ -2,6 +2,14 @@
 description: source_spec-anchored code review in fresh context (Phase 6)
 user-invocable: true
 ---
+
+## Skill References
+
+| Skill | Source path |
+|-------|-------------|
+| code-review | skills/code-review/SKILL.md |
+| verification-gate | skills/verification-gate/SKILL.md |
+
 Use the code-reviewer subagent.
 
 Session requirement: This phase must run in a fresh session — not the session

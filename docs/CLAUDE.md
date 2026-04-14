@@ -75,7 +75,9 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 - No hardcoded absolute paths in any framework file — use relative paths from project root
 - **Tests for skills/commands must use structural anchors** (heading names, template field labels), not phrase-binding. Phrase-bound tests punish refinement and prevent wording improvements.
 - **Guidance must be stack-agnostic** — when hardcoding examples (e.g., `npm test`, `pytest`, `node --test`), include "adapt to your stack" comments and mention multiple toolchain examples.
-- **Source and installed copies must be kept in sync** — `skills/*/SKILL.md` must remain byte-identical to `.claude/skills/*/SKILL.md`. Use deterministic tests (e.g., `assert.equal(source, installed)`) to catch drift. ISS-009 established this for hooks too.
+- **Source and installed copies must be kept in sync** — `skills/*/SKILL.md` must remain byte-identical to `.claude/skills/*/SKILL.md`, and `commands/*.md` must remain byte-identical to `.claude/commands/*.md`. Use deterministic tests (e.g., `assert.equal(source, installed)`) to catch drift. ISS-009 established this for hooks; ISS-036 extended it to commands.
+- **Commands that load skills must have a `## Skill References` table** — structural `| Skill | Source path |` table in the command file. Fail-closed: commands with skill-loading prose (`skills/` or `.claude/skills/`) but no table will fail the wiring contract test.
+- **Skills that require named artifacts must have a `## Required Artifacts` table** — 4-column format: `| Artifact | Pattern | Path | Condition |`. The wiring contract test (`tests/node/command-skill-wiring.test.js`) validates that the invoking command's Output section references both the Pattern and Path for each declared artifact.
 
 ### Naming
 - Roles: `ROLE_UPPER_SNAKE.md` (e.g. `ROLE_CODE_REVIEWER.md`)
@@ -100,8 +102,12 @@ docs/
 │   ├── closed.md
 │   └── tickets/      # Full ticket details
 └── memory/           # Cross-agent shared context
+lib/                  # Shared library modules (e.g., wiring-check.js)
 tests/
 ├── node/             # Node.js test files (run with node --test)
+├── contracts/        # Contract tests (behavioral verification)
+├── integration/      # Integration tests (cross-module verification)
+├── e2e/              # End-to-end tests (full convention chain)
 ├── fixtures/         # Test fixture data
 ├── test-install-scripts.sh
 └── test-command-contracts.sh
@@ -166,5 +172,5 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 
 ---
 
-*Last updated: 2026-04-13*
-*Updated by: documentation-specialist (v5.5.0 — codex-review-hardening)*
+*Last updated: 2026-04-14*
+*Updated by: documentation-specialist (v5.7.0 — wiring-verification)*

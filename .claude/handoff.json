@@ -1,23 +1,22 @@
 {
-  "feature": "implement-known-risks",
+  "feature": "wiring-verification",
   "phase": 7,
-  "goal": "Phase 7 complete — post-merge documentation updated.",
-  "scope": "Documentation finalization only. Feature ready for release.",
+  "goal": "Pipeline complete. Merge to main after final checks.",
+  "scope": "No further phases",
   "relevant_files": [
     "CHANGELOG.md",
-    "CLAUDE.md",
-    "docs/features/implement-known-risks/prd.md"
+    "docs/CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated with 5.6.0 release entry",
-    "CLAUDE.md timestamp reflects 2026-04-13",
-    "All 5 ACs from PRD satisfied and documented"
+    "CHANGELOG.md updated",
+    "Release note created",
+    "docs/CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "grep -A 5 '## \\[5.6.0\\]' CHANGELOG.md",
-    "grep 'Last updated: 2026-04-13' CLAUDE.md"
+    "head -20 CHANGELOG.md",
+    "ls release-notes/ | tail -1"
   ],
-  "source_spec": "docs/features/implement-known-risks/prd.md",
+  "source_spec": "docs/issues/tickets/ISS-036.md",
   "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-13T17:45:00Z"
+  "timestamp": "2026-04-14T14:15:00Z"
 }
