@@ -70,25 +70,34 @@ test('E2E chain: commands/implement.md GREEN section has complete known_risks in
 // E2E Chain 2: TDD skill → known_risks checklist item in GREEN context
 // ---------------------------------------------------------------------------
 
-test('E2E chain: skills/tdd/SKILL.md has known_risks in GREEN phase context with address/defer semantics and stays within budget', () => {
+test('E2E chain: skills/tdd/SKILL.md has known_risks in GREEN-scoped context with address/defer/rationale and stays within budget', () => {
   const tdd = read('skills/tdd/SKILL.md');
 
   // known_risks present
   assert.match(tdd, /known_risks/, 'TDD skill must reference known_risks');
 
-  // In the right section (TDD Cycle or Top Rules)
+  // GREEN-scoped: must appear between GREEN and REFACTOR in TDD Cycle,
+  // or in Top Rules explicitly tied to GREEN
   const tddCycleSection = tdd.match(/## TDD Cycle[\s\S]*?(?=\n## [^#]|$)/);
+  assert.ok(tddCycleSection, 'TDD Cycle section must exist');
+  const greenToRefactor = tddCycleSection[0].match(/GREEN[\s\S]*?(?=REFACTOR|$)/);
+  const greenScopeHasRisk = greenToRefactor && /known_risks/.test(greenToRefactor[0]);
   const topRulesSection = tdd.match(/## Top Rules[\s\S]*?(?=\n## [^#]|$)/);
-  const hasCycleRef = tddCycleSection && /known_risks/.test(tddCycleSection[0]);
-  const hasTopRef = topRulesSection && /known_risks/.test(topRulesSection[0]);
-  assert.ok(hasCycleRef || hasTopRef, 'known_risks must be in TDD Cycle or Top Rules section');
+  const topRuleGreenScoped = topRulesSection
+    && /known_risks/.test(topRulesSection[0])
+    && /GREEN/i.test(topRulesSection[0]);
+  assert.ok(
+    greenScopeHasRisk || topRuleGreenScoped,
+    'known_risks must be in GREEN-scoped context (not just anywhere in TDD Cycle or Top Rules)'
+  );
 
-  // Address-or-defer semantics preserved (Codex review feedback: must not be a loose substring)
-  const relevantSection = (hasCycleRef ? tddCycleSection[0] : hasTopRef ? topRulesSection[0] : '');
+  // Address/defer + rationale semantics
+  const knownRisksLines = tdd.split('\n').filter(l => /known_risks/.test(l)).join(' ');
+  assert.match(knownRisksLines, /address|defer/i, 'Must include address-or-defer language');
   assert.match(
-    relevantSection,
-    /address|defer/i,
-    'known_risks item in TDD skill must carry address-or-defer semantics'
+    knownRisksLines,
+    /rationale|reason|why|justif/i,
+    'Must require rationale for deferral (not just "address or defer")'
   );
 
   // Budget maintained
