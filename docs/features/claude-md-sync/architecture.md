@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T19:00:00Z
+**Generated:** 2026-04-14T19:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -93,8 +93,8 @@ if --sync-claude-md flag:
 elif existing CLAUDE.md found (no flag):
   if stdin is a terminal ([ -t 0 ]):
     1. Prompt user: (o)verwrite with template / (e)xit to re-run with --sync-claude-md
-    2. If overwrite: cp template → set CLAUDE_MD_STATUS="overwritten with template"
-    3. If exit: print "Re-run with --sync-claude-md for section-level sync" → exit 0
+    2. If overwrite ("o"): cp template → set CLAUDE_MD_STATUS="overwritten with template"
+    3. If exit ("e"), invalid input, or EOF: print "Re-run with --sync-claude-md for section-level sync" → exit 0
   else (non-interactive / CI / piped):
     1. Keep existing CLAUDE.md
     2. Set CLAUDE_MD_STATUS="kept existing — run with --sync-claude-md to sync sections"
@@ -121,7 +121,10 @@ if --sync-claude-md flag:
         - Report [migrated]
      d. If markers malformed/unpaired: report warning, skip section
   3. All content outside managed markers is untouched
-  4. Set CLAUDE_MD_STATUS="synced N sections" (or "migrated N sections" if any [migrated])
+  4. Set CLAUDE_MD_STATUS based on full outcome:
+        - all synced: "synced N sections"
+        - any migrated: "migrated N sections (markers added)"
+        - any skipped: append "(M skipped)" to status
 else (no flag):
   1. Do not touch CLAUDE.md
   2. Set CLAUDE_MD_STATUS="not modified — run with --sync-claude-md to sync sections"
@@ -165,7 +168,11 @@ After migration:
 ```
 
 Template placeholder is replaced by managed content; only the user's custom line is preserved.
-Subsequent syncs replace only the content between markers.
+If any lines are preserved, the output prints:
+`"  known-gotchas  [migrated] — 1 line preserved as user content (review for stale framework text)"`
+This surfaces the risk of stale text from older template versions without false-stripping.
+The user can delete any stale lines after reviewing. Subsequent syncs replace only the
+content between markers.
 
 ### End-of-Script Status Confirmation (AC7)
 
@@ -240,7 +247,7 @@ be deleted.
 | Input / boundary | Validation | Forbidden sink / unsafe use |
 |------------------|------------|-----------------------------|
 | `docs/CLAUDE.md` content | Read-only; never executed. Content is markdown text. | Must not be `eval`'d or passed to `source` |
-| Target CLAUDE.md user content | Never read by sync logic except to locate markers | Must not be modified, reordered, or deleted |
+| Target CLAUDE.md content | Read to locate markers (steady-state) or to parse full section bodies for template-vs-user classification (legacy migration). Never executed. | Must not be modified outside managed markers (steady-state). Legacy migration may reposition content but must not delete user-authored lines. |
 | `--sync-claude-md` flag | Parsed in arg loop alongside existing flags | Must not change behavior of other flags |
 
 ### Fitness Functions
