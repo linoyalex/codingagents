@@ -3,7 +3,7 @@
   "title": "Pipeline Handoff",
   "description": "Machine-readable handoff artifact passed between pipeline phases. Lives at .claude/handoff.json in target projects.",
   "type": "object",
-  "required": ["feature", "phase", "goal", "scope", "relevant_files", "acceptance_criteria", "verification_commands"],
+  "required": ["feature", "phase", "goal", "scope", "relevant_files", "acceptance_criteria", "verification_commands", "source_spec"],
   "properties": {
     "feature": {
       "type": "string",
@@ -50,6 +50,11 @@
       "default": [],
       "description": "Known risks or open questions for the next phase to be aware of."
     },
+    "source_spec": {
+      "type": "string",
+      "pattern": "^(docs/|https://github\\.com/)",
+      "description": "Resolvable pointer to the originating spec: PRD path (e.g. 'docs/features/<feature>/prd.md'), ticket path (e.g. 'docs/issues/tickets/ISS-NNN.md'), or GitHub issue URL. Must be relative to project root (no '..' segments, no absolute paths). URL values restricted to github.com. Must not be used as an executable path."
+    },
     "produced_by": {
       "type": "string",
       "description": "Agent role that produced this handoff (e.g. 'architect', 'qa')."
@@ -58,6 +63,11 @@
       "type": "string",
       "format": "date-time",
       "description": "ISO 8601 timestamp when this handoff was written."
+    },
+    "checkpoint_pending": {
+      "type": "string",
+      "enum": ["clarification", "architecture-review"],
+      "description": "Set when the command has stopped at a human checkpoint and is awaiting user input. Values: 'clarification' (specify gate) or 'architecture-review' (architect gate). Clear this field when the checkpoint is resolved."
     }
   },
   "additionalProperties": false

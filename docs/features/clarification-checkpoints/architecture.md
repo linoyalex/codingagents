@@ -29,7 +29,9 @@ Revert the command and skill file changes. The pipeline returns to one-shot arti
 | `commands/specify.md` | Command layer (WHAT) | Add ticket fidelity step + clarification gate before PRD finalization | AC0, AC0a–c, AC1, AC2, AC3, AC6, AC7 |
 | `commands/architect.md` | Command layer (WHAT) | Add review checkpoint before commit/handoff | AC4, AC5, AC6, AC7 |
 | `skills/prd-writing/SKILL.md` | Skill layer (HOW) | Add "Ticket Fidelity Procedure" section | AC0, AC0a, AC0b, AC0c |
-| `tests/node/clarification-checkpoints.test.js` | Tests | Structural contract checks | AC8 |
+| `tests/contracts/clarification-checkpoints.test.js` | Tests | Structural contract checks | AC8 |
+| `tests/e2e/clarification-checkpoints.spec.js` | Tests | End-to-end chain checks | AC8 |
+| `tests/integration/clarification-checkpoints.integration.test.js` | Tests | Integration wiring checks | AC8 |
 
 #### Installed Copies (must stay in sync with source — byte-identity enforced by tests)
 - `.claude/commands/specify.md` ← `commands/specify.md`
@@ -132,7 +134,7 @@ The boundary: `/specify` clarification is advisory (caught ambiguity → better 
 
 ### Design: Structural Contract Tests (AC8)
 
-File: `tests/node/clarification-checkpoints.test.js` (Node.js `node:test`)
+Files: `tests/contracts/clarification-checkpoints.test.js`, `tests/e2e/clarification-checkpoints.spec.js`, `tests/integration/clarification-checkpoints.integration.test.js` (Node.js `node:test`)
 
 Three structural checks:
 1. **Checkpoint language exists** — `commands/specify.md` contains clarification gate instructions; `commands/architect.md` contains review checkpoint instructions
