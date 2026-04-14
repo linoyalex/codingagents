@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T15:30:00Z
+**Generated:** 2026-04-14T16:30:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -11,20 +11,26 @@ So that my project stays current with new conventions, naming rules, folder stru
 ### Acceptance Criteria
 
 - [ ] **AC1:** Given `init.sh` is run with `--sync-claude-md`, When the script completes, Then the root `CLAUDE.md` eligible sections are populated with consumer-relevant content from `docs/CLAUDE.md`, filtered by the selection rule (see Dependencies). Each synced block is wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` marker pairs.
-- [ ] **AC2:** Given `init.sh` is run without `--sync-claude-md`, When the script completes, Then the root `CLAUDE.md` is copied as today with placeholder comments intact
+- [ ] **AC2:** Given `init.sh` is run without `--sync-claude-md` and a `CLAUDE.md` already exists in the target project, When the script reaches the CLAUDE.md step, Then the user is prompted with: (a) overwrite with the template, or (b) exit with instructions to re-run with `--sync-claude-md` for section-level sync
+- [ ] **AC2b:** Given `init.sh` is run without `--sync-claude-md` and no `CLAUDE.md` exists, When the script completes, Then the root `CLAUDE.md` is copied as today with placeholder comments intact
 - [ ] **AC3:** Given an existing project with a customized root `CLAUDE.md` containing managed markers, When `upgrade.sh --sync-claude-md` is run, Then content inside managed marker pairs is replaced with the latest reference content, and all content outside managed markers is preserved unchanged
+- [ ] **AC3b:** Given `upgrade.sh` is run without `--sync-claude-md`, When the script completes, Then a reminder is printed that `--sync-claude-md` is available for section-level sync
 - [ ] **AC4:** Given a root `CLAUDE.md` with user-added content outside managed markers (e.g. project-specific gotchas, custom conventions added below the managed block), When sync runs, Then that user content is preserved unchanged in its original position
 - [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists each eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, or `[preserved-user]`, plus a summary line with counts (e.g. "3 added, 1 updated, 2 unchanged")
 - [ ] **AC6:** Given a root `CLAUDE.md` where a managed section's content is byte-identical to the reference, When sync runs, Then that section is reported as `[unchanged]` and its markers and content are left untouched
-- [ ] **AC7:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
-- [ ] **AC8:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, and upgrade with missing/malformed markers
+- [ ] **AC7:** Given either `init.sh` or `upgrade.sh` completes (with or without `--sync-claude-md`), When the final summary is printed, Then a CLAUDE.md status line is included (e.g. "CLAUDE.md: synced 3 sections", "CLAUDE.md: kept existing", "CLAUDE.md: copied template", "CLAUDE.md: not modified — run with --sync-claude-md to sync sections")
+- [ ] **AC8:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
+- [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, defensive prompt when existing CLAUDE.md found without flag, and end-of-script status confirmation
 
 ### Screen States
 
 | Screen | Empty | Loading | Populated | Error | Success |
 |--------|-------|---------|-----------|-------|---------|
-| Terminal (init --sync-claude-md) | N/A — CLI output only | "Syncing CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md missing or unreadable → error + exit 1; (2) root CLAUDE.md not writable → error + exit 1 | Summary line: "N added, M unchanged" |
-| Terminal (upgrade --sync-claude-md) | N/A | "Merging CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md or root CLAUDE.md missing → error + exit 1; (2) permission denied on write → error + exit 1; (3) managed markers malformed or unpaired → warning per section + skip that section | Summary line: "N updated, M unchanged, P preserved-user" |
+| Terminal (init --sync-claude-md) | N/A — CLI output only | "Syncing CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md missing or unreadable → error + exit 1; (2) root CLAUDE.md not writable → error + exit 1 | Summary line: "N added, M unchanged" + status: "CLAUDE.md: synced N sections" |
+| Terminal (init, existing CLAUDE.md, no flag) | N/A | N/A | Prompt: "(o)verwrite with template / (e)xit to re-run with --sync-claude-md?" | N/A | If overwrite chosen: "CLAUDE.md: overwritten with template". If exit: prints instructions and exits |
+| Terminal (init, no existing CLAUDE.md, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: copied template" |
+| Terminal (upgrade --sync-claude-md) | N/A | "Merging CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md or root CLAUDE.md missing → error + exit 1; (2) permission denied on write → error + exit 1; (3) managed markers malformed or unpaired → warning per section + skip that section | Summary line: "N updated, M unchanged, P preserved-user" + status: "CLAUDE.md: synced N sections" |
+| Terminal (upgrade, no flag) | N/A | N/A | N/A | N/A | Reminder: "CLAUDE.md: not modified — run with --sync-claude-md to sync sections" |
 | Terminal (no-op sync) | N/A | N/A | N/A | N/A | "CLAUDE.md already in sync — no changes needed" |
 
 ### Out of Scope
