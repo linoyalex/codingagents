@@ -5,3 +5,4 @@
 
 | ID | Priority | Type | Title | Branch/Feature |
 |----|----------|------|-------|----------------|
+| [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill | `feature/ISS-039-code-review-skill-hardening` |
