@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T18:00:00Z
+**Generated:** 2026-04-14T18:30:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -21,6 +21,7 @@ So that my project stays current with new conventions, naming rules, folder stru
 - [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists each eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, or `[migrated]`, plus a summary line with counts
 - [ ] **AC6:** Given a root `CLAUDE.md` where a managed section's content is byte-identical to the reference, When sync runs, Then that section is reported as `[unchanged]` and its markers and content are left untouched
 - [ ] **AC7:** Given either `init.sh` or `upgrade.sh` completes (with or without `--sync-claude-md`), When the final summary is printed, Then a CLAUDE.md status line is included (e.g. "CLAUDE.md: synced 3 sections", "CLAUDE.md: kept existing", "CLAUDE.md: copied template", "CLAUDE.md: not modified — run with --sync-claude-md to sync sections")
+- [ ] **AC7b:** Given `--sync-claude-md` is used and a `CLAUDE.md` already exists, When sync begins, Then a pre-sync backup is saved to `CLAUDE.md.pre-sync` and the output includes: "Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"
 - [ ] **AC8:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
 - [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, legacy migration (no markers → markers with user content preserved), non-interactive fallback, defensive prompt when existing CLAUDE.md found, and end-of-script status confirmation
 
@@ -42,7 +43,7 @@ So that my project stays current with new conventions, naming rules, folder stru
 - Full-file replacement of root `CLAUDE.md` (sync is section-level only)
 - Syncing sections specific to framework development (e.g. "What this repo is", "File ownership boundaries", "Cross-Agent Session Context", "Working model", "When modifying the template CLAUDE.md")
 - Automatic sync without the `--sync-claude-md` flag (must be opt-in)
-- Backup/restore of `CLAUDE.md` before sync (tracked separately in ISS-007)
+- Full backup/restore system for upgrade (tracked separately in ISS-007) — this feature includes only a lightweight single-file pre-sync backup (`CLAUDE.md.pre-sync`), not ISS-007's comprehensive backup infrastructure
 - Interactive merge conflict resolution — user edits inside managed markers are overwritten on next sync; user content must go outside markers
 - Handling renamed or reordered headings in the target — sync matches by marker ID (if present) or heading text (for legacy migration only)
 
@@ -55,7 +56,8 @@ So that my project stays current with new conventions, naming rules, folder stru
 - **No-op detection:** Byte-identical comparison on managed block content (after trailing whitespace normalization). Markers are the canonical anchor.
 - **Malformed marker handling:** Unpaired markers → warn + skip section, continue (exit 0).
 - **Non-interactive fallback:** If stdin is not a terminal (`! [ -t 0 ]`), skip interactive prompts. Default to keeping existing CLAUDE.md with a message about `--sync-claude-md`.
-- ISS-007 (backup support) is not a hard blocker — marker-based sync is non-destructive to content outside markers
+- **Pre-sync backup:** Before modifying an existing `CLAUDE.md`, the sync saves a copy to `CLAUDE.md.pre-sync` and prints restore instructions. This provides immediate rollback without requiring git or the full ISS-007 backup system. The backup is overwritten on each subsequent sync run.
+- ISS-007 (full backup support) is not a hard blocker — marker-based sync is non-destructive to content outside markers, and the pre-sync backup provides a lightweight safety net
 
 ### RICE Score
 Reach: High (all framework consumers) | Impact: High (eliminates split-brain confusion) | Confidence: High (well-scoped) | Effort: Medium (shell scripting + section parsing) | **Score: 8**

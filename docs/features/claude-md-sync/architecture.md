@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T18:00:00Z
+**Generated:** 2026-04-14T18:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -190,10 +190,20 @@ Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[migrated]` (legacy
 
 ### Write Safety
 
-All modifications to the target `CLAUDE.md` are performed on a temp file (`CLAUDE.md.tmp`
-in the same directory). Only after all sections are processed successfully is the temp file
-moved to the final path via `mv` (atomic on the same filesystem). If the process is
-interrupted, the original file is untouched and the temp file can be deleted.
+**Pre-sync backup (AC7b):** Before any modification, if the target `CLAUDE.md` already exists,
+the sync copies it to `CLAUDE.md.pre-sync` in the same directory and prints:
+`"Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"`
+The backup is overwritten on each subsequent sync run (only the most recent pre-sync state
+is preserved). This is distinct from ISS-007's full backup system — it's a single-file
+safety net scoped to the sync operation.
+
+**Atomic write:** All modifications are performed on a temp file (`CLAUDE.md.tmp`). Only
+after all sections are processed is the temp file moved to the final path via `mv` (atomic
+on the same filesystem). If interrupted, the original is untouched and the temp file can
+be deleted.
+
+**Recovery sequence:** interrupt → original untouched + delete `.tmp`. Bad sync result →
+`mv CLAUDE.md.pre-sync CLAUDE.md`. Both paths restore the pre-sync state without git.
 
 ### Failure Modes
 
