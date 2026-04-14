@@ -36,7 +36,7 @@ These are non-negotiable for any Codex session working on codingagents. They wer
 
 Four rules are added to `codex/reviewers/review-code.md` as of ISS-027. Each addresses a gap found in Codex feedback:
 
-1. **Install-path tracing** — verify that `init.sh` and `upgrade.sh` have active copy lines for every changed source file (skills, commands, hooks). Missing installer coverage is a common regression vector.
+1. **Install-path tracing** — verify that `init.sh` and `upgrade.sh` operationalize every changed source file (skills, commands, hooks) via any valid mechanism (literal copies, directory copies, loops, manifests, or helper functions). Missing installer coverage is a common regression vector.
 
 2. **Test-truthfulness verification** — confirm each test name matches its assertion. A misleading test name or vacuous assertion creates false confidence in test coverage.
 

@@ -106,51 +106,54 @@ function deriveInstalledPath(sourceRelPath) {
 }
 
 /**
- * Returns true if a line performs a file-copy operation.
- * Used to restrict ancestor-directory matching to actual copy commands,
- * preventing false positives from echo/log lines that mention directories.
+ * Returns true if a line is an inert statement (echo, printf, log, comment-like)
+ * that mentions a path without actually operating on it.
+ * Used to exclude false positives from installer coverage checks.
+ * Inverted from a cp/rsync whitelist to a blacklist so that manifests, helper
+ * functions, and other valid installer mechanisms are not rejected.
+ * (Codex review feedback, 2026-04-14: whitelisting cp/rsync broke mechanism-agnosticism.)
  */
-function isCopyLine(line) {
-  return /\bcp\b/.test(line) || /\brsync\b/.test(line);
+function isInertLine(line) {
+  const trimmed = line.trimStart();
+  return /^\s*(echo|printf|log|print)\b/.test(trimmed);
 }
 
 /**
  * Mechanism-agnostic coverage check (AC7).
  * Returns true if the script covers the installed path via ANY mechanism:
- * - Literal path reference (explicit cp)
+ * - Literal path reference (explicit cp, rsync, install_file, etc.)
  * - Source path reference (loop over source files)
  * - Parent/ancestor directory reference (recursive cp, wildcard, manifest)
+ * - Helper function or manifest entry referencing the path
  *
- * Ancestor directory matching (steps 3-4) is restricted to copy-command lines
- * to prevent false positives from echo/log statements that mention directories.
+ * Inert lines (echo, printf, log) are excluded to prevent false positives.
  */
 function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
-  // All checks are per-line and restricted to copy-command lines to prevent
-  // false positives from echo/log statements that mention file paths.
-  // (Codex review feedback, 2026-04-14: steps 1-2 were full-content includes()
-  // which matched inert mentions like echo "checking skills/tdd/SKILL.md".)
+  // Per-line checks exclude inert statements (echo/printf/log) to prevent
+  // false positives, while accepting any valid installer mechanism.
+  // (Codex review feedback, 2026-04-14: cp/rsync whitelist broke mechanism-agnosticism.)
   const lines = activeContent.split('\n');
 
-  // 1. Literal installed path in a copy-command line (e.g., cp ... .claude/skills/tdd/SKILL.md)
+  // 1. Literal installed path in a non-inert line (e.g., cp, manifest, helper function)
   for (const line of lines) {
-    if (!isCopyLine(line)) continue;
+    if (isInertLine(line)) continue;
     if (line.includes(installedPath)) return true;
   }
 
-  // 2. Source path reference in a copy-command line (e.g., cp skills/tdd/SKILL.md ...)
+  // 2. Source path reference in a non-inert line (e.g., cp, loop, manifest)
   for (const line of lines) {
-    if (!isCopyLine(line)) continue;
+    if (isInertLine(line)) continue;
     if (line.includes(sourceRelPath)) return true;
   }
 
   // 3. Ancestor directory coverage — check if any parent directory of the
-  //    installed path appears in a copy-command line (covers recursive cp, wildcards)
+  //    installed path appears in a non-inert line (covers recursive cp, wildcards, manifests)
   //    e.g., cp -r ... .claude/skills/ covers .claude/skills/tdd/SKILL.md
   const parts = installedPath.split('/');
   for (let i = parts.length - 1; i >= 2; i--) {
     const ancestor = parts.slice(0, i).join('/');
     for (const line of lines) {
-      if (!isCopyLine(line)) continue;
+      if (isInertLine(line)) continue;
       if (line.includes(ancestor + '/') || line.includes(ancestor + '"')
           || line.includes(ancestor + ' ')) {
         return true;
@@ -163,7 +166,7 @@ function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
   for (let i = srcParts.length - 1; i >= 1; i--) {
     const ancestor = srcParts.slice(0, i).join('/');
     for (const line of lines) {
-      if (!isCopyLine(line)) continue;
+      if (isInertLine(line)) continue;
       if (line.includes(ancestor + '/') || line.includes(ancestor + '"')
           || line.includes(ancestor + '/*') || line.includes(ancestor + "'")
           || line.includes(ancestor + ' ')) {
@@ -405,6 +408,24 @@ test('isCoveredByScript: loop over source files satisfies contract', () => {
   assert.ok(
     isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
     'Loop referencing skills/ ancestor must cover individual skill files'
+  );
+});
+
+test('isCoveredByScript: manifest entry satisfies contract', () => {
+  // A manifest array referencing the installed path covers the file
+  const script = 'MANIFEST=(".claude/skills/tdd/SKILL.md" ".claude/commands/review.md")';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Manifest entry referencing installed path must satisfy contract'
+  );
+});
+
+test('isCoveredByScript: helper function call satisfies contract', () => {
+  // A helper function that installs the file covers it
+  const script = 'install_file skills/tdd/SKILL.md .claude/skills/tdd/SKILL.md';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Helper function referencing source path must satisfy contract'
   );
 });
 
