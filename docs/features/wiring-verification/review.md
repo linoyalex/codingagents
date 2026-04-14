@@ -1,106 +1,99 @@
 ## Code Review: feature/ISS-036-wiring-verification
 
-**Generated:** 2026-04-13T14:30:00Z
-**Date:** 2026-04-13 | **Reviewer:** code-reviewer agent (Claude, fresh session)
+**Generated:** 2026-04-13T15:00:00Z
+**Date:** 2026-04-13 | **Reviewer:** code-reviewer agent
 **Reviewed in separate context from authoring phase**
 **Diff:** `git diff main...HEAD`
-**Source spec:** docs/issues/tickets/ISS-036.md
-**Prior review:** Previous review (commit 71e9193) found 3 BLOCKING issues; developer addressed all in commit c792304.
 
 ---
 
 ### Summary
 
-Solid implementation of command-skill wiring verification. The 4-stage algorithm (discovery, registry parse, wiring check, negative fixture) is cleanly decomposed across `lib/wiring-check.js` and tested by 41 passing tests across 4 test layers. All 11 ACs are satisfied. The previous review's 3 BLOCKING findings (recursive test runner, AC8 regex false-positive, missing AC4/AC5 verification steps) are all resolved. Two MEDIUM latent risks remain from the previous review cycle (section extraction heading level, substring matching) but are not blocking.
+The wiring-verification feature delivers a complete 4-stage algorithm that catches command/skill artifact drift. The core library is clean, well-structured, and the error messages throughout are actionable. Two blocking issues require resolution before merge — one is a missing existence guard in the library, the other is stale handoff state left in the diff from a prior phase.
 
-### Verdict: APPROVE
+---
+
+### Verdict: REQUEST_CHANGES
+
+Two blocking issues identified. Three non-blocking suggestions included.
 
 ---
 
 ### Findings
 
-#### praise (NIT): All 3 prior BLOCKING findings resolved correctly
+**[BLOCKING] F1: `checkCommandSkillWiring` reads skill files without checking existence first**
 
-The developer's fixes addressed each prior finding with the right approach:
-1. Extracted core logic to `lib/wiring-check.js` (eliminates recursive `node --test` subprocess issue)
-2. Replaced brittle source-scanning regex with behavioral `checkArtifactWiring` assertions for AC8
-3. Added `## Artifact Wiring Verification` checklist sections to both `commands/implement.md` and `commands/test-design.md` (AC4/AC5)
+In `lib/wiring-check.js`, `checkCommandSkillWiring` calls `read(skillRef.sourcePath)` directly. The Stage 1 unit test loop calls `exists(ref.sourcePath)` and asserts, but the library function itself does not. If `commands/implement.md` declares `skills/structured-logging/SKILL.md` in its `## Skill References` table and that file is later moved or deleted, the wiring check throws a raw `ENOENT` from `fs.readFileSync`, not a named error identifying the skill and command. This violates the principle the implementation correctly applies everywhere else (errors must name the offending component).
 
-Each fix is minimal and targeted. No scope creep.
+Suggested fix: add `if (!exists(skillRef.sourcePath)) { throw new Error(...) }` at the top of `checkCommandSkillWiring` before calling `read()`.
 
 ---
 
-#### suggestion (MEDIUM): Architecture deviation — `lib/wiring-check.js` contradicts rejected alternative
+**[BLOCKING] F2: `.claude/handoff.json` net diff from main shows Phase 4 content**
 
-**File:** lib/wiring-check.js (new, 257 lines)
-**Issue:** The architecture doc (architecture.md line 131) explicitly rejected "Separate parser module in `lib/`" as over-engineering. The implementation creates exactly that. The deviation is *justified* — the previous review correctly identified it as the only clean fix for the recursive test runner BLOCKING issue, and 3 test layers now import it — but the architecture doc should be updated to reflect this decision.
-**Suggestion:** Add a note to architecture.md's Rejected Alternatives table: "Reconsidered during Phase 6 review — extraction was necessary to avoid recursive `node --test` subprocess failures in integration tests. Now adopted."
+The diff under review includes `.claude/handoff.json` changing to `"phase": 4, "produced_by": "security-reviewer"`. The current on-disk state has been corrected to Phase 6 by a prior review cycle, but the diff still accumulates the Phase 4 → Phase 6 change, meaning what lands on main when this branch merges would be correct — but the commit history shows the branch briefly having a Phase 4 handoff in it. More critically, the diff being reviewed here shows the Phase 4 handoff as the net change from main, which is what a rollback would restore. The correct approach is for the developer to ensure the branch commits show Phase 6 as the authored state, not as a correction over Phase 4.
 
----
-
-#### suggestion (MEDIUM): `extractSection` stops at any heading level, may truncate nested content
-
-**File:** lib/wiring-check.js:50
-**Issue:** `if (inSection && /^#{1,6} /.test(line))` treats any heading as a section boundary. If a `## Required Artifacts` section ever contains a sub-heading (e.g., `### Notes`), the parser silently truncates at that point. Currently no skill uses sub-headings in artifact sections, so this is latent.
-**Suggestion:** Narrow boundary detection to same-or-higher level: stop at `^#{1,2} ` for a `##`-level section. Low priority — no current skill triggers this.
+Suggested fix: `git rebase` or amend the commit that introduced the Phase 4 handoff so it is replaced by the Phase 6 handoff, making the diff clean.
 
 ---
 
-#### suggestion (MEDIUM): Substring pattern matching may produce false positives or negatives
+**[SUGGESTION] F3: Several contract tests grep the wiring test's source text for keyword presence**
 
-**File:** lib/wiring-check.js:208, 215
-**Issue:** `outputSection.includes(pattern)` does case-sensitive substring matching. A command using `[FEATURE]` vs `[feature]` or mentioning the pattern in a different context would produce incorrect results. The architecture doc chose substring matching deliberately (rejecting regex to avoid ReDoS), and current content is consistent, so this is a latent risk.
-**Suggestion:** Document the matching contract in the `## Required Artifacts` format description: "Patterns are matched as case-sensitive substrings within the command's Output section."
+In `tests/contracts/wiring-verification.test.js`, AC1, AC3, AC7, AC9, and the fail-closed test assert things like `assert.match(wiringTest, /skip|no required artifacts|no wiring/i)`. This is phrase-binding to implementation details — renaming the local variable `skipped` to `bypassed` or rephrasing a comment would break the contract test even though the behaviour is identical. The project's own coding convention (in `docs/CLAUDE.md`) explicitly calls out: "tests must use structural anchors, not phrase-binding." These assertions should test the observable behaviour (import the library, call the function, assert on the result) rather than scanning the wiring test's source.
 
 ---
 
-#### praise (NIT): Test coverage is comprehensive and well-organized
+**[SUGGESTION] F4: `tests/e2e/wiring-verification.spec.js` is misclassified as an E2E test**
 
-**File:** tests/node/command-skill-wiring.test.js, tests/contracts/, tests/e2e/, tests/integration/
-41 total tests across 4 layers, all passing. Each AC has at least one dedicated test. The negative fixture (mock-skill + mock-command with deliberate gap) is a strong regression anchor. The fail-closed heuristic test (commands with skill prose but no `## Skill References` table) prevents silent protection loss. The AC8 behavioral tests (conditional artifact with missing pattern must fail) correctly verify no relaxation.
+The file imports from `lib/wiring-check` and runs entirely in-process against static files. It is a second integration test, not an E2E test. The project's `pnpm test:e2e` command targets a separate runner (likely Playwright) that would either skip or fail on this file. Moving it to `tests/integration/wiring-verification.e2e-chain.test.js` or simply merging it into the existing integration test file would avoid runner confusion.
 
 ---
 
-### AC Coverage
+**[SUGGESTION] F5: `extractSection` silently truncates when a sub-heading appears inside the target section**
 
-| AC | Description | Status | Evidence |
-|----|-------------|--------|----------|
-| AC1 | Contract test verifies pattern + path | PASS | Stage 3 test + `checkArtifactWiring` validates both |
-| AC2 | Catches tdd/test-design integration-test gap | PASS | `Stage 3 (AC1 + AC2)` test passes against real commands |
-| AC3 | Malformed registry produces parse error naming skill | PASS | Two AC3 tests (missing columns, no data rows) |
-| AC4 | Phase 5 verification step in implement.md | PASS | `## Artifact Wiring Verification` section added |
-| AC5 | Phase 3 verification step in test-design.md | PASS | `## Artifact Wiring Verification` section added |
-| AC6 | Registry format: 4-column Markdown table | PASS | `skills/tdd/SKILL.md` parses correctly |
-| AC7 | Skills with no Required Artifacts pass | PASS | AC7 test finds a skill without section, confirms null return |
-| AC8 | Conditional artifacts: full pattern+path check | PASS | Behavioral tests with mock conditional fixture |
-| AC9 | Multiple output paths: at least one matches | PASS | AC9 test with dual-path artifact |
-| AC10 | No regression on existing tests | PASS | All 88 tests in `tests/node/*.test.js` pass |
-| AC11 | Negative fixture with known gap | PASS | `assert.throws` on mock-command gap detection |
+In `lib/wiring-check.js`, `extractSection` breaks on any `/^#{1,6} /` match after the target heading. A `### Notes` sub-heading inside a `## Required Artifacts` section would cause artifact table rows after it to be silently dropped. For a hard gate, silent truncation is a correctness risk — the check would pass even with incomplete data. Consider breaking only on headings of the same depth or higher (e.g., only `##` or `#` for a `##`-level section), or documenting and testing the constraint explicitly.
+
+---
+
+**[PRAISE] F6: Error messages throughout `lib/wiring-check.js` are consistently actionable**
+
+Every `throw new Error(...)` in the library names the skill, the command, and the specific missing element (pattern, path, column, separator). This is exactly the standard all error messages in this codebase should be held to — the fail-closed heuristic is well-designed, and a developer seeing a failure at 2am would know immediately what file to open and what to add.
 
 ---
 
 ### Test Assessment
 
-- [x] New code has corresponding tests
-- [x] Edge cases are covered (conditional artifacts, multiple paths, malformed tables, empty state)
-- [x] No skipped tests introduced
-- [x] Tests are testing behaviour, not implementation
-
-**Test results:**
-- `tests/node/command-skill-wiring.test.js`: 18/18 pass
-- `tests/contracts/wiring-verification.test.js`: 14/14 pass
-- `tests/integration/wiring-verification.integration.test.js`: 3/3 pass
-- `tests/e2e/wiring-verification.spec.js`: 6/6 pass
-- `tests/node/*.test.js` (full suite): 88/88 pass
+- [x] New code has corresponding tests — contract, unit, integration, e2e layers all present
+- [x] Edge cases are covered — conditional artifacts (AC8), multi-path (AC9), empty skill (AC7), malformed table (AC3)
+- [x] No skipped tests introduced — the grep hit on `result.skipped, false` is a value comparison inside a test assertion, not a test skip directive
+- [ ] Tests are testing behaviour, not implementation — **partial**: contract tests that grep the wiring test's source text for keywords couple the contract layer to implementation details (see F3)
 
 ---
 
 ### Convention Compliance
 
-- [x] Follows project folder structure
+- [x] Follows project folder structure (`lib/`, `tests/node/`, `tests/contracts/`, `tests/fixtures/`)
 - [x] Naming conventions respected
-- [x] No `any` types without documented reason (JavaScript; N/A)
-- [x] No hardcoded values
-- [x] Commit messages follow format
-- [x] Source/installed copies in sync (both commands/ and .claude/commands/ updated identically; skills/tdd and .claude/skills/tdd identical, validated by E2E test)
-- [x] All tests pass
+- [x] No `any` types (JavaScript project — not applicable)
+- [x] No hardcoded secrets or credentials
+- [x] Duplicate files (`commands/` and `.claude/commands/`) are byte-identical per ISS-009 sync pattern
+- [ ] Handoff diff reflects Phase 4 state — see F2
+
+---
+
+### AC Coverage
+
+| AC | Status | Evidence |
+|----|--------|---------|
+| AC1 | PASS | `checkCommandSkillWiring` in `lib/wiring-check.js` validates pattern + path |
+| AC2 | PASS | `commands/test-design.md` Output now includes `tests/integration/` path |
+| AC3 | PASS | `parseRequiredArtifacts` throws with skill name on malformed table; tested |
+| AC4 | PASS | `## Artifact Wiring Verification` section added to `commands/implement.md` |
+| AC5 | PASS | `## Artifact Wiring Verification` section added to `commands/test-design.md` |
+
+---
+
+### Blocking Items (must resolve before merge)
+
+1. **F1** — Add `exists()` guard in `checkCommandSkillWiring` before `read(skillRef.sourcePath)`, throwing a named error on missing file
+2. **F2** — Clean up branch so `.claude/handoff.json` diff from main shows Phase 6 state, not Phase 4
