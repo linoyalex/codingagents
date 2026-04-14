@@ -1,105 +1,88 @@
 ## Code Review: feature/ISS-029-specify-fidelity
-**Generated:** 2026-04-13T18:00:00Z
+**Generated:** 2026-04-13T23:45:00Z
 **Date:** 2026-04-13 | **Reviewer:** code-reviewer agent
-**Reviewed in separate context from authoring phase** | **Reviewer identity:** code-reviewer (fresh session)
-**Diff:** `git diff main...HEAD` plus working-tree unstaged modifications
+**Reviewed in separate context from authoring phase** | **Reviewer identity:** code-reviewer (fresh session, re-review)
+**Diff:** `git diff main...HEAD`
 
 ---
 
 ### Summary
 
-This review covers the complete changeset on `feature/ISS-029-specify-fidelity`, which adds ticket fidelity verification and human review checkpoints to `/specify` and `/architect`. The implementation is purely instructional — no new runtime code, hooks, or dependencies introduced. The current increment resolves the prior HIGH finding (integration test `||` → `&&` fix) and adds four new contract tests for checkpoint-section completeness, final-handoff `source_spec` presence, and a read-scope regression guard. All 49 tests pass. The source/installed byte-identity constraint is enforced by sync tests. One MEDIUM finding (missing `enum` constraint on `checkpoint_pending` in schema) remains open and is tracked in ISS-044.
+Re-review of the complete changeset on `feature/ISS-029-specify-fidelity`, which adds ticket fidelity verification and human review checkpoints to `/specify` and `/architect`. The implementation is purely instructional — command files, one skill section, and a schema extension. No new runtime code, hooks, or dependencies. All 56 tests pass (44 contract + 7 E2E + 5 integration). Source/installed byte-identity enforced by sync tests. The prior review's MEDIUM finding (missing `enum` on `checkpoint_pending`) was factually incorrect — the schema has the enum constraint. This review corrects that and independently re-verifies all ACs.
 
 ### Verdict: APPROVE
 
-The implementation satisfies AC0–AC8 per ISS-029. No BLOCKING findings. The prior HIGH finding has been resolved in this increment. The remaining MEDIUM finding does not affect runtime correctness and is tracked for follow-up.
+All ACs from ISS-029 (AC0–AC8) are satisfied. No BLOCKING or HIGH findings. The implementation is clean, well-tested, and faithful to the source ticket.
 
 ---
 
 ### Findings
 
-#### [PRAISE]: Integration test ordering bug correctly resolved
+#### [PRAISE]: Comprehensive test suite with meaningful negative-pattern assertions
 
-**File:** `tests/integration/clarification-checkpoints.integration.test.js`, line 120
+**File:** `tests/contracts/clarification-checkpoints.test.js`
 
-The prior review flagged the `||` in the ordering assertion as a HIGH finding — a vacuous disjunction that could not catch a fidelity/clarification reordering regression. The fix correctly replaces it with `&&`, making both sub-conditions independently required. The test now fails if either ordering constraint is violated. The fix is minimal, targeted, and correct.
-
----
-
-#### [PRAISE]: New contract tests add schema-field coverage for checkpoint handoffs
-
-**File:** `tests/contracts/clarification-checkpoints.test.js` (new tests, "Checkpoint durability" and "Final handoff" sections)
-
-The two new "Checkpoint durability" tests verify that when a command stops for a checkpoint, the handoff it writes includes every required schema field — not just `checkpoint_pending`. This closes a real gap: a checkpoint that omits `source_spec` or `acceptance_criteria` would survive schema validation but lose critical pipeline context on session resume. The two "Final handoff" tests similarly enforce `source_spec` in the post-commit handoff. These are substantive additions, not defensive busywork.
+The test suite goes beyond keyword presence — it includes negative-pattern assertions (AC6) that check for unconditional bypass patterns after checkpoints, ordering assertions that verify checkpoint-before-commit invariants, and schema-field coverage tests that verify checkpoint handoffs include all required fields. The 56 tests cover every AC with appropriate structural anchors per project convention.
 
 ---
 
-#### [MEDIUM]: `schemas/handoff.schema.json` — `checkpoint_pending` still lacks `enum` constraint
+#### [PRAISE]: Clean separation of concerns across WHAT/HOW layers
 
-**File:** `schemas/handoff.schema.json` (unchanged)
+**Files:** `commands/specify.md`, `commands/architect.md`, `skills/prd-writing/SKILL.md`
 
-The field description enumerates two allowed values (`"clarification"`, `"architecture-review"`) but the schema declares `"type": "string"` with no `enum` constraint. A typo in a command file (e.g. `"arch-review"` instead of `"architecture-review"`) passes schema validation silently, and `restore-context.js` would not surface the checkpoint correctly on session resume.
-
-Suggested fix:
-```json
-"checkpoint_pending": {
-  "type": "string",
-  "enum": ["clarification", "architecture-review"],
-  "description": "..."
-}
-```
-
-Tracked as ISS-044 follow-up. Not blocking merge.
+The ticket fidelity procedure lives in the skill (HOW), while the command flow (WHAT) references and orchestrates it. The checkpoint durability mechanism (`checkpoint_pending` in handoff.json) reuses existing infrastructure rather than adding new hooks. This is well-scoped and reversible.
 
 ---
 
-#### [LOW]: Checkpoint-section field-coverage tests rely on a fragile single-line regex
+#### [MEDIUM]: Prior review's `checkpoint_pending` enum finding was incorrect — stale claim propagated to handoff known_risks
 
-**File:** `tests/contracts/clarification-checkpoints.test.js`, new "Checkpoint durability" tests
+**File:** `.claude/handoff.json` (known_risks field)
 
-The checkpoint section is extracted using:
-```js
-cmd.match(/Before stopping.*?checkpoint_pending.*?timestamp[^\n]*/s)
-```
+The prior review.md (line 37–52) claimed `checkpoint_pending` lacks an `enum` constraint. This is factually wrong — `schemas/handoff.schema.json:69` clearly has `"enum": ["clarification", "architecture-review"]`. The stale finding propagated to handoff.json's `known_risks` referencing ISS-044, but ISS-044 is actually about scope expansion during rework — an unrelated valid concern. The handoff known_risks should drop the incorrect enum claim. No schema change needed.
 
-The `[^\n]*` stop means the regex captures only through the end of the line containing `timestamp`. If the command text is later reformatted so that `timestamp` moves to its own line at the end of the block, the regex still works — but if additional fields are appended on lines after `timestamp`, those would not be covered. More importantly, if "Before stopping" is ever reworded (e.g. to "Before pausing"), the test fails spuriously even though the instruction is semantically correct.
+**Suggestion:** Remove the stale known_risks entry from the handoff when writing the Phase 7 handoff.
 
-The tests pass and catch real gaps today. The fragility is mild given the project convention against phrase-bound tests; worth noting in case the command text is later refined.
+---
+
+#### [LOW]: `source_spec` made required in schema — cross-phase impact beyond ISS-029 scope
+
+**File:** `schemas/handoff.schema.json:7`
+
+The schema change adds `source_spec` to the `required` array, affecting all pipeline phases — not just Phases 1–2. Only `commands/specify.md` and `commands/architect.md` were updated with `source_spec` in their handoff write instructions. Commands for phases 3–7 were not modified in this branch. However, existing handoffs from prior branches already include `source_spec` conventionally, and the review-hardening branch (ISS-024/033) likely formalizes it for Phase 6. Low risk in practice since the convention predates the schema enforcement.
 
 No action required before merge.
 
 ---
 
-#### [NIT]: Redundant assertion at integration test line 122
+#### [NIT]: Redundant ordering assertion in integration test
 
-**File:** `tests/integration/clarification-checkpoints.integration.test.js`, line 122
+**File:** `tests/integration/clarification-checkpoints.integration.test.js:122`
 
-`assert.ok(clarificationIdx < commitIdx, ...)` at line 122 is subsumed by the `&&` compound assertion at line 120. No harm — the standalone assertion produces a slightly more specific failure message — but it is logically redundant. Optional cleanup.
+`assert.ok(clarificationIdx < commitIdx, ...)` at line 122 is subsumed by the compound `&&` assertion at line 120. The standalone assertion gives a more specific failure message, so it's not harmful — just logically redundant.
 
 ---
 
 ### Test Assessment
 
-- [x] New code has corresponding tests — 44 contract tests + 5 integration tests = 49 total; all pass
-- [x] Edge cases are covered — ticket-not-found, partial/refused answers, session resumption, checkpoint asymmetry (specify proceeds, architect blocks), source_spec in checkpoint and final handoffs
+- [x] New code has corresponding tests — 44 contract + 7 E2E + 5 integration = 56 total; all pass
+- [x] Edge cases are covered — ticket-not-found, partial/refused answers, session resumption, checkpoint asymmetry, source_spec in checkpoint and final handoffs, read-scope regression guard
 - [x] No skipped tests introduced — zero `.skip`, `xtest`, or `xit` in the diff
-- [x] Tests are testing behaviour, not implementation — structural anchor patterns, negative forbidden-phrase checks, ordering position assertions; not line numbers or internal variables
-
-Prior HIGH finding (vacuous `||` assertion) resolved in this increment.
+- [x] Tests are testing behaviour, not implementation — structural anchors, negative forbidden-phrase checks, ordering assertions
 
 ---
 
 ### Convention Compliance
 
-- [x] Follows project folder structure — `commands/`, `.claude/commands/`, `skills/`, `.claude/skills/`, `tests/contracts/`, `tests/e2e/`, `tests/integration/` per convention
-- [x] Naming conventions respected — file names follow existing patterns
-- [x] No `any` types — pure JavaScript; no TypeScript
-- [x] No hardcoded values — test regexes bind to behavioral properties, not line numbers
-- [x] Commit messages follow format — `feat:`, `refactor:`, `test:`, `security:`, `chore:`, `review:` prefixes used correctly
-- [x] Source/installed copies byte-identical — sync tests confirm all three modified files are in sync
+- [x] Follows project folder structure — `commands/`, `.claude/commands/`, `skills/`, `.claude/skills/`, `tests/contracts/`, `tests/e2e/`, `tests/integration/`
+- [x] Naming conventions respected
+- [x] No `any` types — pure JavaScript
+- [x] No hardcoded values — test regexes bind to behavioral properties
+- [x] Commit messages follow format
+- [x] Source/installed copies byte-identical — sync tests confirm all three modified files
 - [x] Skill size budget — `skills/prd-writing/SKILL.md` under 250 total lines
-- [x] `Generated:` timestamps present — prd.md, architecture.md, security-audit.md all include required artifact timestamps
+- [x] `Generated:` timestamps present on all pipeline artifacts
 - [x] `additionalProperties: false` maintained on schema
+- [x] `checkpoint_pending` enum constraint present (correcting prior review)
 
 ---
 
@@ -108,22 +91,16 @@ Prior HIGH finding (vacuous `||` assertion) resolved in this increment.
 | AC   | Ticket requirement                             | Implemented                               | Test coverage     |
 |------|------------------------------------------------|-------------------------------------------|-------------------|
 | AC0  | Transcribe ticket ACs faithfully               | Ticket Fidelity Procedure in skill Step 2 | Contract + E2E    |
-| AC0a | Verify convention citations against CLAUDE.md  | Skill Step 4                              | Contract          |
+| AC0a | Verify convention citations against CLAUDE.md  | Skill Step 4 (docs/CLAUDE.md canonical)   | Contract + E2E    |
 | AC0b | Internal contradiction check                   | Skill Step 5                              | Contract          |
-| AC0c | Open-ended scope enumeration or ask            | Skill Step 6                              | Contract          |
-| AC1  | Clarification gate with triggers               | specify.md Step 2                         | Contract + E2E    |
-| AC2  | Question discipline (material only)            | "material questions only" instruction     | Contract          |
-| AC3  | Partial/refused answer handling                | "record as assumption, proceed"           | Contract          |
+| AC0c | Open-ended scope enumeration or ask            | Skill Step 6                              | Contract + E2E    |
+| AC1  | Clarification gate with triggers               | specify.md Step 2 (5 trigger classes)     | Contract + E2E    |
+| AC2  | Question discipline (material only)            | "material questions only" instruction     | Contract + E2E    |
+| AC3  | Partial/refused answer handling                | "record as assumption in Dependencies"    | Contract + E2E    |
 | AC4  | Architect review checkpoint                    | architect.md Review Checkpoint section    | Contract + E2E    |
-| AC5  | Multiple revision cycles                       | "Multiple revision cycles are allowed"    | Contract          |
-| AC6  | No hidden auto-advance                         | Structural ordering + negative tests      | Contract          |
-| AC7  | Workflow signaling                             | "still in review" language                | Contract          |
+| AC5  | Multiple revision cycles                       | Explicit approval gate + revision loop    | Contract + E2E    |
+| AC6  | No hidden auto-advance                         | Ordering + negative bypass assertions     | Contract + E2E    |
+| AC7  | Workflow signaling                             | "still in review" / "awaiting" language   | Contract + E2E    |
 | AC8  | Structural verification (a, b, c)              | Three sub-checks in contract suite        | Contract          |
 
 All ACs from ISS-029 are satisfied. No ACs dropped, weakened, or drifted.
-
----
-
-### Known Gaps Carried Forward
-
-- **MEDIUM** — `checkpoint_pending` schema lacks `enum` constraint (ISS-044). Functional impact: typos in command files not caught by schema validator; no runtime breakage today.

@@ -1,8 +1,8 @@
 {
   "feature": "clarification-checkpoints",
   "phase": 6,
-  "goal": "Document the clarification-checkpoints feature: update CHANGELOG.md, write a release-notes entry, and update CLAUDE.md conventions if any new patterns were introduced",
-  "scope": "Phase 7 documentation only — CHANGELOG.md, release-notes/, CLAUDE.md conventions update",
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
     "docs/features/clarification-checkpoints/prd.md",
     "CHANGELOG.md",
@@ -16,10 +16,7 @@
     "head -20 CHANGELOG.md",
     "grep -i 'last updated' CLAUDE.md"
   ],
-  "known_risks": [
-    "MEDIUM finding: checkpoint_pending schema has no enum constraint — document as follow-up (ISS-044)"
-  ],
   "source_spec": "docs/issues/tickets/ISS-029.md",
   "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T18:00:00Z"
+  "timestamp": "2026-04-13T23:45:00Z"
 }
