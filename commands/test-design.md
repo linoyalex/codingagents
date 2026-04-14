@@ -49,6 +49,13 @@ Rules:
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
 
+## Artifact Wiring Verification
+
+Before committing RED shells, verify that every skill artifact declared in `## Required Artifacts`
+has a corresponding output instruction in this command's Output section — check for both the
+naming pattern AND the target path. If a skill requires an artifact not yet listed in the Output
+section below (e.g., integration tests from the tdd skill), add it before committing.
+
 ## Output
 
 - Write contract tests to: tests/contracts/$ARGUMENTS.test.ts

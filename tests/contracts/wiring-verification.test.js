@@ -150,21 +150,38 @@ test('AC7: wiring test handles skills with no Required Artifacts section gracefu
 // ---------------------------------------------------------------------------
 
 test('AC8: conditional artifacts receive the same full pattern+path validation as unconditional ones', () => {
-  // Architecture decision: Condition column is informational for human readers only.
-  // The test must NOT relax or skip validation for conditional artifacts.
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
+  // Behavioural test: construct a conditional artifact and verify the wiring
+  // check enforces both pattern AND path -- no relaxation for the Condition column.
+  const {
+    parseRequiredArtifacts: parse,
+    checkArtifactWiring: check,
+  } = require('../../lib/wiring-check');
 
-  // The production test must reference the Condition column (parsing it)
-  assert.match(wiringTest, /[Cc]ondition/,
-    'Wiring test must parse the Condition column from artifact tables');
+  const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
+  const artifacts = parse(conditionalSkill, 'mock-tdd-conditional');
+  assert.ok(artifacts !== null && artifacts.length >= 1,
+    'Conditional fixture must parse successfully');
+  assert.ok(artifacts[0].condition.length > 0,
+    'Fixture artifact must have a non-empty Condition field');
 
-  // Must NOT skip or bypass conditional artifacts
-  assert.doesNotMatch(wiringTest, /skip.*condition|ignore.*condition|condition.*skip|condition.*ignore/i,
-    'Wiring test must not skip or ignore conditional artifacts');
+  // Command with BOTH pattern and path must pass (even for conditional artifact)
+  const goodCommand = [
+    '## Output', '',
+    '- Write integration tests to: tests/integration/ following [feature].integration.test.* pattern',
+  ].join('\n');
+  assert.doesNotThrow(
+    () => check(goodCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
+    'Conditional artifact with matching pattern+path must pass (AC8: no relaxation)');
 
-  // Must NOT have "if condition" logic that bypasses pattern+path check
-  assert.doesNotMatch(wiringTest, /if\s*\(.*condition|condition\s*&&\s*skip|condition\s*\?\s*skip/i,
-    'Wiring test must not short-circuit pattern+path check based on condition value');
+  // Command MISSING the pattern must fail (same enforcement as unconditional)
+  const badCommand = [
+    '## Output', '',
+    '- Write test files to: tests/integration/ (no pattern mentioned)',
+  ].join('\n');
+  assert.throws(
+    () => check(badCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
+    /pattern/i,
+    'Conditional artifact missing pattern must fail (AC8: no relaxation)');
 });
 
 test('AC8 (fixture): conditional artifact fixture exists for AC8 validation', () => {

@@ -107,24 +107,36 @@ test('E2E: contract test module validates the complete 4-stage algorithm', () =>
 // E2E: AC8 — conditional artifacts get the same full pattern+path check
 // ---------------------------------------------------------------------------
 
-test('E2E (AC8): conditional artifact fixture is exercised by production wiring test with no relaxation', () => {
+test('E2E (AC8): conditional artifact fixture is exercised end-to-end with no relaxation', () => {
   // Verifies the end-to-end chain for AC8:
-  //   conditional fixture (Phase 5 only condition) → production test → no relaxation
+  //   conditional fixture (Phase 5 only condition) → wiring-check library → no relaxation
+  const {
+    parseRequiredArtifacts: parse,
+    checkArtifactWiring: check,
+  } = require('../../lib/wiring-check');
+
   assert.ok(exists('tests/fixtures/wiring-gap/mock-skill-conditional.md'),
     'Conditional artifact fixture must exist for AC8 E2E coverage');
 
   const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
-  // The fixture declares a conditional artifact (non-empty Condition column)
   assert.match(conditionalSkill, /Phase \d+ only|phase.*only/i,
     'Conditional fixture must have a non-empty Condition value');
 
-  // The production wiring test must reference the Condition column
-  // and must NOT short-circuit pattern+path validation based on it
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /[Cc]ondition/,
-    'Production wiring test must parse and reference the Condition column');
-  assert.doesNotMatch(wiringTest, /skip.*condition|ignore.*condition|condition.*skip|condition.*ignore/i,
-    'Production wiring test must not skip conditional artifacts (AC8: no relaxation)');
+  // Parse the conditional artifact and verify enforcement is identical to unconditional
+  const artifacts = parse(conditionalSkill, 'mock-tdd-conditional');
+  assert.ok(artifacts !== null && artifacts.length >= 1);
+  assert.ok(artifacts[0].condition.length > 0,
+    'Artifact must have a non-empty Condition column');
+
+  // Conditional artifact with missing pattern must fail (no relaxation)
+  const badCommand = [
+    '## Output', '',
+    '- Write test files to: tests/integration/',
+  ].join('\n');
+  assert.throws(
+    () => check(badCommand, 'e2e-cmd.md', 'mock-tdd-conditional', artifacts[0]),
+    /pattern/i,
+    'Conditional artifact must fail when pattern is missing (AC8: no relaxation)');
 });
 
 // ---------------------------------------------------------------------------

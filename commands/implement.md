@@ -63,6 +63,13 @@ Context discipline:
 - If you need to read more than 10 files: split the task
 - If the RED failure is unrelated, stale, or contradicts the architecture/PRD, stop and resolve that mismatch before coding
 
+## Artifact Wiring Verification
+
+Before committing GREEN, verify that every skill artifact declared in `## Required Artifacts`
+has a corresponding output instruction in this command's Output section — check for both the
+naming pattern AND the target path. If a new skill artifact was added during this feature,
+update the Output section below to include it.
+
 ## Output
 
 - Write production source code to: src/ (minimum code to make tests pass)
