@@ -420,6 +420,40 @@ test('AC11 (fixture content): mock-skill requires artifact that mock-command omi
 });
 
 // ---------------------------------------------------------------------------
+// F1: Missing skill file throws named error, not raw ENOENT
+// ---------------------------------------------------------------------------
+
+test('F1: checkCommandSkillWiring throws named error when skill file does not exist', () => {
+  // The exists() helper is available but was not used before read() in
+  // checkCommandSkillWiring. A missing skill file must produce a descriptive
+  // error naming the command and skill, not a raw ENOENT from fs.readFileSync.
+  const missingSkillRef = {
+    skill: 'nonexistent-skill',
+    sourcePath: 'skills/nonexistent-skill/SKILL.md',
+  };
+
+  assert.throws(
+    () => checkCommandSkillWiring('commands/implement.md', missingSkillRef),
+    (err) => {
+      // Must NOT be a raw ENOENT
+      assert.notEqual(err.code, 'ENOENT',
+        'Error must not be a raw ENOENT from fs.readFileSync');
+      // Must name the command
+      assert.ok(err.message.includes('implement.md'),
+        `Error must name the command, got: ${err.message}`);
+      // Must name the skill
+      assert.ok(err.message.includes('nonexistent-skill'),
+        `Error must name the skill, got: ${err.message}`);
+      // Must mention the missing file path
+      assert.ok(err.message.includes('skills/nonexistent-skill/SKILL.md'),
+        `Error must mention the missing file path, got: ${err.message}`);
+      return true;
+    },
+    'Missing skill file must throw a named error, not raw ENOENT (F1)'
+  );
+});
+
+// ---------------------------------------------------------------------------
 // AC3: Malformed artifact registry produces parse error naming the skill
 // ---------------------------------------------------------------------------
 
