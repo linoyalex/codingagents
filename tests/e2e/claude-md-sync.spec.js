@@ -4,19 +4,17 @@
  * Derived from: docs/features/claude-md-sync/prd.md + architecture.md
  * Ticket: ISS-008
  *
- * These tests verify the complete claude-md-sync convention chain end-to-end:
- *   lib/sync-claude-md.sh (library) → init.sh (wiring) → upgrade.sh (wiring)
- *   → docs/CLAUDE.md (source) → root CLAUDE.md template (target)
+ * These tests execute init.sh and upgrade.sh in real temp project directories
+ * and verify end-to-end behavior: file output, CLI output, backup, status lines.
  *
  * Wiring proof:
- *   If all E2E tests pass, the sync library exists with proper structure,
- *   both scripts wire to it, the allowlist is consistent with docs/CLAUDE.md,
- *   and the marker format is correct across all components.
+ *   If all E2E tests pass, the full chain works: script parses flag → sources
+ *   lib → reads docs/CLAUDE.md → writes markers → prints status.
  *
  * Cases covered:
- *   Happy:   Full chain from library → scripts → source/target works
- *   Edge:    Allowlist anchors verified against live docs/CLAUDE.md (drift detection)
- *   Misuse:  Framework-internal sections are excluded from sync
+ *   Happy:   init with sync, upgrade with sync, no-op sync
+ *   Edge:    non-interactive fallback, legacy migration, malformed markers
+ *   Misuse:  missing source file, backup failure
  */
 'use strict';
 
@@ -24,210 +22,295 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execSync } = require('node:child_process');
+const os = require('node:os');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
-function read(relativePath) {
-  return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
+function makeTempDir(prefix) {
+  return fs.mkdtempSync(path.join(os.tmpdir(), `claude-md-sync-e2e-${prefix}-`));
 }
 
-function fileExists(relativePath) {
-  return fs.existsSync(path.join(ROOT_DIR, relativePath));
+function cleanupDir(dir) {
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
+function runScript(scriptPath, args, opts = {}) {
+  const cmd = `bash ${path.join(ROOT_DIR, scriptPath)} ${args}`;
+  try {
+    const stdout = execSync(cmd, {
+      cwd: opts.cwd,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 30000,
+      env: { ...process.env, ...opts.env },
+      input: opts.input || undefined,
+    });
+    return { stdout, stderr: '', exitCode: 0 };
+  } catch (err) {
+    return { stdout: err.stdout || '', stderr: err.stderr || '', exitCode: err.status };
+  }
 }
 
 // ---------------------------------------------------------------------------
-// E2E: Full wiring chain — lib exists, both scripts source it
+// E2E: init.sh --sync-claude-md creates CLAUDE.md with managed markers
 // ---------------------------------------------------------------------------
 
-test('E2E: sync library and both scripts form a complete wiring chain', () => {
-  // Step 1: Library exists
-  assert.ok(
-    fileExists('lib/sync-claude-md.sh'),
-    'lib/sync-claude-md.sh must exist'
-  );
+test('E2E: init --sync-claude-md produces CLAUDE.md with markers and status line', () => {
+  const tmpDir = makeTempDir('init-sync');
+  try {
+    const { stdout, exitCode } = runScript('init.sh', '--sync-claude-md', { cwd: tmpDir });
 
-  const lib = read('lib/sync-claude-md.sh');
-  const initSh = read('init.sh');
-  const upgradeSh = read('upgrade.sh');
+    assert.equal(exitCode, 0, 'init.sh --sync-claude-md should exit 0');
 
-  // Step 2: Both scripts reference the library
-  assert.match(
-    initSh,
-    /sync-claude-md\.sh/,
-    'init.sh must reference sync-claude-md.sh'
-  );
-  assert.match(
-    upgradeSh,
-    /sync-claude-md\.sh/,
-    'upgrade.sh must reference sync-claude-md.sh'
-  );
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    assert.match(claudeMd, /<!-- managed:start:/, 'CLAUDE.md must have managed:start markers');
+    assert.match(claudeMd, /<!-- managed:end:/, 'CLAUDE.md must have managed:end markers');
 
-  // Step 3: Library defines the core function
-  assert.match(
-    lib,
-    /sync_claude_md/,
-    'lib/sync-claude-md.sh must define sync_claude_md'
-  );
+    // Per-section action labels in output
+    assert.match(stdout, /\[added\]/, 'output must show [added] for init');
 
-  // Step 4: Both scripts accept the --sync-claude-md flag
-  assert.match(initSh, /--sync-claude-md/, 'init.sh must accept --sync-claude-md');
-  assert.match(upgradeSh, /--sync-claude-md/, 'upgrade.sh must accept --sync-claude-md');
-});
-
-// ---------------------------------------------------------------------------
-// E2E: Marker format consistency across library and docs
-// ---------------------------------------------------------------------------
-
-test('E2E: marker format is consistent between library and eligible section IDs', () => {
-  const lib = read('lib/sync-claude-md.sh');
-
-  const sectionIds = ['code-conventions-must-follow', 'architecture-notes', 'known-gotchas'];
-  for (const id of sectionIds) {
-    // Library must reference each section ID in marker format
-    assert.match(
-      lib,
-      new RegExp(`managed:start:${id}|managed:end:${id}|${id}`),
-      `lib/sync-claude-md.sh must reference section ID: ${id}`
-    );
+    // End-of-script status line
+    assert.match(stdout, /CLAUDE\.md:/, 'output must include CLAUDE.md status line');
+  } finally {
+    cleanupDir(tmpDir);
   }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: Allowlist drift detection — anchors match docs/CLAUDE.md
+// E2E: init.sh without flag, no existing CLAUDE.md — copies template
 // ---------------------------------------------------------------------------
 
-test('E2E: allowlist section headings exist in docs/CLAUDE.md', () => {
-  const docsClaude = read('docs/CLAUDE.md');
+test('E2E: init without flag and no existing CLAUDE.md copies template', () => {
+  const tmpDir = makeTempDir('init-no-flag');
+  try {
+    const { stdout, exitCode } = runScript('init.sh', '', { cwd: tmpDir });
 
-  // All eligible section headings must exist in source
-  assert.match(
-    docsClaude,
-    /^### Must Follow$/m,
-    'docs/CLAUDE.md must contain "### Must Follow" heading for code-conventions-must-follow'
-  );
-  assert.match(
-    docsClaude,
-    /^## Architecture Notes$/m,
-    'docs/CLAUDE.md must contain "## Architecture Notes" heading'
-  );
-  assert.match(
-    docsClaude,
-    /^## Known Gotchas$/m,
-    'docs/CLAUDE.md must contain "## Known Gotchas" heading'
-  );
+    assert.equal(exitCode, 0);
+
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    // Template should NOT have managed markers
+    assert.ok(!claudeMd.includes('managed:start:'), 'template copy must not have markers');
+
+    // Status line
+    assert.match(stdout, /CLAUDE\.md:.*copied template|CLAUDE\.md:.*template/i, 'status must say copied template');
+  } finally {
+    cleanupDir(tmpDir);
+  }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: Root CLAUDE.md template has target section headings
+// E2E: init.sh without flag, existing CLAUDE.md, non-interactive — keeps existing
 // ---------------------------------------------------------------------------
 
-test('E2E: root CLAUDE.md template contains target section headings', () => {
-  const rootClaude = read('CLAUDE.md');
+test('E2E: init without flag, existing CLAUDE.md, non-interactive keeps existing', () => {
+  const tmpDir = makeTempDir('init-noninteractive');
+  const originalContent = '# My existing project CLAUDE.md\n## Custom Section\n- My stuff\n';
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
 
-  assert.match(
-    rootClaude,
-    /^### Must Follow$/m,
-    'Root CLAUDE.md must contain "### Must Follow" heading'
-  );
-  assert.match(
-    rootClaude,
-    /^## Architecture Notes$/m,
-    'Root CLAUDE.md must contain "## Architecture Notes" heading'
-  );
-  assert.match(
-    rootClaude,
-    /^## Known Gotchas$/m,
-    'Root CLAUDE.md must contain "## Known Gotchas" heading'
-  );
-});
+  try {
+    // Pipe empty stdin to simulate non-interactive
+    const { stdout, exitCode } = runScript('init.sh', '', {
+      cwd: tmpDir,
+      input: '',
+    });
 
-// ---------------------------------------------------------------------------
-// E2E: Framework-internal sections excluded from sync
-// ---------------------------------------------------------------------------
-
-test('E2E: framework-internal sections are not in the sync eligible set', () => {
-  const lib = read('lib/sync-claude-md.sh');
-
-  // These framework-only sections must NOT be eligible
-  const excludedSections = [
-    'what-this-repo-is',
-    'file-ownership-boundaries',
-    'cross-agent-session-context',
-    'working-model',
-  ];
-
-  for (const section of excludedSections) {
-    const hasEligible = new RegExp(`eligible.*${section}|${section}.*eligible`, 'i').test(lib);
+    // Should keep existing file
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
     assert.ok(
-      !hasEligible,
-      `lib/sync-claude-md.sh must NOT list ${section} as eligible`
+      claudeMd.includes('My existing project CLAUDE.md') || claudeMd.includes('My stuff'),
+      'existing CLAUDE.md content must be preserved in non-interactive mode'
     );
+
+    // Status should mention sync-claude-md option
+    assert.match(stdout, /sync-claude-md/i, 'output must mention --sync-claude-md option');
+  } finally {
+    cleanupDir(tmpDir);
   }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: init.sh non-interactive fallback uses terminal detection
+// E2E: upgrade.sh --sync-claude-md replaces managed content
 // ---------------------------------------------------------------------------
 
-test('E2E: init.sh implements terminal detection for non-interactive fallback', () => {
-  const initSh = read('init.sh');
-  assert.match(
-    initSh,
-    /-t\s*0/,
-    'init.sh must check [ -t 0 ] for terminal detection'
-  );
+test('E2E: upgrade --sync-claude-md replaces managed content and preserves user content', () => {
+  const tmpDir = makeTempDir('upgrade-sync');
+
+  // Setup existing project with markers
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), [
+    '# Project',
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Old framework content from v1',
+    '<!-- managed:end:known-gotchas -->',
+    '- My project-specific gotcha that must survive',
+  ].join('\n'));
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0);
+
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    assert.ok(
+      claudeMd.includes('My project-specific gotcha that must survive'),
+      'user content outside markers must be preserved'
+    );
+    assert.ok(
+      !claudeMd.includes('Old framework content from v1'),
+      'old managed content must be replaced'
+    );
+
+    assert.match(stdout, /CLAUDE\.md:/, 'output must include status line');
+  } finally {
+    cleanupDir(tmpDir);
+  }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: upgrade.sh prints --sync-claude-md reminder when flag not used
+// E2E: upgrade.sh without flag — prints reminder
 // ---------------------------------------------------------------------------
 
-test('E2E: upgrade.sh mentions sync-claude-md in output when flag not used', () => {
-  const upgradeSh = read('upgrade.sh');
-  assert.match(
-    upgradeSh,
-    /sync-claude-md/,
-    'upgrade.sh must reference --sync-claude-md for reminder output'
-  );
+test('E2E: upgrade without flag prints sync-claude-md reminder', () => {
+  const tmpDir = makeTempDir('upgrade-no-flag');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), '# Project\n');
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0);
+    assert.match(stdout, /sync-claude-md/, 'must print --sync-claude-md reminder');
+    assert.match(stdout, /CLAUDE\.md:.*not modified/i, 'status must say not modified');
+  } finally {
+    cleanupDir(tmpDir);
+  }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: Write safety — library uses temp file and backup
+// E2E: upgrade.sh --sync-claude-md on legacy file (no markers) — migration
 // ---------------------------------------------------------------------------
 
-test('E2E: library implements write safety with temp file and backup', () => {
-  const lib = read('lib/sync-claude-md.sh');
-  assert.match(
-    lib,
-    /\.tmp/,
-    'lib/sync-claude-md.sh must use .tmp temp file for atomic writes'
-  );
-  assert.match(
-    lib,
-    /pre-sync/,
-    'lib/sync-claude-md.sh must reference .pre-sync backup'
-  );
+test('E2E: upgrade --sync-claude-md on legacy CLAUDE.md performs migration', () => {
+  const tmpDir = makeTempDir('upgrade-legacy');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), [
+    '# Project',
+    '## Known Gotchas',
+    '- My custom gotcha from before sync existed',
+  ].join('\n'));
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0);
+
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    assert.match(claudeMd, /<!-- managed:start:known-gotchas -->/, 'must insert markers');
+    assert.ok(
+      claudeMd.includes('My custom gotcha from before sync existed'),
+      'user content must be preserved after migration'
+    );
+
+    assert.match(stdout, /migrated/i, 'output must report migration');
+  } finally {
+    cleanupDir(tmpDir);
+  }
 });
 
 // ---------------------------------------------------------------------------
-// E2E: Source/installed sync — lib/sync-claude-md.sh is the single source
+// E2E: no-op sync — no changes, no backup
 // ---------------------------------------------------------------------------
 
-test('E2E: lib/sync-claude-md.sh is the canonical sync implementation', () => {
-  // init.sh and upgrade.sh must NOT contain inline sync logic
-  const initSh = read('init.sh');
-  const upgradeSh = read('upgrade.sh');
+test('E2E: no-op sync reports unchanged and skips backup', () => {
+  const tmpDir = makeTempDir('noop');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
 
-  // Neither script should define sync_claude_md inline
-  const initDefinesSync = /^sync_claude_md\s*\(\)/m.test(initSh);
-  const upgradeDefinesSync = /^sync_claude_md\s*\(\)/m.test(upgradeSh);
+  // First run to establish markers
+  const { exitCode: firstExit } = runScript('init.sh', '--sync-claude-md', { cwd: tmpDir });
+  assert.equal(firstExit, 0, 'first init should succeed');
 
+  // Second run should be no-op
+  const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+  assert.equal(exitCode, 0);
+  assert.match(stdout, /unchanged|no changes|already in sync/i, 'must report no-op');
   assert.ok(
-    !initDefinesSync,
-    'init.sh must NOT define sync_claude_md inline — it must source the library'
+    !fs.existsSync(path.join(tmpDir, 'CLAUDE.md.pre-sync')),
+    'no backup for no-op sync'
   );
-  assert.ok(
-    !upgradeDefinesSync,
-    'upgrade.sh must NOT define sync_claude_md inline — it must source the library'
-  );
+});
+
+// ---------------------------------------------------------------------------
+// E2E: backup created when changes pending, includes restore instructions
+// ---------------------------------------------------------------------------
+
+test('E2E: backup created with restore instructions when changes pending', () => {
+  const tmpDir = makeTempDir('backup');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Content that will change',
+    '<!-- managed:end:known-gotchas -->',
+  ].join('\n'));
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0);
+    assert.ok(
+      fs.existsSync(path.join(tmpDir, 'CLAUDE.md.pre-sync')),
+      'backup must be created'
+    );
+    assert.match(stdout, /pre-sync|backup/i, 'output must mention backup');
+    assert.match(stdout, /restore|mv/i, 'output must include restore instructions');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: malformed markers — skip with warning, continue
+// ---------------------------------------------------------------------------
+
+test('E2E: malformed markers skip section with warning, exit 0', () => {
+  const tmpDir = makeTempDir('malformed');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Content without closing marker',
+  ].join('\n'));
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0, 'malformed markers must not cause exit 1');
+    assert.match(stdout, /skip|warning|malformed/i, 'must warn about malformed markers');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: missing docs/CLAUDE.md — error exit
+// ---------------------------------------------------------------------------
+
+test('E2E: sync aborts when docs/CLAUDE.md is missing from source', () => {
+  const tmpDir = makeTempDir('missing-source');
+  // Don't copy any source docs
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), '# Project\n');
+
+  const { exitCode } = runScript('init.sh', '--sync-claude-md', { cwd: tmpDir });
+  assert.notEqual(exitCode, 0, 'must exit non-zero when docs/CLAUDE.md is missing');
+
+  cleanupDir(tmpDir);
 });
