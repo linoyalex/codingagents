@@ -45,10 +45,13 @@ If any trigger fires: ask the minimum necessary clarification questions, then ST
 wait for the user to respond before finalizing the PRD. Before stopping, write
 .claude/handoff.json with all required fields so the checkpoint survives session interruption:
   feature: <feature-slug>, phase: 1, goal: "Resolve clarification questions before PRD finalization",
-  scope: "Phase 1 clarification gate", relevant_files: ["docs/issues/tickets/ISS-NNN.md"],
+  scope: "Phase 1 clarification gate",
+  relevant_files: ["docs/issues/tickets/ISS-NNN.md"] (if ticket exists, otherwise []),
   acceptance_criteria: ["pending-clarification"], verification_commands: ["cat .claude/handoff.json"],
-  source_spec: "docs/issues/tickets/ISS-NNN.md" (or "docs/features/<feature-slug>/prd.md" if no ticket),
+  source_spec: "docs/issues/tickets/ISS-NNN.md" (if ticket exists, otherwise "docs/features/<feature-slug>/prd.md"),
   checkpoint_pending: "clarification", produced_by: "product-owner", timestamp: current ISO 8601
+Note: when checkpoint_pending is set, the source_spec file may not exist yet — the validator
+relaxes the file-existence check for checkpoint handoffs.
 
 If the user provides partial answers or declines to answer: record each unanswered question as an explicit assumption in the Dependencies section, then proceed.
 Do not block indefinitely on optional clarification.

@@ -1,0 +1,17 @@
+{
+  "feature": "new-feature",
+  "phase": 1,
+  "goal": "Resolve clarification questions before PRD finalization",
+  "scope": "Phase 1 clarification gate",
+  "relevant_files": [],
+  "acceptance_criteria": [
+    "pending-clarification"
+  ],
+  "verification_commands": [
+    "cat .claude/handoff.json"
+  ],
+  "source_spec": "docs/features/new-feature/prd.md",
+  "checkpoint_pending": "clarification",
+  "produced_by": "product-owner",
+  "timestamp": "2026-04-13T22:00:00Z"
+}

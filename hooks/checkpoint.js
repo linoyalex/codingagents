@@ -169,7 +169,9 @@ function validateHandoff() {
       errors.push('source_spec must start with "docs/" (local file) or "https://github.com/" (URL)');
     }
     // File-existence check for local paths (AC16)
-    if (!spec.startsWith('https://') && spec.startsWith('docs/')) {
+    // Skip when checkpoint_pending is set — the handoff is mid-phase and the
+    // target file (e.g. PRD) may not exist yet at checkpoint time.
+    if (!handoff.checkpoint_pending && !spec.startsWith('https://') && spec.startsWith('docs/')) {
       const resolved = path.resolve(process.cwd(), spec);
       if (!fs.existsSync(resolved)) {
         errors.push(`source_spec file not found: ${spec}`);
@@ -182,7 +184,8 @@ function validateHandoff() {
 
   // Check for unexpected properties (additionalProperties: false in schema)
   const allowed = ['feature', 'phase', 'goal', 'scope', 'constraints', 'relevant_files',
-                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp', 'source_spec'];
+                   'acceptance_criteria', 'verification_commands', 'known_risks', 'produced_by', 'timestamp', 'source_spec',
+                   'checkpoint_pending'];
   const unexpected = Object.keys(handoff).filter(k => !allowed.includes(k));
   if (unexpected.length > 0) {
     errors.push(`unexpected properties: ${unexpected.join(', ')}`);
