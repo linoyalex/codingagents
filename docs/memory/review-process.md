@@ -21,9 +21,14 @@ Codex catches inconsistencies, stale references, and spec-implementation mismatc
 5. Claude addresses all findings — Low items are not automatically dismissed.
 6. Repeat until Codex reports no remaining issues.
 
+## Codex-specific guidance
+
+For Codex review rules, file ownership, token budgets, and review method expectations,
+see [docs/memory/codex-rules.md](codex-rules.md) — that file is the canonical source of
+truth for all Codex session conventions.
+
 ## When splitting work
 
 - Define file ownership boundaries clearly so Claude and Codex can work in parallel.
-- Claude owns: hooks, schemas, roles, skills, deployment scripts, CLAUDE.md, PIPELINE.md.
-- Codex owns: codex/reviewers/, codex/templates/, codex/log-usage.sh, codex/report-usage.sh, codex/README.md.
+- See `docs/memory/codex-rules.md` for the authoritative file ownership table.
 - Shared contracts (JSONL schema, handoff schema, budget targets) must be locked before parallel work begins.
