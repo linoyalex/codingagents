@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T17:30:00Z
+**Generated:** 2026-04-14T18:00:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -13,7 +13,7 @@ sync function uses a fail-closed allowlist to select which content from `docs/CL
 is consumer-relevant — only explicitly approved content syncs downstream.
 
 ### Decision Confidence
-**High** — marker-based approach is well-established (Terraform, Helm), bounded to 4 sections, non-destructive.
+**High** — marker-based approach is well-established (Terraform, Helm), bounded to 3 sections, non-destructive.
 
 ### Revisit When
 - Eligible sections exceed 10 | Per-bullet granularity requested | ISS-007 changes safety model
@@ -50,16 +50,19 @@ adds them to the allowlist. This prevents framework-internal guidance from leaki
 | Section ID | Heading | Allowlist strategy |
 |------------|---------|-------------------|
 | `code-conventions-must-follow` | `### Must Follow` | Allow: artifact timestamps, skill size budget, separate context, handoff source_spec. Deny all else. |
-| `code-conventions-naming` | `### Naming` | Allow: none by default (consumer defines their own). Placeholder comments preserved. |
 | `architecture-notes` | `## Architecture Notes` | Allow: ADR Index entries only. Deny framework internals (WHO/WHAT/HOW, handoff.json, hooks). |
 | `known-gotchas` | `## Known Gotchas` | Allow: consumer-relevant gotchas only (auth callbacks, Prisma regen, image limits, env vars). Deny framework-specific. |
 
-**Removed:** `code-conventions-folder-structure` — the root template owns the consumer folder
-structure. It is not a synced section. `code-conventions-naming` is kept as an eligible section
-but starts with an empty allowlist (placeholder comments remain until maintainer approves content).
+**Removed:** `code-conventions-folder-structure` (root template owns consumer folder structure)
+and `code-conventions-naming` (no approved downstream content — consumers define their own
+naming conventions via placeholder comments). Both can be added back when content is approved.
 
-**Allowlist implementation:** A shell array per section listing allowed bullet prefixes/substrings.
-Content is matched line-by-line; unmatched lines are excluded from the managed block.
+**Allowlist implementation:** A shell array per section listing allowed block anchors (the
+first line of each allowed block). Matching operates at block level, not line level: a
+"block" is a bullet point plus all its continuation lines (indented text, fenced examples,
+sub-bullets) until the next top-level bullet or heading. When an anchor matches, the entire
+block (including wrapped lines and attached examples) is included in the managed content.
+This prevents partial or malformed output from split multi-line bullets.
 
 ### Marker Format
 
@@ -123,12 +126,15 @@ else (no flag):
 When `upgrade.sh --sync-claude-md` encounters a CLAUDE.md without markers, the sync
 function migrates each eligible section from heading-based to marker-based ownership.
 
-**Template content deduplication:** Before preserving existing content as user-owned, the
-migration strips lines that match the known root template (placeholder comments like
-`<!-- e.g. ... -->` and any unmodified template text). This is done by diffing the section
-against the original template shipped with the same framework version. Only lines that
-differ from the original template are preserved as user content. This prevents stale
-template text from appearing as duplicates below the managed block.
+**Template content stripping:** Before preserving existing content as user-owned, the
+migration strips lines matching two deterministic patterns — no version lookup needed:
+1. **Placeholder comments** — lines matching `<!-- e.g. ... -->` or `<!-- FILL IN -->` (the
+   template's own guidance markers, recognizable by format regardless of framework version)
+2. **Unchecked checklist items** — lines matching `- [ ] <!-- ... -->` (empty template slots)
+
+Any remaining non-blank content is treated as user-authored. This is conservative: if a user
+wrote something that happens to look like a placeholder comment, it would be stripped — but
+that pattern is extremely unlikely in practice. No version file lookup is required.
 
 Before migration (project added one custom gotcha, rest is template):
 ```markdown
@@ -161,7 +167,8 @@ Both `init.sh` and `upgrade.sh` print a CLAUDE.md status line in their final sum
 
 The `CLAUDE_MD_STATUS` variable is set during the CLAUDE.md step and printed at the end.
 Possible values:
-- `"synced N sections"` — sync ran successfully
+- `"synced N sections"` — all sections processed successfully
+- `"synced N sections (M skipped — see warnings above)"` — partial success with malformed markers
 - `"copied template"` — first-time init without sync
 - `"overwritten with template"` — user chose overwrite at prompt
 - `"kept existing"` — user declined overwrite (legacy path, if retained)
