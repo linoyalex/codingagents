@@ -8,16 +8,26 @@
     "docs/features/wiring-verification/prd.md"
   ],
   "acceptance_criteria": [
-    "F1 resolved: checkCommandSkillWiring throws a named error when skill file is missing, not ENOENT",
-    "F2 resolved: git diff main...HEAD shows Phase 5 handoff, not Phase 4",
-    "All existing tests still pass after fix (42/42)"
+    "AC1: checkCommandSkillWiring passes for commands with correct output wiring",
+    "AC2: test-design Output references integration test pattern and path",
+    "AC3: parseRequiredArtifacts throws descriptive error for malformed tables",
+    "AC4: implement.md includes artifact verification step",
+    "AC5: test-design.md includes artifact verification step",
+    "AC6: tdd skill has Required Artifacts with 4-column format",
+    "AC7: parseRequiredArtifacts returns null for skills without the section",
+    "AC8: conditional artifacts get same full pattern+path check",
+    "AC9: checkArtifactWiring passes when at least one of multiple paths matches",
+    "AC10: existing contract tests still exist",
+    "AC11: negative fixture gap detection throws with actionable error",
+    "F1: checkCommandSkillWiring throws named error on missing skill file",
+    "F4: extractSection preserves sub-headings deeper than target"
   ],
   "verification_commands": [
     "node --test tests/node/command-skill-wiring.test.js",
-    "node --test tests/contracts/wiring-verification.test.js tests/e2e/wiring-verification.spec.js tests/integration/wiring-verification.integration.test.js",
-    "git diff main...HEAD -- .claude/handoff.json | grep 'phase.*5'"
+    "node --test tests/contracts/wiring-verification.test.js tests/integration/wiring-verification.integration.test.js tests/integration/wiring-verification-e2e-chain.integration.test.js",
+    "git diff main...HEAD"
   ],
   "source_spec": "docs/issues/tickets/ISS-036.md",
   "produced_by": "developer",
-  "timestamp": "2026-04-13T16:30:00Z"
+  "timestamp": "2026-04-13T17:00:00Z"
 }
