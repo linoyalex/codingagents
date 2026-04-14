@@ -420,6 +420,50 @@ test('AC11 (fixture content): mock-skill requires artifact that mock-command omi
 });
 
 // ---------------------------------------------------------------------------
+// F4: extractSection must not truncate on sub-headings deeper than target
+// ---------------------------------------------------------------------------
+
+test('F4: extractSection includes sub-headings deeper than the target heading', () => {
+  // A ## Required Artifacts section may contain ### Notes sub-headings.
+  // extractSection must only break on headings of same or shallower depth,
+  // not on deeper sub-headings inside the section.
+  const markdown = [
+    '# Skill: Example',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Unit test | [feature].unit.test.* | tests/unit/ | |',
+    '',
+    '### Notes',
+    '',
+    '| Artifact | Pattern | Path | Condition |',
+    '|----------|---------|------|-----------|',
+    '| Integration test | [feature].integration.test.* | tests/integration/ | Phase 5 only |',
+    '',
+    '## Anti-Patterns',
+    '',
+    'Do not do this.',
+  ].join('\n');
+
+  const section = extractSection(markdown, /^## Required Artifacts$/);
+  assert.ok(section !== null, 'Section must be found');
+
+  // The section must include content after the ### Notes sub-heading
+  assert.ok(
+    section.includes('Integration test'),
+    `Section must include content after ### sub-heading, got:\n${section}`
+  );
+
+  // The section must NOT include content from the next ## heading
+  assert.ok(
+    !section.includes('Do not do this'),
+    'Section must stop before the next same-level ## heading'
+  );
+});
+
+// ---------------------------------------------------------------------------
 // F1: Missing skill file throws named error, not raw ENOENT
 // ---------------------------------------------------------------------------
 

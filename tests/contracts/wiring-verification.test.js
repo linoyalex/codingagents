@@ -1,14 +1,11 @@
 /**
- * Contract tests for wiring-verification feature (RED state)
+ * Contract tests for wiring-verification feature
  *
  * Derived from: docs/features/wiring-verification/prd.md + architecture.md
  * Ticket: ISS-036
  *
- * Primary production-wiring test seam:
- *   tests/node/command-skill-wiring.test.js — the contract test module that
- *   discovers command→skill mappings via ## Skill References tables, parses
- *   ## Required Artifacts registries, and validates output sections contain
- *   both naming pattern AND target path for each artifact.
+ * These tests verify the wiring checker's behavioral contract by calling the
+ * library functions directly — not by grepping source text for keywords.
  *
  * Cases covered:
  *   Happy:   Skill with Required Artifacts, command with matching Output section
@@ -24,54 +21,47 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ROOT_DIR = path.resolve(__dirname, '..', '..');
-
-function read(relativePath) {
-  return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
-}
-
-function exists(relativePath) {
-  return fs.existsSync(path.join(ROOT_DIR, relativePath));
-}
+const {
+  extractSection,
+  parseSkillReferences,
+  parseRequiredArtifacts,
+  checkArtifactWiring,
+  checkCommandSkillWiring,
+  read,
+  exists,
+  ROOT_DIR,
+} = require('../../lib/wiring-check');
 
 // ---------------------------------------------------------------------------
 // AC6: Skill artifact registry format — ## Required Artifacts table
 // ---------------------------------------------------------------------------
 
 test('AC6: skills that require named artifacts have a ## Required Artifacts section with the standard table format', () => {
-  // Architecture Stage 2: parse the markdown table expecting four columns:
-  // Artifact | Pattern | Path | Condition
-  // This test will pass once at least one skill has the section.
-  // For now, expect tdd/SKILL.md to have it (the motivating case).
   const tdd = read('skills/tdd/SKILL.md');
   assert.match(tdd, /^## Required Artifacts$/m,
     'skills/tdd/SKILL.md must have a ## Required Artifacts section');
 
-  // Validate table structure: header row with all four columns
   const headerRe = /\|\s*Artifact\s*\|\s*Pattern\s*\|\s*Path\s*\|\s*Condition\s*\|/i;
   assert.match(tdd, headerRe,
     'Required Artifacts table must have Artifact | Pattern | Path | Condition columns');
 });
 
 // ---------------------------------------------------------------------------
-// AC1: Wiring contract test — happy path (pattern + path match)
+// AC1: Wiring contract — happy path (behavioral: run checker, assert pass)
 // ---------------------------------------------------------------------------
 
-test('AC1: commands referencing skills with Required Artifacts include output instructions for each artifact', () => {
-  // Architecture Stage 1 + 3: for each command with ## Skill References,
-  // each skill's Required Artifacts must appear in the command's Output section.
-  // This requires the production wiring module to exist.
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.ok(wiringTest.length > 0,
-    'tests/node/command-skill-wiring.test.js must exist as the production wiring test');
+test('AC1: checkCommandSkillWiring passes for commands with correct output wiring', () => {
+  // Run the actual wiring checker against real commands/skills — not source grep.
+  const testDesignText = read('commands/test-design.md');
+  const refs = parseSkillReferences(testDesignText, 'test-design.md');
 
-  // The wiring test must implement discovery + validation logic
-  assert.match(wiringTest, /Skill References/,
-    'Wiring test must reference ## Skill References for discovery');
-  assert.match(wiringTest, /Required Artifacts/,
-    'Wiring test must reference ## Required Artifacts for registry parsing');
-  assert.match(wiringTest, /Output|Deliverables/,
-    'Wiring test must check the Output/Deliverables section of commands');
+  const tddRef = refs.find(r => r.skill === 'tdd' || r.sourcePath.includes('tdd'));
+  assert.ok(tddRef, 'test-design.md must reference the tdd skill');
+
+  // Must pass without throwing (happy path)
+  const result = checkCommandSkillWiring('commands/test-design.md', tddRef);
+  assert.equal(result.skipped, false,
+    'tdd skill has Required Artifacts — wiring check must not skip');
 });
 
 // ---------------------------------------------------------------------------
@@ -79,16 +69,11 @@ test('AC1: commands referencing skills with Required Artifacts include output in
 // ---------------------------------------------------------------------------
 
 test('AC2: commands/test-design.md Output section references integration test pattern and path', () => {
-  // Pre-fix state: test-design.md only has tests/contracts/ and tests/e2e/
-  // but not the integration test pattern from tdd skill.
-  // Post-fix: Output section must include integration test naming + path.
   const testDesign = read('commands/test-design.md');
 
-  // Must have an Output or Deliverables section
   assert.match(testDesign, /^##\s*(Output|Deliverables)/m,
     'commands/test-design.md must have an Output or Deliverables section');
 
-  // Must reference integration test pattern and path within that section
   assert.match(testDesign, /integration/i,
     'commands/test-design.md Output must reference integration tests');
   assert.match(testDesign, /tests\/integration/,
@@ -96,15 +81,29 @@ test('AC2: commands/test-design.md Output section references integration test pa
 });
 
 // ---------------------------------------------------------------------------
-// AC3: Registry parse error — malformed artifact section
+// AC3: Registry parse error — behavioral: call parser, assert throw
 // ---------------------------------------------------------------------------
 
-test('AC3: wiring test detects and reports malformed Required Artifacts tables', () => {
-  // The production wiring test must handle parse errors gracefully.
-  // Verify the test file includes logic for malformed table detection.
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /malform|parse error|invalid/i,
-    'Wiring test must handle malformed artifact tables');
+test('AC3: parseRequiredArtifacts throws descriptive error for malformed tables', () => {
+  const malformed = [
+    '# Skill: Bad',
+    '',
+    '## Required Artifacts',
+    '',
+    '| Artifact | Pattern |',
+    '|----------|---------|',
+    '| Test file | [feature].test.* |',
+  ].join('\n');
+
+  assert.throws(
+    () => parseRequiredArtifacts(malformed, 'bad-skill'),
+    (err) => {
+      assert.ok(err.message.includes('bad-skill'),
+        `Error must name the skill, got: ${err.message}`);
+      return true;
+    },
+    'Malformed Required Artifacts must throw naming the skill (AC3)'
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -113,7 +112,6 @@ test('AC3: wiring test detects and reports malformed Required Artifacts tables',
 
 test('AC4: commands/implement.md includes wiring verification step', () => {
   const implement = read('commands/implement.md');
-  // Structural anchor: must mention verifying artifact wiring
   assert.match(implement, /artifact/i,
     'commands/implement.md must mention artifact verification');
   assert.match(implement, /output slot|output instruction|naming pattern/i,
@@ -126,7 +124,6 @@ test('AC4: commands/implement.md includes wiring verification step', () => {
 
 test('AC5: commands/test-design.md includes wiring verification step', () => {
   const testDesign = read('commands/test-design.md');
-  // Structural anchor: must instruct confirming output instructions for test levels
   assert.match(testDesign, /Required Artifacts|artifact/i,
     'commands/test-design.md must reference artifact verification');
   assert.match(testDesign, /output/i,
@@ -134,64 +131,68 @@ test('AC5: commands/test-design.md includes wiring verification step', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AC7: Empty state — skills with no Required Artifacts pass
+// AC7: Empty state — behavioral: call parseRequiredArtifacts, assert null
 // ---------------------------------------------------------------------------
 
-test('AC7: wiring test handles skills with no Required Artifacts section gracefully', () => {
-  // The wiring test must skip skills without the section, not fail on them.
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /skip|no required artifacts|no wiring/i,
-    'Wiring test must handle skills without Required Artifacts (skip, not fail)');
+test('AC7: parseRequiredArtifacts returns null for skills without Required Artifacts', () => {
+  // Use a real skill that has no Required Artifacts section
+  const skillsDir = path.join(ROOT_DIR, 'skills');
+  let tested = false;
+
+  for (const skillDir of fs.readdirSync(skillsDir)) {
+    const skillPath = `skills/${skillDir}/SKILL.md`;
+    if (!exists(skillPath)) continue;
+
+    const skillText = read(skillPath);
+    if (!/^## Required Artifacts$/m.test(skillText)) {
+      const result = parseRequiredArtifacts(skillText, skillDir);
+      assert.equal(result, null,
+        `Skill '${skillDir}' has no Required Artifacts — must return null`);
+      tested = true;
+      break;
+    }
+  }
+
+  assert.ok(tested, 'At least one skill without Required Artifacts must exist (AC7)');
 });
 
 // ---------------------------------------------------------------------------
-// AC8: Conditional artifacts receive the SAME full pattern+path check
-// (Condition column is informational only — no relaxation at test time)
+// AC8: Conditional artifacts — behavioral: parse + check
 // ---------------------------------------------------------------------------
 
 test('AC8: conditional artifacts receive the same full pattern+path validation as unconditional ones', () => {
-  // Behavioural test: construct a conditional artifact and verify the wiring
-  // check enforces both pattern AND path -- no relaxation for the Condition column.
-  const {
-    parseRequiredArtifacts: parse,
-    checkArtifactWiring: check,
-  } = require('../../lib/wiring-check');
-
   const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
-  const artifacts = parse(conditionalSkill, 'mock-tdd-conditional');
+  const artifacts = parseRequiredArtifacts(conditionalSkill, 'mock-tdd-conditional');
   assert.ok(artifacts !== null && artifacts.length >= 1,
     'Conditional fixture must parse successfully');
   assert.ok(artifacts[0].condition.length > 0,
     'Fixture artifact must have a non-empty Condition field');
 
-  // Command with BOTH pattern and path must pass (even for conditional artifact)
+  // Command with BOTH pattern and path must pass
   const goodCommand = [
     '## Output', '',
     '- Write integration tests to: tests/integration/ following [feature].integration.test.* pattern',
   ].join('\n');
   assert.doesNotThrow(
-    () => check(goodCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
+    () => checkArtifactWiring(goodCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
     'Conditional artifact with matching pattern+path must pass (AC8: no relaxation)');
 
-  // Command MISSING the pattern must fail (same enforcement as unconditional)
+  // Command MISSING the pattern must fail
   const badCommand = [
     '## Output', '',
     '- Write test files to: tests/integration/ (no pattern mentioned)',
   ].join('\n');
   assert.throws(
-    () => check(badCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
+    () => checkArtifactWiring(badCommand, 'test-cmd.md', 'mock-tdd-conditional', artifacts[0]),
     /pattern/i,
     'Conditional artifact missing pattern must fail (AC8: no relaxation)');
 });
 
 test('AC8 (fixture): conditional artifact fixture exists for AC8 validation', () => {
-  // A dedicated fixture with a non-empty Condition confirms the test exercises
-  // the conditional-artifact code path without relaxation.
   assert.ok(exists('tests/fixtures/wiring-gap/mock-skill-conditional.md'),
     'Conditional artifact fixture mock-skill-conditional.md must exist');
 
   const conditionalSkill = read('tests/fixtures/wiring-gap/mock-skill-conditional.md');
-  // Must have a Required Artifacts table with a non-empty Condition value
   assert.match(conditionalSkill, /^## Required Artifacts$/m,
     'Conditional fixture must have Required Artifacts section');
   assert.match(conditionalSkill, /Phase \d+ only|phase.*only/i,
@@ -199,14 +200,35 @@ test('AC8 (fixture): conditional artifact fixture exists for AC8 validation', ()
 });
 
 // ---------------------------------------------------------------------------
-// AC9: Multiple valid output paths — at least one matches
+// AC9: Multiple valid output paths — behavioral: call checkArtifactWiring
 // ---------------------------------------------------------------------------
 
-test('AC9: wiring check passes when at least one of multiple output paths matches', () => {
-  // Architecture: multiple paths pass if any one matches
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /some|at least one|any.*match/i,
-    'Wiring test must support multiple output paths (at least one match)');
+test('AC9: checkArtifactWiring passes when at least one of multiple output paths matches', () => {
+  const multiPathArtifact = {
+    artifact: 'Unit test',
+    pattern: '[feature].unit.test.*',
+    paths: ['tests/unit/', 'tests/components/unit/'],
+    condition: '',
+  };
+
+  // Second path matches
+  const cmd = [
+    '## Output', '',
+    '- Write unit tests to: tests/components/unit/ following [feature].unit.test.* pattern',
+  ].join('\n');
+
+  assert.doesNotThrow(
+    () => checkArtifactWiring(cmd, 'multi-cmd.md', 'mock-skill', multiPathArtifact),
+    'At least one path match should be sufficient (AC9)');
+
+  // No path matches — must fail
+  assert.throws(
+    () => checkArtifactWiring(
+      ['## Output', '', '- Write tests to: tests/other/'].join('\n'),
+      'multi-cmd.md', 'mock-skill', multiPathArtifact
+    ),
+    /path/i,
+    'No matching path must fail (AC9)');
 });
 
 // ---------------------------------------------------------------------------
@@ -214,7 +236,6 @@ test('AC9: wiring check passes when at least one of multiple output paths matche
 // ---------------------------------------------------------------------------
 
 test('AC10: existing contract tests still exist and are not modified by wiring-verification', () => {
-  // Verify key existing test files are still present
   assert.ok(exists('tests/node/core-skill-contracts.test.js'),
     'core-skill-contracts.test.js must still exist');
   assert.ok(exists('tests/node/pipeline-handoff-guards.test.js'),
@@ -222,11 +243,10 @@ test('AC10: existing contract tests still exist and are not modified by wiring-v
 });
 
 // ---------------------------------------------------------------------------
-// AC11: Negative test fixture with known gap
+// AC11: Negative test fixture with known gap — behavioral
 // ---------------------------------------------------------------------------
 
 test('AC11: negative test fixture exists with deliberate wiring gap', () => {
-  // Fixture: mock skill requires integration test, mock command omits it
   assert.ok(exists('tests/fixtures/wiring-gap/mock-skill.md'),
     'Negative fixture mock-skill.md must exist');
   assert.ok(exists('tests/fixtures/wiring-gap/mock-command.md'),
@@ -239,22 +259,46 @@ test('AC11: negative test fixture exists with deliberate wiring gap', () => {
     'Mock skill must require an integration test artifact');
 
   const mockCommand = read('tests/fixtures/wiring-gap/mock-command.md');
-  // The mock command deliberately omits integration test path
   assert.doesNotMatch(mockCommand, /tests\/integration/,
     'Mock command must NOT include integration path (deliberate gap)');
 });
 
+test('AC11 (behavioral): checkCommandSkillWiring throws on negative fixture gap', () => {
+  const mockCommandText = read('tests/fixtures/wiring-gap/mock-command.md');
+  const refs = parseSkillReferences(mockCommandText, 'mock-command.md');
+  assert.ok(refs.length >= 1, 'Mock command must have skill references');
+
+  assert.throws(
+    () => {
+      for (const skillRef of refs) {
+        checkCommandSkillWiring('tests/fixtures/wiring-gap/mock-command.md', skillRef);
+      }
+    },
+    /pattern|path|integration/i,
+    'Negative fixture must throw identifying the gap (AC11)'
+  );
+});
+
 // ---------------------------------------------------------------------------
-// Fail-closed: commands with skill prose but no ## Skill References table
+// Fail-closed: behavioral — parseSkillReferences throws on skill prose without table
 // ---------------------------------------------------------------------------
 
-test('fail-closed: wiring test fails when command has skill prose but no Skill References table', () => {
-  // Architecture Stage 1 fail-closed rule
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /Skill References/,
-    'Wiring test must check for ## Skill References tables');
-  assert.match(wiringTest, /fail|error|throw/i,
-    'Wiring test must fail when skill prose exists without table');
+test('fail-closed: parseSkillReferences throws when command has skill prose but no Skill References table', () => {
+  const commandWithProse = [
+    '# Command: Test',
+    '',
+    'Read .claude/skills/tdd/SKILL.md for the TDD cycle.',
+    '',
+    '## Output',
+    '',
+    '- Write tests',
+  ].join('\n');
+
+  assert.throws(
+    () => parseSkillReferences(commandWithProse, 'prose-only-cmd.md'),
+    /prose-only-cmd\.md/,
+    'Command with skill prose but no ## Skill References must throw (fail-closed)'
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -262,7 +306,6 @@ test('fail-closed: wiring test fails when command has skill prose but no Skill R
 // ---------------------------------------------------------------------------
 
 test('commands that load skills have a ## Skill References table', () => {
-  // Architecture requires commands to declare skills structurally
   const testDesign = read('commands/test-design.md');
   assert.match(testDesign, /^## Skill References$/m,
     'commands/test-design.md must have a ## Skill References section');
