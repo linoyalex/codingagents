@@ -333,6 +333,53 @@ test('AC7b: no backup created for no-op sync', () => {
   }
 });
 
+// --- AC7b: backup failure aborts before modification ---
+
+test('AC7b: backup creation failure aborts sync, original unchanged', () => {
+  const tmpDir = makeTempDir('sync-contract-backup-fail-');
+  const sourcePath = path.join(tmpDir, 'docs', 'CLAUDE.md');
+  const targetPath = path.join(tmpDir, 'CLAUDE.md');
+  const backupPath = path.join(tmpDir, 'CLAUDE.md.pre-sync');
+
+  fs.mkdirSync(path.join(tmpDir, 'docs'), { recursive: true });
+  fs.writeFileSync(sourcePath, '## Known Gotchas\n- New content\n');
+
+  const originalContent = [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Old content that should survive',
+    '<!-- managed:end:known-gotchas -->',
+  ].join('\n');
+  fs.writeFileSync(targetPath, originalContent);
+
+  // Make backup path unwritable by creating it as a directory
+  fs.mkdirSync(backupPath);
+
+  const libPath = path.join(ROOT_DIR, 'lib', 'sync-claude-md.sh');
+  const script = `source "${libPath}"; sync_claude_md "${sourcePath}" "${targetPath}" "upgrade"`;
+
+  try {
+    execSync(`bash -c '${script}'`, {
+      cwd: tmpDir,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    assert.fail('should have exited non-zero when backup cannot be created');
+  } catch (err) {
+    assert.notEqual(err.status, 0, 'must exit non-zero on backup failure');
+  }
+
+  // Original file must be byte-identical — not modified
+  const afterContent = fs.readFileSync(targetPath, 'utf8');
+  assert.equal(
+    afterContent,
+    originalContent,
+    'original CLAUDE.md must be unchanged after backup failure abort'
+  );
+
+  cleanupDir(tmpDir);
+});
+
 // --- AC3c: legacy migration ---
 
 test('AC3c: legacy migration inserts markers and preserves user content', () => {
@@ -390,6 +437,34 @@ test('Malformed markers: unpaired marker is skipped with warning', () => {
   try {
     assert.equal(exitCode, 0, 'malformed markers should not cause exit 1');
     assert.match(stdout, /skip|malformed|warning/i, 'must warn about malformed markers');
+    // Must show [skipped: <reason>] in per-section output
+    assert.match(
+      stdout,
+      /\[skipped/i,
+      'output must show [skipped: ...] for malformed-marker section'
+    );
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+test('Malformed markers: final status includes skipped count', () => {
+  const source = '## Known Gotchas\n- Content\n';
+  const target = [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Content without closing marker',
+  ].join('\n');
+
+  const { stdout, exitCode, tmpDir } = runSyncFunction(source, target, 'upgrade');
+  try {
+    assert.equal(exitCode, 0);
+    // Final status must include skipped count
+    assert.match(
+      stdout,
+      /skipped/i,
+      'final status must include skipped count for partial success'
+    );
   } finally {
     cleanupDir(tmpDir);
   }

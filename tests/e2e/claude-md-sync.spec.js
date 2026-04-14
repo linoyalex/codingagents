@@ -130,6 +130,169 @@ test('E2E: init without flag, existing CLAUDE.md, non-interactive keeps existing
 });
 
 // ---------------------------------------------------------------------------
+// E2E: init.sh interactive prompt — overwrite choice
+// ---------------------------------------------------------------------------
+
+test('E2E: init interactive prompt with "o" overwrites CLAUDE.md', () => {
+  const tmpDir = makeTempDir('init-interactive-overwrite');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), '# Old project content\n');
+
+  try {
+    // Send "o" as stdin to choose overwrite
+    const { stdout, exitCode } = runScript('init.sh', '', {
+      cwd: tmpDir,
+      input: 'o\n',
+    });
+
+    assert.equal(exitCode, 0);
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    // Should be the template, not the old content
+    assert.ok(
+      !claudeMd.includes('Old project content'),
+      'old content must be replaced after overwrite choice'
+    );
+    assert.match(stdout, /overwrite|CLAUDE\.md:/i, 'output must confirm overwrite');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: init.sh interactive prompt — exit choice
+// ---------------------------------------------------------------------------
+
+test('E2E: init interactive prompt with "e" exits with sync instructions', () => {
+  const tmpDir = makeTempDir('init-interactive-exit');
+  const originalContent = '# My project CLAUDE.md\n';
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
+
+  try {
+    const { stdout, exitCode } = runScript('init.sh', '', {
+      cwd: tmpDir,
+      input: 'e\n',
+    });
+
+    // Should exit cleanly
+    assert.equal(exitCode, 0, 'exit choice should exit 0');
+    // Original file unchanged
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    assert.equal(claudeMd, originalContent, 'CLAUDE.md must be unchanged after exit choice');
+    // Output mentions --sync-claude-md
+    assert.match(stdout, /sync-claude-md/, 'output must mention --sync-claude-md on exit');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: init.sh interactive prompt — invalid input defaults to exit
+// ---------------------------------------------------------------------------
+
+test('E2E: init interactive prompt with invalid input defaults to exit', () => {
+  const tmpDir = makeTempDir('init-interactive-invalid');
+  const originalContent = '# My project CLAUDE.md\n';
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
+
+  try {
+    const { stdout, exitCode } = runScript('init.sh', '', {
+      cwd: tmpDir,
+      input: 'x\n',
+    });
+
+    // Should default to exit (the safer option)
+    assert.equal(exitCode, 0, 'invalid input should default to exit (safe)');
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    assert.equal(claudeMd, originalContent, 'CLAUDE.md must be unchanged for invalid input');
+    assert.match(stdout, /sync-claude-md/, 'output must mention --sync-claude-md');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: init.sh interactive prompt — EOF defaults to exit
+// ---------------------------------------------------------------------------
+
+test('E2E: init interactive prompt with EOF defaults to exit', () => {
+  const tmpDir = makeTempDir('init-interactive-eof');
+  const originalContent = '# My project CLAUDE.md\n';
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
+
+  try {
+    // Empty string = EOF on stdin
+    const { stdout, exitCode } = runScript('init.sh', '', {
+      cwd: tmpDir,
+      input: '',
+    });
+
+    const claudeMd = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+    // Should default to keeping existing (safe option) — same as non-interactive
+    assert.ok(
+      claudeMd.includes('My project CLAUDE.md'),
+      'CLAUDE.md must be unchanged on EOF'
+    );
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: malformed markers — exact [skipped] output and status with skipped count
+// ---------------------------------------------------------------------------
+
+test('E2E: malformed markers show [skipped] in output and skipped count in status', () => {
+  const tmpDir = makeTempDir('malformed-exact');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Content without closing marker',
+  ].join('\n'));
+
+  try {
+    const { stdout, exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+    assert.equal(exitCode, 0, 'malformed markers must not cause exit 1');
+    assert.match(stdout, /\[skipped/i, 'per-section output must show [skipped: ...]');
+    assert.match(stdout, /CLAUDE\.md:.*skipped/i, 'final status must include skipped count');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// E2E: backup failure — aborts before modification
+// ---------------------------------------------------------------------------
+
+test('E2E: backup creation failure aborts sync, original file unchanged', () => {
+  const tmpDir = makeTempDir('backup-fail');
+  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, '.claude', '.codingagents-version'), 'core=v5\n');
+
+  const originalContent = [
+    '## Known Gotchas',
+    '<!-- managed:start:known-gotchas -->',
+    '- Old content',
+    '<!-- managed:end:known-gotchas -->',
+  ].join('\n');
+  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), originalContent);
+
+  // Make backup path unwritable by creating it as a directory
+  fs.mkdirSync(path.join(tmpDir, 'CLAUDE.md.pre-sync'));
+
+  const { exitCode } = runScript('upgrade.sh', '--sync-claude-md', { cwd: tmpDir });
+
+  assert.notEqual(exitCode, 0, 'must exit non-zero on backup failure');
+
+  // Original must be unchanged
+  const afterContent = fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf8');
+  assert.equal(afterContent, originalContent, 'original must be unchanged after backup failure');
+
+  cleanupDir(tmpDir);
+});
+
+// ---------------------------------------------------------------------------
 // E2E: upgrade.sh --sync-claude-md replaces managed content
 // ---------------------------------------------------------------------------
 
