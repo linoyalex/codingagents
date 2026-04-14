@@ -17,25 +17,27 @@
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
-| 8 | ~~[ISS-036](tickets/ISS-036.md)~~ | ~~P1 — High~~ | ~~Feature~~ | ~~ISS-013~~ | ~~Add command↔skill wiring verification to prevent artifact-slot drift~~ → closed 2026-04-14 |
 | 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
 | 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
 | 8 | [ISS-045](tickets/ISS-045.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
-| 9 | ~~[ISS-029](tickets/ISS-029.md)~~ | P2 — Medium | Feature | — | ~~Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect`~~ → closed |
-| 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 | Prevent scope expansion during post-review artifact rework |
-| 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 | Add invariants-audit skill for cross-layer semantic review |
+| 8 | [ISS-008](tickets/ISS-008.md) | P1 — High | Feature | — | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade |
+| 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 (closed) | Prevent scope expansion during post-review artifact rework |
+| 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 (closed) | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
 | 12 | [ISS-032](tickets/ISS-032.md) | P2 — Medium | Feature | — | Automatically run /status on fresh context to orient the agent |
 | 13 | [ISS-030](tickets/ISS-030.md) | P2 — Medium | Architecture | — | Introduce semantic versioning and tie backlog planning to major/minor/patch releases |
+| 14 | [ISS-046](tickets/ISS-046.md) | P2 — Medium | Architecture | — | Introduce shared project configuration and pipeline profiles for portable multi-project use |
 | 14 | [ISS-023](tickets/ISS-023.md) | P2 — Medium | Feature | — | Strengthen architecture decision skill with wiring diagrams, evidence rules, and observability naming |
+| 15 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | ISS-046 | Implement the first portability slice: configurable paths, outputs, diff/test commands, and work-type profiles |
 | 15 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |
 | 16 | [ISS-037](tickets/ISS-037.md) | P2 — Medium | Feature | — | Make review artifacts additive and expose the latest review state clearly |
+| 16 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | ISS-046 | Make backlog management skill configurable for different backlog systems |
 | 17 | [ISS-025](tickets/ISS-025.md) | P2 — Medium | Feature | ISS-013 | Add adversarial self-review checkpoint to Phase 5 verification |
+| 17 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | ISS-046 | Support Codex, Gemini, and other LLMs as first-class coding agents |
 | 18 | [ISS-015](tickets/ISS-015.md) | P2 — Medium | Feature | — | Add first-class post-implementation QA verification stage |
 | 19 | [ISS-012](tickets/ISS-012.md) | P2 — Medium | Feature | — | Add stage-matched Codex reviews and iterative feedback resolution through the pipeline |
 | 20 | [ISS-019](tickets/ISS-019.md) | P2 — Medium | Architecture | — | Add `allowed-tools` frontmatter to read-only skills |
 | 21 | [ISS-017](tickets/ISS-017.md) | P2 — Medium | Feature | — | Add stop-conditions footer to high-stakes skills |
-| 8 | [ISS-008](tickets/ISS-008.md) | P1 — High | Feature | — | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade |
 | 22 | [ISS-007](tickets/ISS-007.md) | P2 — Medium | Feature | — | Force upgrade and clean reinstall with backup support |
 | 24 | [ISS-011](tickets/ISS-011.md) | P3 — Low | Feature | — | Add shell script wrappers for Codex reviewer workflows |
 | 25 | [ISS-016](tickets/ISS-016.md) | P3 — Low | Architecture | — | Document intentional divergence from Anthropic slash command guidance |
@@ -43,8 +45,6 @@
 | 27 | [ISS-020](tickets/ISS-020.md) | P3 — Low | Architecture | — | Prefix generated PRD filenames with the feature slug |
 | 28 | [ISS-021](tickets/ISS-021.md) | P3 — Low | Feature | — | Add first-class command entry points for Codex reviewer prompts |
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
-| 30 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | — | Make backlog management skill configurable for different backlog systems |
-| 31 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | — | Support Codex, Gemini, and other LLMs as first-class coding agents |
 
 ---
 
@@ -107,7 +107,7 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    ├─ Branch F: feature/ISS-008-claude-md-sync
    │    ISS-008 — sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade
    │    Touches: init.sh, upgrade.sh, CLAUDE.md, tests/test-install-scripts.sh
-   │    No overlap with A/B/C/D/E. WHY HERE: Accelerated from Wave 8 (Order 23)
+   │    No overlap with A/B/C/D/E. WHY HERE: Accelerated from Wave 9 (Order 23)
    │    to Batch 2.5 because the split-brain between root CLAUDE.md (template
    │    placeholders) and docs/CLAUDE.md (real conventions) is a recurring source
    │    of agent confusion — surfaced in review-hardening RCA, ISS-005 dogfood,
@@ -190,10 +190,11 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude’s code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA. ISS-044 added after RCA showed rework cycles are an unguarded scope-expansion vector (ISS-029 rev2 invented 6 ACs not in the ticket while addressing Codex findings). **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027. **Remaining:** ISS-039, ISS-043, ISS-044, ISS-001, ISS-008.
 - **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection and automatic status on fresh context. **Remaining:** ISS-028, ISS-032.
 - **Wave 5 — Release and planning structure (12):** Introduce semver and connect backlog planning to major/minor/patch release intent. **Remaining:** ISS-030.
-- **Wave 6 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews. **Remaining:** ISS-023, ISS-006, ISS-037, ISS-025, ISS-015, ISS-012.
-- **Wave 7 — Skill polish (20–21):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements. **Remaining:** ISS-019, ISS-017.
-- **Wave 8 — Install ergonomics (22):** Force upgrade + clean reinstall with backup support. ISS-008 (CLAUDE.md sync) accelerated to Wave 3 / Batch 2.5 — the split-brain between root and docs CLAUDE.md is a recurring reliability issue, not just an ergonomic one. **Remaining:** ISS-007.
-- **Wave 9 — Documentation polish (24–31):** Low-priority DX and documentation items. Defer until a real pain point forces them. ISS-031 extends `/document` to keep README and other user-facing docs current automatically. ISS-034 makes the backlog skill configurable for GitHub Issues, Linear, or custom backlog systems. ISS-038 introduces the broader provider-neutral architecture needed to treat non-Claude agents as first-class pipeline participants. **Remaining:** ISS-011, ISS-016, ISS-018, ISS-020, ISS-021, ISS-031, ISS-034, ISS-038.
+- **Wave 6 — Project portability and configurability (14–17):** Keep the framework opinionated by default, but move project-specific paths, outputs, strictness, work-type profiles, backlog systems, and agent routing behind a shared configuration model instead of hardcoded codingagents conventions. **Remaining:** ISS-046, ISS-047, ISS-034, ISS-038.
+- **Wave 7 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews. **Remaining:** ISS-023, ISS-006, ISS-037, ISS-025, ISS-015, ISS-012.
+- **Wave 8 — Skill polish (20–21):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements. **Remaining:** ISS-019, ISS-017.
+- **Wave 9 — Install ergonomics (22):** Force upgrade + clean reinstall with backup support. ISS-008 (CLAUDE.md sync) accelerated to Wave 3 / Batch 2.5 — the split-brain between root and docs CLAUDE.md is a recurring reliability issue, not just an ergonomic one. **Remaining:** ISS-007.
+- **Wave 10 — Documentation polish (24–31):** Low-priority DX and documentation items. Defer until a real pain point forces them. ISS-031 extends `/document` to keep README and other user-facing docs current automatically. ISS-034 and ISS-038 were promoted into Wave 6 because backlog-system flexibility and provider-neutral agent support are core multi-project framework concerns, not just documentation polish. **Remaining:** ISS-011, ISS-016, ISS-018, ISS-020, ISS-021, ISS-031.
 
 ## Sequencing Notes
 
@@ -210,11 +211,13 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-028 at Order 11** improves operator ergonomics after the reliability milestone clears.
 - **ISS-030 at Order 12** introduces semver and release planning — less urgent than reliability and workflow fixes.
 - **ISS-023 at Order 13** adds architecture rigor. Valuable but currently caught by Codex review.
+- **ISS-046 at Order 14** creates the shared project-configuration foundation needed to make `codingagents` portable without giving up its opinionated defaults. It should define where project-specific paths, output toggles, review strictness, work-type profiles, and ticket-system adapters live so later tickets do not each invent their own config format.
+- **ISS-047 at Order 15** is the highest-value first implementation slice of ISS-046. It should land early because configurable paths, documentation outputs, diff/test commands, and work-type/review profiles remove the biggest blockers to using the framework outside this repo without waiting for every adapter to be solved.
 - **ISS-006 at Order 15** establishes review-response traceability, and **ISS-037 at Order 16** complements it by preserving additive review rounds in the review artifacts themselves while exposing the latest verdict at the top.
 - **ISS-025 at Order 17** is the developer-side counterpart to ISS-024. Defense-in-depth after the reviewer is hardened. Depends on ISS-013. Now also covers Phase 2 (architect) adversarial self-review — AC7 added after ISS-036 RCA showed the architect agent committed fail-open defaults without self-challenge.
 - **ISS-012 benefits from ISS-006, ISS-014, and ISS-037** — review-history, reviewer independence, and a deterministic latest-review locator make the Codex loop more credible.
 - **ISS-019 is sequenced near ISS-017** — both touch the same skill files. Adjacent sessions amortize read cost.
-- **ISS-008 accelerated to Batch 2.5 (Order 8)** from Order 23 / Wave 8. The split-brain between root `CLAUDE.md` (template placeholders) and `docs/CLAUDE.md` (real conventions) surfaced repeatedly: in review-hardening RCA, ISS-005 dogfood, and multiple review cycles. Agents read empty Naming/Gotchas/Architecture sections from root CLAUDE.md and miss the real conventions in `docs/CLAUDE.md`. ISS-007 (backup support) was a nice-to-have precondition — section-level sync with `<!-- managed by codingagents -->` markers is non-destructive. Touches `init.sh`, `upgrade.sh`, `CLAUDE.md`, `tests/test-install-scripts.sh` — no overlap with any Batch 2.5 branch.
+- **ISS-008 accelerated to Batch 2.5 (Order 8)** from Order 23 / Wave 9. The split-brain between root `CLAUDE.md` (template placeholders) and `docs/CLAUDE.md` (real conventions) surfaced repeatedly: in review-hardening RCA, ISS-005 dogfood, and multiple review cycles. Agents read empty Naming/Gotchas/Architecture sections from root CLAUDE.md and miss the real conventions in `docs/CLAUDE.md`. ISS-007 (backup support) was a nice-to-have precondition — section-level sync with `<!-- managed by codingagents -->` markers is non-destructive. Touches `init.sh`, `upgrade.sh`, `CLAUDE.md`, `tests/test-install-scripts.sh` — no overlap with any Batch 2.5 branch.
 - **ISS-007** remains at Order 22 — still valuable for destructive upgrade scenarios but no longer gates ISS-008.
 - **ISS-041 at Order 5** is a bug in the review-hardening branch (Batch 2 Branch B). The `source_spec` schema change broke existing checkpoint fixtures. Must be fixed as part of the REQUEST_CHANGES rework before that branch merges.
 - **ISS-039 at Order 8** is the Claude-side counterpart to ISS-027 (Codex). RCA from the review-hardening Phase 6 showed Claude's code-review skill missed 4 findings Codex caught — all systemic methodology gaps (downstream impact, drift, test suite, reproduction). AC4a added after ISS-036 RCA: implementer declared review findings "resolved" 7 times without reproducing them — must require reproduction before resolution. Depends on Batch 2 Branch B (same files: `skills/code-review/SKILL.md`, `commands/review.md`). No overlap with Batch 2.5 A/B/C/E.
@@ -222,4 +225,5 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-042 at Order 8** ✅ closed 2026-04-13. Ran as Batch 2.5 Branch G. known_risks read instruction added to implement.md and TDD skill.
 - **ISS-043 at Order 8** is a Phase 3 quality gap — QA tested one representative of each symmetric pair, not all members. Touches `commands/test-design.md` which overlaps with ISS-036 (Batch 2.5 A). Must wait for ISS-036 to merge; deferred to Batch 3.
 - **ISS-045 at Order 8** is a complementary Phase 3 quality gap — QA accepted a contract specification literally without adversarially testing its edge cases (comment-only matches, unbounded escape hatches). Found by Codex review on ISS-027 architecture. Touches the same files as ISS-043 (`commands/test-design.md`, `skills/tdd/SKILL.md`). Can be combined with ISS-043 in a single branch. Originally ISS-044; renumbered to avoid conflict with ISS-044 (scope expansion prevention).
-- **ISS-038 at Order 31** is intentionally separate from ISS-005. ISS-005 validates the current framework through dogfooding; ISS-038 is the broader architecture effort to make Codex, Gemini, and future LLMs first-class authoring agents rather than Claude-centric adapters.
+- **ISS-034 at Order 16** is now sequenced behind ISS-046 so backlog-system flexibility can use the shared project configuration model instead of inventing a one-off config surface in the backlog skill alone.
+- **ISS-038 at Order 17** remains intentionally separate from ISS-005. ISS-005 validates the current framework through dogfooding; ISS-038 is the broader architecture effort to make Codex, Gemini, and future LLMs first-class authoring agents rather than Claude-centric adapters. It now sits behind ISS-046 so agent routing builds on the same shared project configuration foundation as paths, profiles, and optional functions.
