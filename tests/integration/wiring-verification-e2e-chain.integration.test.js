@@ -79,28 +79,40 @@ test('E2E: implement command has wiring verification step and Skill References t
     'implement command must mention artifact verification');
 });
 
-test('E2E: contract test module validates the complete 4-stage algorithm', () => {
-  // The production test must exist and cover all four stages
-  assert.ok(exists('tests/node/command-skill-wiring.test.js'),
-    'Production wiring test must exist');
+test('E2E: 4-stage algorithm exercises all stages behaviorally against real files', () => {
+  // Instead of grepping the test source for keywords (phrase-binding),
+  // exercise the 4-stage algorithm directly and verify each stage produces output.
+  const {
+    parseSkillReferences: psr,
+    parseRequiredArtifacts: pra,
+    checkArtifactWiring: caw,
+    checkCommandSkillWiring: ccsw,
+  } = require('../../lib/wiring-check');
 
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
+  // Stage 1: Discovery — parse skill references from a real command
+  const testDesignText = read('commands/test-design.md');
+  const refs = psr(testDesignText, 'test-design.md');
+  assert.ok(refs.length >= 1, 'Stage 1: must discover at least one skill reference');
 
-  // Stage 1: Discovery via Skill References
-  assert.match(wiringTest, /Skill References/,
-    'Wiring test must implement Stage 1 (Skill References discovery)');
+  // Stage 2: Registry parse — parse artifacts from discovered skill
+  const tddRef = refs.find(r => r.skill === 'tdd' || r.sourcePath.includes('tdd'));
+  assert.ok(tddRef, 'Stage 1: must discover tdd skill reference');
+  const tddText = read(tddRef.sourcePath);
+  const artifacts = pra(tddText, 'tdd');
+  assert.ok(artifacts !== null && artifacts.length >= 1,
+    'Stage 2: tdd skill must have parseable Required Artifacts');
 
-  // Stage 2: Registry parse
-  assert.match(wiringTest, /Required Artifacts/,
-    'Wiring test must implement Stage 2 (Required Artifacts parsing)');
+  // Stage 3: Wiring check — verify command output wires all artifacts
+  assert.doesNotThrow(
+    () => caw(testDesignText, 'test-design.md', 'tdd', artifacts[0]),
+    'Stage 3: wiring check must pass for test-design + tdd');
 
-  // Stage 3: Output section validation
-  assert.match(wiringTest, /Output|Deliverables/,
-    'Wiring test must implement Stage 3 (Output section validation)');
-
-  // Stage 4: Negative fixture
-  assert.match(wiringTest, /fixture|wiring.gap/i,
-    'Wiring test must implement Stage 4 (negative fixture)');
+  // Stage 4: Negative fixture — deliberate gap must be detected
+  assert.throws(
+    () => ccsw('tests/fixtures/wiring-gap/mock-command.md',
+      { skill: 'mock-tdd', sourcePath: 'tests/fixtures/wiring-gap/mock-skill.md' }),
+    /pattern|path|integration/i,
+    'Stage 4: negative fixture must detect deliberate wiring gap');
 });
 
 // ---------------------------------------------------------------------------
@@ -160,6 +172,30 @@ test('E2E: source and installed tdd skill copies are byte-identical (Required Ar
 });
 
 // ---------------------------------------------------------------------------
+// E2E: Source/installed command sync (Skill References must not drift)
+// ---------------------------------------------------------------------------
+
+test('E2E: source and installed command copies are byte-identical for wiring-checked commands', () => {
+  // ISS-009 pattern extended to commands: source commands/ and installed .claude/commands/
+  // must stay in sync so agents load the same Skill References and Output sections.
+  const wiringCommands = ['implement.md', 'test-design.md'];
+
+  for (const cmd of wiringCommands) {
+    const sourcePath = `commands/${cmd}`;
+    const installedPath = `.claude/commands/${cmd}`;
+
+    if (!exists(installedPath)) {
+      assert.fail(`Installed command copy not found: ${installedPath}`);
+    }
+
+    const source = read(sourcePath);
+    const installed = read(installedPath);
+    assert.equal(source, installed,
+      `Source and installed ${cmd} must be byte-identical`);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // E2E: Negative fixture proves gap detection works
 // ---------------------------------------------------------------------------
 
@@ -176,8 +212,11 @@ test('E2E: negative fixture mock-skill requires artifact that mock-command omits
   assert.doesNotMatch(outputSection, /tests\/integration/,
     'Mock command Output must NOT include integration path (deliberate gap)');
 
-  // The wiring test must detect this gap — verified by the test's assert.throws
-  const wiringTest = read('tests/node/command-skill-wiring.test.js');
-  assert.match(wiringTest, /assert\.throws|assert\.rejects/,
-    'Wiring test must assert that negative fixture throws on the gap');
+  // Verify the gap is actually detected by running the wiring checker behaviorally
+  const { checkCommandSkillWiring: ccsw } = require('../../lib/wiring-check');
+  assert.throws(
+    () => ccsw('tests/fixtures/wiring-gap/mock-command.md',
+      { skill: 'mock-tdd', sourcePath: 'tests/fixtures/wiring-gap/mock-skill.md' }),
+    /pattern|path|integration/i,
+    'Wiring checker must detect gap between mock-skill artifact and mock-command output');
 });

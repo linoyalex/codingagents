@@ -68,7 +68,7 @@ test('AC1: checkCommandSkillWiring passes for commands with correct output wirin
 // AC2: Catches known gap — integration test missing in test-design command
 // ---------------------------------------------------------------------------
 
-test('AC2: commands/test-design.md Output section references integration test pattern and path', () => {
+test('AC2 (post-fix): commands/test-design.md Output section references integration test pattern and path', () => {
   const testDesign = read('commands/test-design.md');
 
   assert.match(testDesign, /^##\s*(Output|Deliverables)/m,
@@ -78,6 +78,51 @@ test('AC2: commands/test-design.md Output section references integration test pa
     'commands/test-design.md Output must reference integration tests');
   assert.match(testDesign, /tests\/integration/,
     'commands/test-design.md Output must include tests/integration/ path');
+});
+
+test('AC2 (regression): pre-fix test-design command without integration path fails wiring check', () => {
+  // Simulate the pre-fix state: test-design.md only has contract + E2E output slots,
+  // missing the integration test path that tdd skill requires.
+  const preFix = [
+    '## Skill References',
+    '',
+    '| Skill | Source path |',
+    '|-------|-------------|',
+    '| tdd | skills/tdd/SKILL.md |',
+    '',
+    '## Output',
+    '',
+    '- Write contract tests to: tests/contracts/$ARGUMENTS.test.ts',
+    '- Write E2E tests to: tests/e2e/$ARGUMENTS.spec.ts',
+  ].join('\n');
+
+  const refs = parseSkillReferences(preFix, 'pre-fix-test-design.md');
+  const tddRef = refs.find(r => r.skill === 'tdd');
+  assert.ok(tddRef, 'Pre-fix command must reference tdd skill');
+
+  const tddText = read(tddRef.sourcePath);
+  const artifacts = parseRequiredArtifacts(tddText, 'tdd');
+  assert.ok(artifacts !== null && artifacts.length >= 1);
+
+  // The wiring check must fail — integration test path is missing
+  let caughtError = null;
+  try {
+    for (const a of artifacts) {
+      checkArtifactWiring(preFix, 'pre-fix-test-design.md', 'tdd', a);
+    }
+  } catch (err) {
+    caughtError = err;
+  }
+
+  assert.ok(caughtError !== null,
+    'Pre-fix state must fail wiring check (missing integration path)');
+  assert.match(caughtError.message, /tdd/i,
+    'Error must name the skill');
+  assert.match(caughtError.message, /pre-fix-test-design\.md/,
+    'Error must name the command');
+  assert.ok(
+    caughtError.message.includes('integration') || caughtError.message.includes('path'),
+    `Error must identify missing artifact, got: ${caughtError.message}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -110,24 +155,38 @@ test('AC3: parseRequiredArtifacts throws descriptive error for malformed tables'
 // AC4: Phase 5 verification step in commands/implement.md
 // ---------------------------------------------------------------------------
 
-test('AC4: commands/implement.md includes wiring verification step', () => {
+test('AC4: commands/implement.md has Artifact Wiring Verification section and passes wiring check', () => {
   const implement = read('commands/implement.md');
-  assert.match(implement, /artifact/i,
-    'commands/implement.md must mention artifact verification');
-  assert.match(implement, /output slot|output instruction|naming pattern/i,
-    'commands/implement.md must instruct checking output slots for new artifacts');
+
+  // Structural anchor: must have the dedicated verification section
+  assert.match(implement, /^##\s*Artifact Wiring Verification$/m,
+    'commands/implement.md must have a ## Artifact Wiring Verification section (AC4)');
+
+  // Behavioral: run the full wiring check against implement.md — must pass
+  const refs = parseSkillReferences(implement, 'implement.md');
+  assert.ok(refs.length >= 1, 'implement.md must declare at least one skill reference');
+  for (const ref of refs) {
+    checkCommandSkillWiring('commands/implement.md', ref);
+  }
 });
 
 // ---------------------------------------------------------------------------
 // AC5: Phase 3 verification step in commands/test-design.md
 // ---------------------------------------------------------------------------
 
-test('AC5: commands/test-design.md includes wiring verification step', () => {
+test('AC5: commands/test-design.md has Artifact Wiring Verification section and passes wiring check', () => {
   const testDesign = read('commands/test-design.md');
-  assert.match(testDesign, /Required Artifacts|artifact/i,
-    'commands/test-design.md must reference artifact verification');
-  assert.match(testDesign, /output/i,
-    'commands/test-design.md must mention output instructions');
+
+  // Structural anchor: must have the dedicated verification section
+  assert.match(testDesign, /^##\s*Artifact Wiring Verification$/m,
+    'commands/test-design.md must have a ## Artifact Wiring Verification section (AC5)');
+
+  // Behavioral: run the full wiring check against test-design.md — must pass
+  const refs = parseSkillReferences(testDesign, 'test-design.md');
+  assert.ok(refs.length >= 1, 'test-design.md must declare at least one skill reference');
+  for (const ref of refs) {
+    checkCommandSkillWiring('commands/test-design.md', ref);
+  }
 });
 
 // ---------------------------------------------------------------------------
