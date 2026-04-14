@@ -23,6 +23,9 @@ No unreleased changes documented yet.
 - **Codex review expectations updated in process docs (AC5)** — `docs/memory/codex-rules.md` updated with a "Review Method Rules" section summarizing all four new rules; `docs/memory/review-process.md` defers to `codex-rules.md` as the canonical source of truth
 - **Structural anchor tests for review method rules (AC6)** — 19 deterministic tests verify each of the four new rules exists in `review-code.md` via heading-level regex anchors and keyword presence, plus section-scoped AC5 tests and an integration cohesion test
 - **Mechanism-agnostic installer coverage contract test (AC7)** — 24 tests verify every source file (`skills/*/SKILL.md`, `commands/*.md`, `hooks/*.js`) is operationalized by `init.sh` and `upgrade.sh` via any mechanism; includes `activeLines()` comment filter, `isInertLine()` false-positive guard, exclusion cap (5 per script), and phantom-exclusion detection
+- **Known-risks verification instruction in /implement command** — Phase 5 developers now receive explicit guidance to read and verify `known_risks` from `.claude/handoff.json` before committing GREEN, addressing each risk by either implementing a fix, documenting the implementation addresses it, or deferring with rationale
+- **TDD skill known-risks checklist item** — GREEN phase checklist now includes an item to verify handoff `known_risks` are addressed or deferred, ensuring developers actively engage with prior phase findings before code lock
+- **Contract test for known-risks instruction** — new regression test validates that both the /implement command instruction and TDD skill checklist item are present and discoverable using structural anchors, preventing accidental removal
 
 ### Changed
 - **docs/memory/review-process.md deduplicated** — removed duplicated file-ownership table; now defers to `codex-rules.md` as the single source of truth for Codex review conventions
@@ -31,7 +34,7 @@ No unreleased changes documented yet.
 - No bug fixes in this release
 
 ### Security
-- No security changes in this release
+- **Known-risks now actively engaged during implementation** — security findings and other critical constraints flagged by Phase 4 (security-gate) and Phase 6 (code-review) now flow directly to developers via explicit instruction, reducing the chance of unaddressed findings being missed at commit time
 
 ---
 
