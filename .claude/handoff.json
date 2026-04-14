@@ -1,23 +1,23 @@
 {
   "feature": "wiring-verification",
-  "phase": 6,
-  "goal": "Fix two blocking review findings, then re-submit for review",
-  "scope": "Developer must address F1 (exists() guard in checkCommandSkillWiring) and F2 (stale Phase 4 handoff in diff), then a fresh Phase 6 review pass is required before Phase 7",
+  "phase": 5,
+  "goal": "Diff-based code review in fresh context",
+  "scope": "Phase 6 review only",
   "relevant_files": [
-    "docs/features/wiring-verification/review.md",
-    "lib/wiring-check.js",
-    ".claude/handoff.json"
+    "docs/features/wiring-verification/architecture.md",
+    "docs/features/wiring-verification/prd.md"
   ],
   "acceptance_criteria": [
     "F1 resolved: checkCommandSkillWiring throws a named error when skill file is missing, not ENOENT",
-    "F2 resolved: git diff main...HEAD shows Phase 6 handoff, not Phase 4",
-    "All existing tests still pass after fix"
+    "F2 resolved: git diff main...HEAD shows Phase 5 handoff, not Phase 4",
+    "All existing tests still pass after fix (42/42)"
   ],
   "verification_commands": [
     "node --test tests/node/command-skill-wiring.test.js",
-    "git diff main...HEAD -- .claude/handoff.json | grep 'phase.*6'"
+    "node --test tests/contracts/wiring-verification.test.js tests/e2e/wiring-verification.spec.js tests/integration/wiring-verification.integration.test.js",
+    "git diff main...HEAD -- .claude/handoff.json | grep 'phase.*5'"
   ],
   "source_spec": "docs/issues/tickets/ISS-036.md",
-  "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T15:00:00Z"
+  "produced_by": "developer",
+  "timestamp": "2026-04-13T16:30:00Z"
 }
