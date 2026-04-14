@@ -1,7 +1,7 @@
 {
   "feature": "codex-review-hardening",
   "phase": 6,
-  "goal": "Post-merge documentation update — update CHANGELOG.md and CLAUDE.md timestamp to reflect the codex-review-hardening feature landing",
+  "goal": "Post-merge documentation update",
   "scope": "Phase 7 documentation only",
   "relevant_files": [
     "docs/features/codex-review-hardening/prd.md",
@@ -9,7 +9,7 @@
     "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated with codex-review-hardening feature entry",
+    "CHANGELOG.md updated",
     "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
@@ -18,5 +18,5 @@
   ],
   "source_spec": "docs/issues/tickets/ISS-027.md",
   "produced_by": "code-reviewer",
-  "timestamp": "2026-04-13T18:00:00Z"
+  "timestamp": "2026-04-13T23:15:00Z"
 }
