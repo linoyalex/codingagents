@@ -144,6 +144,22 @@ test('AC5: codex-rules.md references the unchanged-file scope rule (AC4)', () =>
   );
 });
 
+// --- AC5: review-process.md defers to codex-rules.md ---
+
+test('AC5: review-process.md defers to codex-rules.md for Codex-specific guidance', () => {
+  const reviewProcessPath = path.join(ROOT_DIR, 'docs', 'memory', 'review-process.md');
+  assert.ok(
+    fs.existsSync(reviewProcessPath),
+    'docs/memory/review-process.md does not exist'
+  );
+  const content = fs.readFileSync(reviewProcessPath, 'utf8');
+  assert.match(
+    content,
+    /codex-rules\.md/i,
+    'review-process.md must defer to codex-rules.md for Codex-specific guidance'
+  );
+});
+
 // --- Integration test: review-code.md is the production artifact ---
 // This test reads the production file and asserts all four rule sections coexist —
 // verifying the review prompt is cohesive, not just that individual keywords appear.

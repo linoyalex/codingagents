@@ -1,12 +1,14 @@
 // Production wiring test seam: init.sh and upgrade.sh
 // This contract test verifies every source file (skills/*/SKILL.md, commands/*.md, hooks/*.js)
 // is operationalized by the installer and upgrade scripts.
-// The assertion is path-presence in active (non-comment) lines — literal cp, loops, manifests,
-// and directory copies all satisfy the contract as long as the target path appears in an
-// active script line. Comment-only references do not count.
+// Mechanism-agnostic: isCoveredByScript() accepts literal paths, source paths, directory
+// copies, loops, manifests, or any mechanism that references the file or a covering ancestor
+// directory. Comment-only references do not count (filtered by activeLines).
 // Derived from PRD (ISS-027) AC7 and architecture decision record.
 // Codex review feedback (2026-04-13): tightened to filter commented lines, cap exclusions,
 // and require upgrade.sh exclusions to carry explicit documentation.
+// Codex review feedback (2026-04-14): made mechanism-agnostic via isCoveredByScript() to
+// avoid overfitting to literal cp lines — directory copies and loops now satisfy the contract.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -103,6 +105,65 @@ function deriveInstalledPath(sourceRelPath) {
   return null;
 }
 
+/**
+ * Returns true if a line performs a file-copy operation.
+ * Used to restrict ancestor-directory matching to actual copy commands,
+ * preventing false positives from echo/log lines that mention directories.
+ */
+function isCopyLine(line) {
+  return /\bcp\b/.test(line) || /\brsync\b/.test(line);
+}
+
+/**
+ * Mechanism-agnostic coverage check (AC7).
+ * Returns true if the script covers the installed path via ANY mechanism:
+ * - Literal path reference (explicit cp)
+ * - Source path reference (loop over source files)
+ * - Parent/ancestor directory reference (recursive cp, wildcard, manifest)
+ *
+ * Ancestor directory matching (steps 3-4) is restricted to copy-command lines
+ * to prevent false positives from echo/log statements that mention directories.
+ */
+function isCoveredByScript(activeContent, sourceRelPath, installedPath) {
+  // 1. Literal installed path (e.g., .claude/skills/tdd/SKILL.md)
+  if (activeContent.includes(installedPath)) return true;
+
+  // 2. Source path reference (e.g., skills/tdd/SKILL.md in a loop)
+  if (activeContent.includes(sourceRelPath)) return true;
+
+  // For ancestor matching, check per-line with copy-command context
+  const lines = activeContent.split('\n');
+
+  // 3. Ancestor directory coverage — check if any parent directory of the
+  //    installed path appears in a copy-command line (covers recursive cp, wildcards)
+  //    e.g., cp -r ... .claude/skills/ covers .claude/skills/tdd/SKILL.md
+  const parts = installedPath.split('/');
+  for (let i = parts.length - 1; i >= 2; i--) {
+    const ancestor = parts.slice(0, i).join('/');
+    for (const line of lines) {
+      if (!isCopyLine(line)) continue;
+      if (line.includes(ancestor + '/') || line.includes(ancestor + '"')) {
+        return true;
+      }
+    }
+  }
+
+  // 4. Source ancestor coverage (e.g., skills/* or skills/ in a copy loop)
+  const srcParts = sourceRelPath.split('/');
+  for (let i = srcParts.length - 1; i >= 1; i--) {
+    const ancestor = srcParts.slice(0, i).join('/');
+    for (const line of lines) {
+      if (!isCopyLine(line)) continue;
+      if (line.includes(ancestor + '/') || line.includes(ancestor + '"')
+          || line.includes(ancestor + '/*') || line.includes(ancestor + "'")) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 // --- Precondition tests ---
 
 test('installer scripts exist', () => {
@@ -143,8 +204,8 @@ test('AC7: init.sh operationalizes every skills/*/SKILL.md file', () => {
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
+    if (!isCoveredByScript(initActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in init.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -163,8 +224,8 @@ test('AC7: init.sh operationalizes every commands/*.md file', () => {
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
+    if (!isCoveredByScript(initActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in init.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -183,8 +244,8 @@ test('AC7: init.sh operationalizes every hooks/*.js file', () => {
   for (const { source } of files) {
     if (INIT_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!initActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of init.sh`);
+    if (!isCoveredByScript(initActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in init.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -205,8 +266,8 @@ test('AC7: upgrade.sh operationalizes every skills/*/SKILL.md file', () => {
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
+    if (!isCoveredByScript(upgradeActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in upgrade.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -225,8 +286,8 @@ test('AC7: upgrade.sh operationalizes every commands/*.md file', () => {
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
+    if (!isCoveredByScript(upgradeActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in upgrade.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -245,8 +306,8 @@ test('AC7: upgrade.sh operationalizes every hooks/*.js file', () => {
   for (const { source } of files) {
     if (UPGRADE_EXCLUSIONS.includes(source)) continue;
     const installedPath = deriveInstalledPath(source);
-    if (!upgradeActive.includes(installedPath)) {
-      failures.push(`${source} → expected "${installedPath}" in active lines of upgrade.sh`);
+    if (!isCoveredByScript(upgradeActive, source, installedPath)) {
+      failures.push(`${source} → no coverage for "${installedPath}" in upgrade.sh (checked literal path, source path, and ancestor directories)`);
     }
   }
 
@@ -305,5 +366,50 @@ test('active code lines in init.sh do satisfy the contract', () => {
   assert.ok(
     active.includes('.claude/skills/real/SKILL.md'),
     'activeLines() must retain non-comment lines'
+  );
+});
+
+// --- Mechanism-agnostic coverage tests (AC7 contract) ---
+
+test('isCoveredByScript: literal installed path satisfies contract', () => {
+  const script = 'cp "$SCRIPT_DIR/skills/tdd/SKILL.md" "$TARGET/.claude/skills/tdd/SKILL.md"';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Literal installed path must satisfy contract'
+  );
+});
+
+test('isCoveredByScript: directory copy satisfies contract', () => {
+  // A recursive cp -r to .claude/skills/ covers all skills
+  const script = 'cp -r "$SCRIPT_DIR"/skills/* "$TARGET/.claude/skills/" 2>/dev/null || true';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Directory copy to .claude/skills/ must cover .claude/skills/tdd/SKILL.md'
+  );
+});
+
+test('isCoveredByScript: loop over source files satisfies contract', () => {
+  // A for-loop referencing the source path covers the file
+  const script = 'for f in skills/*/SKILL.md; do cp "$f" ".claude/$f"; done';
+  assert.ok(
+    isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Loop referencing skills/ ancestor must cover individual skill files'
+  );
+});
+
+test('isCoveredByScript: no reference means no coverage', () => {
+  const script = 'echo "nothing related here"';
+  assert.ok(
+    !isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'Script with no relevant references must not pass coverage check'
+  );
+});
+
+test('isCoveredByScript: echo/log mentioning ancestor directory does NOT satisfy contract', () => {
+  // Regression: ancestor directory in an echo line must not be accepted as coverage
+  const script = 'echo "Installing to .claude/skills/ directory"';
+  assert.ok(
+    !isCoveredByScript(script, 'skills/tdd/SKILL.md', '.claude/skills/tdd/SKILL.md'),
+    'echo/log lines mentioning ancestor directories must not satisfy coverage — only copy commands count'
   );
 });
