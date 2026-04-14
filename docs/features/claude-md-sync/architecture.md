@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T20:00:00Z
+**Generated:** 2026-04-14T20:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -120,7 +120,8 @@ if --sync-claude-md flag:
         - Place remaining content below closing marker (within same heading)
         - Report [migrated] (with preserved-line count if any remain)
      d. If markers malformed/unpaired: report warning, skip section
-  3. All content outside managed markers is untouched
+  3. All content outside managed markers is untouched (steady-state only;
+     legacy migration repositions content — see Legacy Migration Detail)
   4. Set CLAUDE_MD_STATUS based on full outcome:
         - all synced: "synced N sections"
         - any migrated: "migrated N sections (markers added)"
@@ -214,11 +215,13 @@ Skipped sections always appear in the per-section list with their reason (e.g.
 
 ### Write Safety
 
-**Pre-sync backup (AC7b):** Before any modification, if the target `CLAUDE.md` already exists,
-the sync copies it to `CLAUDE.md.pre-sync` in the same directory and prints:
+**Pre-sync backup (AC7b):** Before any modification, if the target `CLAUDE.md` already exists
+and at least one section will be changed, the sync copies it to `CLAUDE.md.pre-sync` in the
+same directory and prints:
 `"Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"`
-The backup is overwritten on each subsequent sync run (only the most recent pre-sync state
-is preserved). **If backup creation fails** (permissions, disk full, read-only filesystem),
+Backup is only created when changes are pending — no-op syncs skip backup creation to avoid
+overwriting a prior backup with an identical file. When changes are pending, any existing
+`CLAUDE.md.pre-sync` is overwritten. **If backup creation fails** (permissions, disk full),
 sync aborts with an error before creating the temp file — the original is never touched.
 This is distinct from ISS-007's full backup system — it's a single-file safety net scoped
 to the sync operation.

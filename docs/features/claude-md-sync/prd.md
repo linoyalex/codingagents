@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T20:00:00Z
+**Generated:** 2026-04-14T20:30:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -21,9 +21,9 @@ So that my project stays current with new conventions, architecture notes, and k
 - [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists every eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, `[migrated]`, or `[skipped]` (with reason), plus a summary line with counts including any skipped sections. Sections reported as `[migrated]` that have preserved lines include an inline count (e.g. `[migrated, N lines preserved — review for stale text]`). Example: "2 updated, 1 migrated, 0 skipped"
 - [ ] **AC6:** Given a root `CLAUDE.md` where a managed section's content is byte-identical to the reference, When sync runs, Then that section is reported as `[unchanged]` and its markers and content are left untouched
 - [ ] **AC7:** Given either `init.sh` or `upgrade.sh` completes (with or without `--sync-claude-md`), When the final summary is printed, Then a CLAUDE.md status line is included that reflects the full outcome including any skipped sections (e.g. "CLAUDE.md: synced 3 sections", "CLAUDE.md: synced 2 sections (1 skipped)", "CLAUDE.md: kept existing", "CLAUDE.md: copied template", "CLAUDE.md: not modified — run with --sync-claude-md to sync sections")
-- [ ] **AC7b:** Given `--sync-claude-md` is used and a `CLAUDE.md` already exists, When sync begins, Then a pre-sync backup is saved to `CLAUDE.md.pre-sync` and the output includes: "Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md". If the backup cannot be created (permissions, disk full), sync aborts with an error before modifying the original file.
+- [ ] **AC7b:** Given `--sync-claude-md` is used, a `CLAUDE.md` already exists, and at least one section will be changed, When sync begins, Then a pre-sync backup is saved to `CLAUDE.md.pre-sync` and the output includes: "Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md". No-op syncs skip backup creation. If the backup cannot be created (permissions, disk full), sync aborts with an error before modifying the original file.
 - [ ] **AC8:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
-- [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, legacy migration (no markers → markers with user content preserved), non-interactive fallback, defensive prompt when existing CLAUDE.md found, and end-of-script status confirmation
+- [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, legacy migration (no markers → markers with user content preserved), migrated section with preserved-lines advisory output, backup creation failure aborts before modification, non-interactive fallback, defensive prompt when existing CLAUDE.md found, and end-of-script status confirmation
 
 ### Screen States
 
@@ -34,7 +34,7 @@ So that my project stays current with new conventions, architecture notes, and k
 | Terminal (init, existing, no flag, non-interactive) | N/A | N/A | N/A | N/A | "CLAUDE.md: kept existing — run with --sync-claude-md to sync sections" |
 | Terminal (init, no existing, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: copied template" |
 | Terminal (upgrade --sync-claude-md) | N/A | "Merging CLAUDE.md sections..." | Per-section action list | (1) source/target missing → error + exit 1; (2) permission denied → error + exit 1; (3) malformed markers → warn + skip section | Summary + status: "CLAUDE.md: synced N sections" |
-| Terminal (upgrade --sync-claude-md, legacy) | N/A | "Migrating CLAUDE.md sections..." | Per-section action list with `[migrated]` | Same as above | Summary + status: "CLAUDE.md: migrated N sections (markers added)" |
+| Terminal (upgrade --sync-claude-md, legacy) | N/A | "Migrating CLAUDE.md sections..." | Per-section action list with `[migrated]` or `[migrated, N lines preserved — review for stale text]` | Same as above | Summary + status: "CLAUDE.md: migrated N sections (markers added)" |
 | Terminal (upgrade, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: not modified — run with --sync-claude-md to sync sections" |
 | Terminal (no-op sync) | N/A | N/A | N/A | N/A | "CLAUDE.md already in sync — no changes needed" |
 
