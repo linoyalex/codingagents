@@ -1,8 +1,8 @@
 {
   "feature": "test-feature",
   "phase": 1,
-  "goal": "Resolve clarification questions before PRD finalization",
-  "scope": "Phase 1 clarification gate",
+  "goal": "Resolve clarification for: Add ticket fidelity checking to specify",
+  "scope": "Phase 1 clarification gate — pending questions: 1) Should fidelity check block on unparseable ACs?",
   "relevant_files": [
     "docs/issues/tickets/ISS-099.md"
   ],

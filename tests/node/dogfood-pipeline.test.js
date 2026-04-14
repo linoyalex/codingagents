@@ -106,6 +106,31 @@ test('restore-context logs error to stderr on malformed handoff JSON', (t) => {
   );
 });
 
+// Checkpoint resumption: no-ticket fixture produces resumable restore-context output
+test('restore-context output from no-ticket fixture includes request context and pending questions', (t) => {
+  const projectDir = makeTempDir(t, 'codingagents-fixture-restore-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  // Use the actual fixture file — this is the exact reproduction path the Codex reviewer used
+  const fixturePath = path.join(ROOT_DIR, 'tests', 'fixtures', 'handoff', 'checkpoint-no-ticket.json');
+  fs.copyFileSync(fixturePath, path.join(claudeDir, 'handoff.json'));
+
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Must contain the original request summary (from goal field)
+  assert.match(result.stdout, /search filters|dashboard/i,
+    'Restored no-ticket checkpoint must include original request context from goal');
+  // Must contain the pending clarification questions (from scope field)
+  assert.match(result.stdout, /filter fields|persist across sessions/i,
+    'Restored no-ticket checkpoint must include pending questions from scope');
+  // Must signal checkpoint pending
+  assert.match(result.stdout, /checkpoint.*pending|pending.*checkpoint/i,
+    'Restored no-ticket checkpoint must signal checkpoint_pending');
+});
+
 // Checkpoint resumption: session-state uses current-phase model, not next-phase
 test('restore-context logs current-phase model for checkpoint resumptions', (t) => {
   // Arrange: Phase 1 clarification checkpoint — agent is product-owner, model is haiku

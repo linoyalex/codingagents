@@ -1,8 +1,8 @@
 {
   "feature": "new-feature",
   "phase": 1,
-  "goal": "Resolve clarification questions before PRD finalization",
-  "scope": "Phase 1 clarification gate",
+  "goal": "Resolve clarification for: Add search filters to the dashboard",
+  "scope": "Phase 1 clarification gate — pending questions: 1) Which filter fields are required? 2) Should filters persist across sessions?",
   "relevant_files": [],
   "acceptance_criteria": [
     "pending-clarification"
