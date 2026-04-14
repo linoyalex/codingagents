@@ -1,22 +1,24 @@
 {
   "feature": "implement-known-risks",
-  "phase": 1,
-  "goal": "Produce architecture decision record",
-  "scope": "Phase 2 architecture only",
+  "phase": 4,
+  "goal": "Implement feature using strict TDD",
+  "scope": "Phase 5 implementation only",
   "relevant_files": [
-    "docs/features/implement-known-risks/prd.md"
+    "docs/features/implement-known-risks/architecture.md",
+    "tests/contracts/implement-known-risks.test.js",
+    "tests/integration/implement-known-risks.integration.test.js",
+    "tests/e2e/implement-known-risks.spec.js"
   ],
   "acceptance_criteria": [
     "AC1: commands/implement.md GREEN section includes known_risks read instruction",
     "AC2: TDD skill GREEN phase checklist includes known_risks verification item",
     "AC3: Contract test verifies known_risks instruction using structural anchors",
-    "AC4: Empty known_risks array requires no developer action",
+    "AC4: Empty known_risks array or missing handoff requires no developer action",
     "AC5: Malformed handoff.json halts via existing error handling"
   ],
-  "verification_commands": [
-    "ls docs/features/implement-known-risks/architecture.md"
-  ],
+  "verification_commands": ["npm test"],
   "source_spec": "docs/features/implement-known-risks/prd.md",
-  "produced_by": "product-owner",
-  "timestamp": "2026-04-13T16:45:00Z"
+  "known_risks": ["Missing Call Chain in arch doc — integration target chosen by QA"],
+  "produced_by": "security-reviewer",
+  "timestamp": "2026-04-14T03:38:00Z"
 }
