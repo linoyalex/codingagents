@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T16:30:00Z
+**Generated:** 2026-04-14T17:00:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -11,26 +11,30 @@ So that my project stays current with new conventions, naming rules, folder stru
 ### Acceptance Criteria
 
 - [ ] **AC1:** Given `init.sh` is run with `--sync-claude-md`, When the script completes, Then the root `CLAUDE.md` eligible sections are populated with consumer-relevant content from `docs/CLAUDE.md`, filtered by the selection rule (see Dependencies). Each synced block is wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` marker pairs.
-- [ ] **AC2:** Given `init.sh` is run without `--sync-claude-md` and a `CLAUDE.md` already exists in the target project, When the script reaches the CLAUDE.md step, Then the user is prompted with: (a) overwrite with the template, or (b) exit with instructions to re-run with `--sync-claude-md` for section-level sync
+- [ ] **AC2:** Given `init.sh` is run without `--sync-claude-md` and a `CLAUDE.md` already exists and stdin is a terminal, When the script reaches the CLAUDE.md step, Then the user is prompted with: (a) overwrite with template, or (b) exit with instructions to re-run with `--sync-claude-md` for section-level sync
 - [ ] **AC2b:** Given `init.sh` is run without `--sync-claude-md` and no `CLAUDE.md` exists, When the script completes, Then the root `CLAUDE.md` is copied as today with placeholder comments intact
+- [ ] **AC2c:** Given `init.sh` is run without `--sync-claude-md`, a `CLAUDE.md` already exists, and stdin is not a terminal (CI/piped), When the script reaches the CLAUDE.md step, Then it keeps the existing file, prints a message about `--sync-claude-md`, and continues without prompting
 - [ ] **AC3:** Given an existing project with a customized root `CLAUDE.md` containing managed markers, When `upgrade.sh --sync-claude-md` is run, Then content inside managed marker pairs is replaced with the latest reference content, and all content outside managed markers is preserved unchanged
 - [ ] **AC3b:** Given `upgrade.sh` is run without `--sync-claude-md`, When the script completes, Then a reminder is printed that `--sync-claude-md` is available for section-level sync
+- [ ] **AC3c:** Given an existing project whose `CLAUDE.md` has no managed markers (legacy/pre-sync), When `upgrade.sh --sync-claude-md` is run, Then for each eligible section: the sync locates the section by heading, preserves any existing user content below the managed block, and inserts managed markers with framework content above the user content within that section
 - [ ] **AC4:** Given a root `CLAUDE.md` with user-added content outside managed markers (e.g. project-specific gotchas, custom conventions added below the managed block), When sync runs, Then that user content is preserved unchanged in its original position
-- [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists each eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, or `[preserved-user]`, plus a summary line with counts (e.g. "3 added, 1 updated, 2 unchanged")
+- [ ] **AC5:** Given sync completes (init or upgrade), When the user views the terminal output, Then the output lists each eligible section with its action: `[added]`, `[updated]`, `[unchanged]`, or `[migrated]`, plus a summary line with counts
 - [ ] **AC6:** Given a root `CLAUDE.md` where a managed section's content is byte-identical to the reference, When sync runs, Then that section is reported as `[unchanged]` and its markers and content are left untouched
 - [ ] **AC7:** Given either `init.sh` or `upgrade.sh` completes (with or without `--sync-claude-md`), When the final summary is printed, Then a CLAUDE.md status line is included (e.g. "CLAUDE.md: synced 3 sections", "CLAUDE.md: kept existing", "CLAUDE.md: copied template", "CLAUDE.md: not modified — run with --sync-claude-md to sync sections")
 - [ ] **AC8:** Given the existing test suite in `test-install-scripts.sh`, When all tests are run after implementation, Then all existing tests continue to pass
-- [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, defensive prompt when existing CLAUDE.md found without flag, and end-of-script status confirmation
+- [ ] **AC9:** Given the implementation is complete, When tests are run, Then new test cases cover: init with sync, upgrade with sync, preservation of user content outside markers, no-op when already in sync, upgrade with missing/malformed markers, legacy migration (no markers → markers with user content preserved), non-interactive fallback, defensive prompt when existing CLAUDE.md found, and end-of-script status confirmation
 
 ### Screen States
 
 | Screen | Empty | Loading | Populated | Error | Success |
 |--------|-------|---------|-----------|-------|---------|
-| Terminal (init --sync-claude-md) | N/A — CLI output only | "Syncing CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md missing or unreadable → error + exit 1; (2) root CLAUDE.md not writable → error + exit 1 | Summary line: "N added, M unchanged" + status: "CLAUDE.md: synced N sections" |
-| Terminal (init, existing CLAUDE.md, no flag) | N/A | N/A | Prompt: "(o)verwrite with template / (e)xit to re-run with --sync-claude-md?" | N/A | If overwrite chosen: "CLAUDE.md: overwritten with template". If exit: prints instructions and exits |
-| Terminal (init, no existing CLAUDE.md, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: copied template" |
-| Terminal (upgrade --sync-claude-md) | N/A | "Merging CLAUDE.md sections..." progress line | Per-section action list printed to stdout | (1) docs/CLAUDE.md or root CLAUDE.md missing → error + exit 1; (2) permission denied on write → error + exit 1; (3) managed markers malformed or unpaired → warning per section + skip that section | Summary line: "N updated, M unchanged, P preserved-user" + status: "CLAUDE.md: synced N sections" |
-| Terminal (upgrade, no flag) | N/A | N/A | N/A | N/A | Reminder: "CLAUDE.md: not modified — run with --sync-claude-md to sync sections" |
+| Terminal (init --sync-claude-md) | N/A — CLI output only | "Syncing CLAUDE.md sections..." | Per-section action list | (1) docs/CLAUDE.md missing → error + exit 1; (2) not writable → error + exit 1 | Summary + status: "CLAUDE.md: synced N sections" |
+| Terminal (init, existing, no flag, interactive) | N/A | N/A | Prompt: "(o)verwrite / (e)xit to re-run with --sync-claude-md?" | N/A | Overwrite: "CLAUDE.md: overwritten with template" / Exit: prints instructions, exits |
+| Terminal (init, existing, no flag, non-interactive) | N/A | N/A | N/A | N/A | "CLAUDE.md: kept existing — run with --sync-claude-md to sync sections" |
+| Terminal (init, no existing, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: copied template" |
+| Terminal (upgrade --sync-claude-md) | N/A | "Merging CLAUDE.md sections..." | Per-section action list | (1) source/target missing → error + exit 1; (2) permission denied → error + exit 1; (3) malformed markers → warn + skip section | Summary + status: "CLAUDE.md: synced N sections" |
+| Terminal (upgrade --sync-claude-md, legacy) | N/A | "Migrating CLAUDE.md sections..." | Per-section action list with `[migrated]` | Same as above | Summary + status: "CLAUDE.md: migrated N sections (markers added)" |
+| Terminal (upgrade, no flag) | N/A | N/A | N/A | N/A | "CLAUDE.md: not modified — run with --sync-claude-md to sync sections" |
 | Terminal (no-op sync) | N/A | N/A | N/A | N/A | "CLAUDE.md already in sync — no changes needed" |
 
 ### Out of Scope
@@ -40,16 +44,18 @@ So that my project stays current with new conventions, naming rules, folder stru
 - Automatic sync without the `--sync-claude-md` flag (must be opt-in)
 - Backup/restore of `CLAUDE.md` before sync (tracked separately in ISS-007)
 - Interactive merge conflict resolution — user edits inside managed markers are overwritten on next sync; user content must go outside markers
-- Handling renamed or reordered headings in the target — sync matches by marker ID, not heading text
+- Handling renamed or reordered headings in the target — sync matches by marker ID (if present) or heading text (for legacy migration only)
 
 ### Dependencies
 
 - `docs/CLAUDE.md` must exist and contain the reference sections with recognizable markdown headings
-- **Managed markers are mandatory.** Every synced block must be wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` pairs. Content inside markers is framework-owned and replaced on sync. Content outside markers is user-owned and never touched. Edits by the user inside managed markers will be overwritten on next sync — this is by design.
-- **Selection rule:** The sync copies content from `docs/CLAUDE.md` sections that are consumer-relevant, excluding framework-internal guidance. Eligible sections and their IDs: `code-conventions-must-follow`, `code-conventions-naming`, `code-conventions-folder-structure`, `architecture-notes`, `known-gotchas`. Framework-only bullets within eligible sections (e.g. "Shell scripts use `set -euo pipefail`", source/installed sync tests, hook lifecycle details) must be filtered out — the architecture phase defines the filter mechanism.
-- **No-op detection:** Comparison is byte-identical on the managed block content (after normalization of trailing whitespace). Formatting drift or heading renames do not affect matching — markers are the canonical anchor.
-- **Malformed marker handling:** If upgrade finds an opening marker without a closing marker (or vice versa), that section is skipped with a warning. The script does not exit non-zero for malformed markers — it continues processing other sections.
-- ISS-007 (backup support) is a nice-to-have but not a hard blocker — marker-based sync is non-destructive to content outside markers
+- **Managed markers are mandatory for steady-state sync.** Every synced block is wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` pairs. Content inside markers is framework-owned and replaced on sync. Content outside markers is user-owned and never touched.
+- **Legacy migration (no markers):** When `--sync-claude-md` encounters a CLAUDE.md without markers, it locates sections by heading text, treats all existing content in that section as user content, inserts managed markers with framework content at the top of the section, and places the existing user content below the closing marker (still within the same heading). After migration, subsequent syncs use markers.
+- **Selection rule:** Eligible sections and their IDs: `code-conventions-must-follow`, `code-conventions-naming`, `code-conventions-folder-structure`, `architecture-notes`, `known-gotchas`. Framework-only bullets within eligible sections are filtered out — the architecture phase defines the filter mechanism and the complete exclusion list.
+- **No-op detection:** Byte-identical comparison on managed block content (after trailing whitespace normalization). Markers are the canonical anchor.
+- **Malformed marker handling:** Unpaired markers → warn + skip section, continue (exit 0).
+- **Non-interactive fallback:** If stdin is not a terminal (`! [ -t 0 ]`), skip interactive prompts. Default to keeping existing CLAUDE.md with a message about `--sync-claude-md`.
+- ISS-007 (backup support) is not a hard blocker — marker-based sync is non-destructive to content outside markers
 
 ### RICE Score
 Reach: High (all framework consumers) | Impact: High (eliminates split-brain confusion) | Confidence: High (well-scoped) | Effort: Medium (shell scripting + section parsing) | **Score: 8**
