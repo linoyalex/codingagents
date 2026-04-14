@@ -1,5 +1,5 @@
 ## Architecture: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T17:00:00Z
+**Generated:** 2026-04-14T17:30:00Z
 **ADR:** ADR-002 | Date: 2026-04-14
 
 ### Decision
@@ -9,11 +9,11 @@ library file `lib/sync-claude-md.sh`, called by both `init.sh` and `upgrade.sh` 
 `--sync-claude-md` flag is passed. The sync uses HTML comment markers
 (`<!-- managed:start:<id> -->` / `<!-- managed:end:<id> -->`) as canonical anchors — not
 heading text — to identify framework-managed content. A static filter map embedded in the
-sync function defines which bullets from `docs/CLAUDE.md` are consumer-relevant vs
-framework-internal.
+sync function uses a fail-closed allowlist to select which content from `docs/CLAUDE.md`
+is consumer-relevant — only explicitly approved content syncs downstream.
 
 ### Decision Confidence
-**High** — marker-based approach is well-established (Terraform, Helm), bounded to 5 sections, non-destructive.
+**High** — marker-based approach is well-established (Terraform, Helm), bounded to 4 sections, non-destructive.
 
 ### Revisit When
 - Eligible sections exceed 10 | Per-bullet granularity requested | ISS-007 changes safety model
@@ -41,18 +41,25 @@ Steps: (1) extract eligible sections by heading, (2) filter framework-internal b
 (3) for each section: init inserts markers, upgrade replaces between markers or migrates legacy,
 (4) byte-compare for no-op detection, (5) print per-section action report + summary.
 
-### Eligible Sections and Filter Map
+### Eligible Sections and Allowlist
 
-| Section ID | Heading | Filter strategy |
-|------------|---------|-----------------|
-| `code-conventions-must-follow` | `### Must Follow` | Exclude framework-internal bullets (shell conventions, source/installed sync, hook details) |
-| `code-conventions-naming` | `### Naming` | Exclude framework file naming (Roles, Skills, Commands, Feature artifacts, Test fixtures) |
-| `code-conventions-folder-structure` | `### Folder Structure` | Exclude entirely — use consumer-oriented structure from root template |
-| `architecture-notes` | `## Architecture Notes` | Exclude framework internals (WHO/WHAT/HOW, handoff.json, hooks lifecycle) |
-| `known-gotchas` | `## Known Gotchas` | Exclude framework-specific bullets (checkpoint.js, skill paths, settings.json, etc.) |
+The filter model is **fail-closed**: only content explicitly listed in the allowlist syncs
+to consumer projects. New bullets added to `docs/CLAUDE.md` do NOT sync until a maintainer
+adds them to the allowlist. This prevents framework-internal guidance from leaking downstream.
 
-**Filter implementation:** `grep -v` with literal substring patterns. New bullets sync by
-default unless explicitly excluded — fail-open for new conventions reaching consumers.
+| Section ID | Heading | Allowlist strategy |
+|------------|---------|-------------------|
+| `code-conventions-must-follow` | `### Must Follow` | Allow: artifact timestamps, skill size budget, separate context, handoff source_spec. Deny all else. |
+| `code-conventions-naming` | `### Naming` | Allow: none by default (consumer defines their own). Placeholder comments preserved. |
+| `architecture-notes` | `## Architecture Notes` | Allow: ADR Index entries only. Deny framework internals (WHO/WHAT/HOW, handoff.json, hooks). |
+| `known-gotchas` | `## Known Gotchas` | Allow: consumer-relevant gotchas only (auth callbacks, Prisma regen, image limits, env vars). Deny framework-specific. |
+
+**Removed:** `code-conventions-folder-structure` — the root template owns the consumer folder
+structure. It is not a synced section. `code-conventions-naming` is kept as an eligible section
+but starts with an empty allowlist (placeholder comments remain until maintainer approves content).
+
+**Allowlist implementation:** A shell array per section listing allowed bullet prefixes/substrings.
+Content is matched line-by-line; unmatched lines are excluded from the managed block.
 
 ### Marker Format
 
@@ -116,26 +123,31 @@ else (no flag):
 When `upgrade.sh --sync-claude-md` encounters a CLAUDE.md without markers, the sync
 function migrates each eligible section from heading-based to marker-based ownership.
 
-Before migration:
+**Template content deduplication:** Before preserving existing content as user-owned, the
+migration strips lines that match the known root template (placeholder comments like
+`<!-- e.g. ... -->` and any unmodified template text). This is done by diffing the section
+against the original template shipped with the same framework version. Only lines that
+differ from the original template are preserved as user content. This prevents stale
+template text from appearing as duplicates below the managed block.
+
+Before migration (project added one custom gotcha, rest is template):
 ```markdown
 ## Known Gotchas
-- User's custom gotcha about their auth setup
-- Another project-specific note
+- <!-- e.g. The auth callback URL must be updated in Clerk dashboard -->
+- Our custom auth gotcha about SSO timeout
 ```
 
 After migration:
 ```markdown
 ## Known Gotchas
 <!-- managed:start:known-gotchas -->
-- The image upload endpoint has a 4MB limit — validate client-side first
-- Environment variables prefixed with NEXT_PUBLIC_ are exposed to the browser
+- The auth callback URL must be updated in Clerk dashboard when changing domains
 <!-- managed:end:known-gotchas -->
-- User's custom gotcha about their auth setup
-- Another project-specific note
+- Our custom auth gotcha about SSO timeout
 ```
 
-All pre-existing content is preserved below the managed block. Subsequent syncs
-replace only the content between markers.
+Template placeholder is replaced by managed content; only the user's custom line is preserved.
+Subsequent syncs replace only the content between markers.
 
 ### End-of-Script Status Confirmation (AC7)
 
@@ -167,7 +179,14 @@ Syncing CLAUDE.md sections...
 CLAUDE.md sync complete — 2 added, 1 updated, 1 unchanged
 ```
 
-Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[skipped:malformed-markers]`
+Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[migrated]` (legacy upgrade), `[skipped:malformed-markers]`
+
+### Write Safety
+
+All modifications to the target `CLAUDE.md` are performed on a temp file (`CLAUDE.md.tmp`
+in the same directory). Only after all sections are processed successfully is the temp file
+moved to the final path via `mv` (atomic on the same filesystem). If the process is
+interrupted, the original file is untouched and the temp file can be deleted.
 
 ### Failure Modes
 
@@ -176,6 +195,7 @@ Actions: `[added]` (init only), `[updated]`, `[unchanged]`, `[skipped:malformed-
 | `docs/CLAUDE.md` missing or unreadable | Error message, abort sync | 1 |
 | Target `CLAUDE.md` missing (upgrade) | Error message, abort sync | 1 |
 | Target `CLAUDE.md` not writable | Error message, abort sync | 1 |
+| Interrupted mid-write | Original untouched; temp file left for cleanup | 1 |
 | Managed markers malformed/unpaired | Warning per section, skip that section, continue | 0 |
 | Eligible heading not found in source | Warning, skip section, continue | 0 |
 | All sections unchanged (no-op) | "CLAUDE.md already in sync — no changes needed" | 0 |

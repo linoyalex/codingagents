@@ -1,5 +1,5 @@
 ## Feature: CLAUDE.md Sync on Init/Upgrade
-**Generated:** 2026-04-14T17:00:00Z
+**Generated:** 2026-04-14T17:30:00Z
 **Phase:** Specify | Date: 2026-04-14
 **Ticket:** ISS-008
 
@@ -50,8 +50,8 @@ So that my project stays current with new conventions, naming rules, folder stru
 
 - `docs/CLAUDE.md` must exist and contain the reference sections with recognizable markdown headings
 - **Managed markers are mandatory for steady-state sync.** Every synced block is wrapped in `<!-- managed:start:<section-id> -->` / `<!-- managed:end:<section-id> -->` pairs. Content inside markers is framework-owned and replaced on sync. Content outside markers is user-owned and never touched.
-- **Legacy migration (no markers):** When `--sync-claude-md` encounters a CLAUDE.md without markers, it locates sections by heading text, treats all existing content in that section as user content, inserts managed markers with framework content at the top of the section, and places the existing user content below the closing marker (still within the same heading). After migration, subsequent syncs use markers.
-- **Selection rule:** Eligible sections and their IDs: `code-conventions-must-follow`, `code-conventions-naming`, `code-conventions-folder-structure`, `architecture-notes`, `known-gotchas`. Framework-only bullets within eligible sections are filtered out — the architecture phase defines the filter mechanism and the complete exclusion list.
+- **Legacy migration (no markers):** When `--sync-claude-md` encounters a CLAUDE.md without markers, it locates sections by heading text, strips lines that match the original template (deduplication), inserts managed markers with framework content at the top of the section, and places remaining user-authored content below the closing marker. After migration, subsequent syncs use markers.
+- **Selection rule (fail-closed):** Eligible sections and their IDs: `code-conventions-must-follow`, `code-conventions-naming`, `architecture-notes`, `known-gotchas`. Only content explicitly listed in a per-section allowlist syncs to consumer projects — new bullets in `docs/CLAUDE.md` do NOT sync until a maintainer approves them. The architecture phase defines the allowlist and filter mechanism. `code-conventions-folder-structure` is NOT a synced section — the root template owns the consumer folder structure.
 - **No-op detection:** Byte-identical comparison on managed block content (after trailing whitespace normalization). Markers are the canonical anchor.
 - **Malformed marker handling:** Unpaired markers → warn + skip section, continue (exit 0).
 - **Non-interactive fallback:** If stdin is not a terminal (`! [ -t 0 ]`), skip interactive prompts. Default to keeping existing CLAUDE.md with a message about `--sync-claude-md`.
