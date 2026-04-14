@@ -106,6 +106,48 @@ test('restore-context logs error to stderr on malformed handoff JSON', (t) => {
   );
 });
 
+// Checkpoint resumption: restore-context.js surfaces checkpoint_pending
+test('restore-context surfaces checkpoint_pending in restored output', (t) => {
+  // Arrange
+  const projectDir = makeTempDir(t, 'codingagents-checkpoint-restore-');
+  const claudeDir = path.join(projectDir, '.claude');
+  fs.mkdirSync(claudeDir, { recursive: true });
+  const handoff = {
+    feature: 'test-feature',
+    phase: 1,
+    goal: 'Resolve clarification questions before PRD finalization',
+    scope: 'Phase 1 clarification gate',
+    relevant_files: [],
+    acceptance_criteria: ['pending-clarification'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/test-feature/prd.md',
+    checkpoint_pending: 'clarification',
+    produced_by: 'product-owner'
+  };
+  fs.writeFileSync(path.join(claudeDir, 'handoff.json'), JSON.stringify(handoff));
+
+  // Act
+  const result = spawnSync(process.execPath, [RESTORE_SCRIPT], {
+    cwd: projectDir,
+    encoding: 'utf8',
+  });
+
+  // Assert: stdout must contain checkpoint_pending so the resumed agent knows
+  // to resume the checkpoint rather than restarting the phase
+  assert.match(
+    result.stdout,
+    /checkpoint_pending|checkpoint.*pending|awaiting.*clarification|resume.*clarification/i,
+    'restore-context must surface checkpoint_pending state in restored output'
+  );
+});
+
+// Sync: restore-context.js source/installed copies
+test('Sync: hooks/restore-context.js matches .claude/helpers/restore-context.js', () => {
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'restore-context.js'), 'utf8');
+  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'restore-context.js'), 'utf8');
+  assert.equal(source, installed, 'Source and installed copies of restore-context.js must be byte-identical');
+});
+
 // AC5: only spec docs exist in feature dir after phases 1–3
 test('pre-implementation feature directory contains only spec artifacts', () => {
   // Arrange: simulate what phases 1–3 produce for dogfood-pipeline

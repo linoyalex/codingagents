@@ -101,6 +101,10 @@ function restoreFromHandoff() {
       output += '\n';
     }
 
+    if (handoff.checkpoint_pending) {
+      output += `**⚠ Checkpoint pending: \`${handoff.checkpoint_pending}\`** — resume this checkpoint rather than restarting the phase.\n\n`;
+    }
+
     output += '---\n';
     return { output, feature: handoff.feature, phase: handoff.phase };
   } catch (err) {

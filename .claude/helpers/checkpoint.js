@@ -169,9 +169,12 @@ function validateHandoff() {
       errors.push('source_spec must start with "docs/" (local file) or "https://github.com/" (URL)');
     }
     // File-existence check for local paths (AC16)
-    // Skip when checkpoint_pending is set — the handoff is mid-phase and the
-    // target file (e.g. PRD) may not exist yet at checkpoint time.
-    if (!handoff.checkpoint_pending && !spec.startsWith('https://') && spec.startsWith('docs/')) {
+    // Skip only for "clarification" checkpoints — the PRD doesn't exist yet
+    // at checkpoint time (written in Step 3, checkpoint fires in Step 2).
+    // Architecture-review checkpoints must still validate because the PRD
+    // was created in Phase 1 and should be resolvable.
+    const skipExistenceCheck = handoff.checkpoint_pending === 'clarification';
+    if (!skipExistenceCheck && !spec.startsWith('https://') && spec.startsWith('docs/')) {
       const resolved = path.resolve(process.cwd(), spec);
       if (!fs.existsSync(resolved)) {
         errors.push(`source_spec file not found: ${spec}`);

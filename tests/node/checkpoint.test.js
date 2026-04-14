@@ -141,6 +141,36 @@ test('validateHandoff still rejects non-existent source_spec when checkpoint_pen
   });
 });
 
+test('validateHandoff rejects non-existent source_spec for architecture-review checkpoint', (t) => {
+  const projectDir = makeTempProject(t);
+  const handoff = {
+    feature: 'demo-feature',
+    phase: 2,
+    goal: 'Review architecture proposal with user',
+    scope: 'Phase 2 architecture review',
+    relevant_files: ['docs/features/demo-feature/prd.md'],
+    acceptance_criteria: ['pending-architecture-review'],
+    verification_commands: ['cat .claude/handoff.json'],
+    source_spec: 'docs/features/demo-feature/prd.md',
+    checkpoint_pending: 'architecture-review',
+    produced_by: 'architect',
+    timestamp: '2026-04-13T22:00:00Z'
+  };
+  const handoffPath = path.join(projectDir, '.claude', 'handoff.json');
+  fs.mkdirSync(path.dirname(handoffPath), { recursive: true });
+  fs.writeFileSync(handoffPath, JSON.stringify(handoff));
+  // Deliberately do NOT create docs/features/demo-feature/prd.md
+  // Architecture-review checkpoints should still require source_spec to exist
+  // because the PRD was written in Phase 1
+
+  withProjectCwd(projectDir, (checkpoint) => {
+    const result = checkpoint.validateHandoff();
+    assert.equal(result.valid, false,
+      'architecture-review checkpoint with non-existent source_spec should be rejected');
+    assert.match(result.reason, /source_spec file not found/);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Source/installed sync for checkpoint.js
 // ---------------------------------------------------------------------------
