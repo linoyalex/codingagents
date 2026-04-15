@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+> **Current as of:** v5.9.0 (2026-04-15)
+
 This is the operator guide for adopting `codingagents` in a project and running the pipeline safely. Use:
 
 - [README.md](README.md) for the overview and current feature set
