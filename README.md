@@ -96,8 +96,11 @@ claude                          # start Claude Code
 
 /status                         # always run first — shows where you are
 
+/effort high                    # recommended for specify + architect
+/plan                           # enable plan mode for alignment before writing
 /specify Add user auth flow     # Phase 1 — writes docs/features/user-auth/prd.md (~3K tokens, Haiku)
 /architect user-auth            # Phase 2 — writes architecture doc (~8K tokens, Opus)
+# ↑ switch back: /effort medium and exit plan mode for remaining phases ↑
 /test-design user-auth          # Phase 3 — writes failing tests (~10K tokens, Sonnet)
 /security-gate user-auth        # Phase 4 — writes security audit (~6K tokens, Opus)
 /implement user-auth            # Phase 5 — TDD red/green/refactor (~25K tokens, Sonnet)

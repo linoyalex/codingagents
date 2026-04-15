@@ -88,6 +88,11 @@ claude --model claude-haiku-4-5 \
    Write the output to docs/features/<feature>/prd.md"
 ```
 
+**Recommended session settings:** Run `/effort high` and enable plan mode (`/plan`) before `/specify`.
+Plan mode ensures alignment on scope and acceptance criteria before the agent writes the PRD.
+High effort produces more thorough thinking for ambiguous feature requests. For bug fixes or
+small refactors where scope is already clear, medium effort without plan mode is sufficient.
+
 **`prd.md` format (keep under 150 lines):**
 ```markdown
 ## Feature: [Name]
@@ -128,6 +133,10 @@ claude --model claude-opus-4-6 \
    Produce docs/features/<feature>/architecture.md.
    Do not read any source files — design only."
 ```
+
+**Recommended session settings:** Run `/effort high` and enable plan mode (`/plan`) before `/architect`.
+Structural decisions are hard to reverse — plan mode lets you review the proposed approach
+(tech choices, boundaries, trade-offs) before the agent commits to the architecture doc.
 
 **Critical token constraint for Architect:** Read `docs/features/<feature>/prd.md` and `CLAUDE.md` only.
 Do not `Glob` the entire codebase. If you need to understand an existing pattern, read

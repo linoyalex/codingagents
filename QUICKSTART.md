@@ -113,8 +113,15 @@ Phases 2-7 use `.claude/helpers/resolve-feature.js` and fail closed on malformed
 claude
 /status
 
+# Use plan mode + high effort for specify and architect — these phases
+# benefit from alignment before writing and thorough thinking.
+# For bug fixes or small refactors, medium effort without plan mode is fine.
+/effort high
+/plan
 /specify Add outfit recommendation feature that suggests 3 outfits from uploaded clothing
 /architect outfit-recommendations
+# Switch back for execution phases
+/effort medium
 /test-design outfit-recommendations
 /security-gate outfit-recommendations
 /implement outfit-recommendations
