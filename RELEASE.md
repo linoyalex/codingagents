@@ -16,8 +16,12 @@ This document is the canonical release-process guide for `codingagents` until th
 | `0.8.0` | `5.3.0` | `ISS-013` skill size convention |
 | `0.9.0` | `5.4.0` | `ISS-022` integration test coverage |
 | `1.0.0` | `5.5.0` | `ISS-024`, `ISS-014`, `ISS-033` review layer hardening |
+| — | `5.6.0` | `ISS-027`, `ISS-029`, `ISS-042` Codex review hardening + known-risks |
+| — | `5.7.0` | `ISS-036` command↔skill wiring verification |
+| — | `5.8.0` | `ISS-039` code review skill hardening |
+| — | `5.9.0` | `ISS-008` CLAUDE.md section-level sync |
 
-Current published release: `5.5.0`.
+Current published release: `5.9.0`.
 
 Some canonical `5.1.x` artifacts preserve the dates from when that work was authored on the v5 branch line, so the historical dates do not map perfectly to the later normalized `5.0.0` baseline entry. This is intentional and should be documented rather than hidden.
 
@@ -53,12 +57,16 @@ Until the backlog is machine-readable for semver, group open tickets into cohere
 
 Recommended current roadmap:
 
-| Target version | Planned scope |
-|---|---|
-| `5.6.0` | `ISS-036`, `ISS-027`, `ISS-029` — command/skill correctness bundle |
-| `5.7.0` | `ISS-001`, `ISS-006`, `ISS-037` — invariants and review-traceability bundle |
-| `5.8.0` | `ISS-028`, `ISS-032`, optionally `ISS-031` — workflow ergonomics bundle |
-| `5.9.0` | `ISS-007`, `ISS-008`, `ISS-030` — install and release-management bundle |
+| Target version | Scope | Status |
+|---|---|---|
+| `5.6.0` | `ISS-027`, `ISS-029`, `ISS-042` — Codex review hardening + known-risks | **Shipped 2026-04-13** |
+| `5.7.0` | `ISS-036` — command↔skill wiring verification | **Shipped 2026-04-14** |
+| `5.8.0` | `ISS-039` — code review skill hardening | **Shipped 2026-04-14** |
+| `5.9.0` | `ISS-008` — CLAUDE.md section-level sync | **Shipped 2026-04-15** |
+| `5.10.0` | `ISS-043`, `ISS-045`, `ISS-046` — QA test quality hardening (Batch 2.75) | Planned |
+| `5.11.0` | `ISS-044`, `ISS-001` — scope control + invariants audit (Batch 3) | Planned |
+| `5.12.0` | `ISS-028`, `ISS-032` — ticket-aware selection + auto-status (Wave 4) | Planned |
+| `5.13.0` | `ISS-030` — semver automation (Wave 5) | Planned |
 
 Patch rule:
 
@@ -88,7 +96,7 @@ Default recovery guidance:
 3. Re-run from the last stable phase whose outputs satisfy the new gate or contract.
 4. Regenerate artifacts rather than trying to force old outputs through new gates.
 
-Current example: `5.5.0` introduces a required `source_spec` handoff field and new gate role requirements. In-flight phases may need handoff updates before re-review.
+Current example: `5.9.0` introduces the `--sync-claude-md` flag which modifies CLAUDE.md using managed markers on first use. Without the flag, upgrade behavior is unchanged. If you use `--sync-claude-md` on a legacy file, review the migrated CLAUDE.md to verify user content was preserved.
 
 ## Manual release checklist
 

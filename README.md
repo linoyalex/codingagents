@@ -22,17 +22,16 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 ---
 
-## What's new in v5.5
+## What's new in v5.9
 
-- **Reviewer Independence** — code-review skill now includes a Reviewer Independence section: read PRD before developer handoff, treat claims as hypotheses to falsify, grep adjacent symbols, verify test coverage by reading fixtures, trace schema fields through parse/validate/transform chains.
-- **Adversarial gate reviewers** — ROLE_CODE_REVIEWER and ROLE_SECURITY explicitly adopt an adversarial-but-constructive stance. Reviewers challenge hidden assumptions, verify bypass paths, check stale state, and flag contradictory artifacts.
-- **Separate context enforcement** — gate review phases (4, 6) require separate context from the authoring phase — not just a fresh session. Pipeline phases tagged as (authoring) vs (gate/review) in CLAUDE.md.
-- **Source spec verification** — `source_spec` field required in `handoff.json`. Reviewers load the source specification (PRD or ticket) before reading the diff. Commands halt if `source_spec` is missing or unresolvable.
-- **Three-level test coverage** — TDD skill requires unit, integration, and E2E tests. Integration tests must call the production entry point and assert visible effects. Fixture validation and degenerate-input rules added.
-- **Skill size convention** — skills budget is ~150 lines instructional prose (templates excluded), 250 total triggers progressive disclosure split. Pipeline-gating skills must end with stop conditions footer.
+- **CLAUDE.md section-level sync** — new `--sync-claude-md` flag for `init.sh` and `upgrade.sh`. Syncs framework-owned sections from `docs/CLAUDE.md` into the consumer's root `CLAUDE.md` using managed HTML comment markers. Fail-closed allowlist limits which sections sync downstream. Legacy files without markers are migrated automatically. Pre-sync backup protects existing content.
 
 ### Earlier in v5
 
+- **Code review skill hardening (v5.8)** — four new methodology sections: schema impact tracing, source/installed drift check, test suite execution, and finding reproduction requirement. Symmetric gate enforcement ensures `review.md` and `security-gate.md` stay in sync. Three sibling reference files added via progressive disclosure.
+- **Command↔skill wiring verification (v5.7)** — new `lib/wiring-check.js` verifies every artifact type declared in a skill's `## Required Artifacts` table has a corresponding output slot in the invoking command. Two new structural conventions: `## Skill References` tables in commands, `## Required Artifacts` tables in skills.
+- **Codex review hardening + known-risks (v5.6)** — four new Codex review-method rules (install-path tracing, test-truthfulness, parser edge-cases, unchanged-file scope expansion). `/implement` now instructs developers to verify handoff `known_risks` before committing GREEN. Mechanism-agnostic installer coverage contract tests.
+- **Reviewer Independence (v5.5)** — code-review skill includes PRD-first methodology, hypothesis falsification, field tracing, and fixture verification. Adversarial gate roles with separate-context enforcement. `source_spec` required in `handoff.json`. Three-level test coverage (unit/integration/E2E). Skill size convention with progressive disclosure.
 - **Structured handoffs** — `.claude/handoff.json` is the machine-readable pipeline contract between phases. Schema-validated by the Stop hook as a blocking gate.
 - **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution.
 - **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits.
@@ -45,11 +44,11 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 - Canonical major line: `5.x`
 - Generation baseline: `5.0.0` from `version5-codex+token-governance`
-- Current published release: `5.5.0`
+- Current published release: `5.9.0`
 
-`5.5.0` hardens the review layer with three complementary changes: (1) Reviewer Independence methodology — reviewers read the PRD before the developer handoff and treat claims as hypotheses to falsify, (2) adversarial stance enforced in gate roles with separate-context requirement (not just fresh session), and (3) `source_spec` field now required in `handoff.json` — reviewers load the source specification before reading the diff.
+`5.9.0` adds opt-in section-level CLAUDE.md sync via `--sync-claude-md` for both `init.sh` and `upgrade.sh`. Framework-owned sections are injected and updated using managed HTML comment markers, with a fail-closed allowlist controlling which sections propagate downstream. Legacy files without markers are migrated automatically. Pre-sync backup protects existing user content.
 
-**Upgrade warning:** `5.5.0` introduces a new required handoff field (`source_spec`) and new gate role requirements. Upgrading in the middle of an active feature cycle is strongly discouraged. If you are already mid-feature, finish the current cycle before upgrading when possible. If you have already upgraded, run `/status` first and be prepared to regenerate artifacts from the last stable phase rather than forcing older outputs through the new gate.
+**Upgrade warning:** `5.9.0` changes install/upgrade behavior when the `--sync-claude-md` flag is used. Without the flag, behavior is unchanged. If you use `--sync-claude-md` on an existing project for the first time, the legacy migration will insert managed markers into your `CLAUDE.md` — review the result to ensure user-added content was preserved correctly. As always, upgrading in the middle of an active feature cycle is discouraged when gates or required artifacts change.
 
 See [RELEASE.md](RELEASE.md) for the canonical `5.x` mapping and release-process rules, and [QUICKSTART.md](QUICKSTART.md) for operator-safe upgrade guidance.
 
@@ -63,6 +62,9 @@ bash /path/to/codingagents/init.sh
 
 # With Codex review layer:
 bash /path/to/codingagents/init.sh --codex
+
+# With section-level CLAUDE.md sync (v5.9+):
+bash /path/to/codingagents/init.sh --sync-claude-md
 ```
 
 This copies all roles, commands, skills, hooks, schemas, shared `docs/design` and `docs/memory` context, and configuration in one step. It creates the directory structure, updates `.gitignore` with runtime artifact patterns, and writes a version file.
@@ -74,11 +76,12 @@ After running, edit `CLAUDE.md` to fill in your project-specific sections.
 ```bash
 bash /path/to/codingagents/upgrade.sh          # pipeline only
 bash /path/to/codingagents/upgrade.sh --codex   # pipeline + Codex review layer
+bash /path/to/codingagents/upgrade.sh --sync-claude-md  # sync managed CLAUDE.md sections
 ```
 
 This backs up `.claude/` before replacing framework files. It also refreshes the shared `docs/design/` and `docs/memory/` files used by fresh sessions. `CLAUDE.md` is not touched — review it manually for new sections (Phase Handoff Protocol, Memory & Instruction Governance).
 
-Before upgrading, check whether you are in the middle of an active feature cycle. Releases that add gates or required artifacts can invalidate in-flight outputs. The current example is `5.4.0`, which adds a new Phase 3 integration-test gate.
+Before upgrading, check whether you are in the middle of an active feature cycle. Releases that add gates or required artifacts can invalidate in-flight outputs. The current example is `5.9.0`, which changes install behavior when `--sync-claude-md` is used.
 
 ### Manual setup
 
@@ -210,7 +213,7 @@ Skills are a key architectural concept (introduced in v4, extended in v5). Each 
 | `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, property-based testing, coverage thresholds |
 | `security-audit` | security-gate | OWASP Top 10 checklist, serverless threat vectors, auth verification, severity levels |
 | `structured-logging` | implement, security-gate | Structured log format, log levels, PII scrubbing, security event requirements |
-| `code-review` | review | Reviewer Independence methodology, source-spec-first verification, boundary tracing, conventional comments, finding cap |
+| `code-review` | review | Reviewer Independence, source-spec-first verification, schema impact tracing, drift check, test execution, reproduction requirement, symmetric gate enforcement, conventional comments, finding cap |
 | `release-docs` | document | Changelog format, release notes template, process learnings, CLAUDE.md updates |
 | `verification-gate` | all phases | Phase-specific verification, handoff validation, universal checklist, no-go criteria, retrospective protocol |
 
@@ -414,6 +417,10 @@ Rules:
 │   ├── checkpoint.js                ← Stop: validates handoff (blocking), logs tokens, detects phase
 │   └── resolve-feature.js           ← Helper for Phases 2-7: resolves feature slug safely from args/handoff
 │
+├── lib/                             ← Shared library modules
+│   ├── wiring-check.js              ← Command↔skill artifact wiring verification (v5.7)
+│   └── sync-claude-md.sh            ← Section-level CLAUDE.md sync library (v5.9)
+│
 ├── init.sh                          ← New project setup script
 ├── upgrade.sh                       ← Existing project migration script
 ├── migrations/                      ← Version-specific migration logic
@@ -422,7 +429,10 @@ Rules:
 ├── release-notes/                   ← Generated release notes from Phase 7 documentation
 ├── tests/                           ← Regression tests and contract checks for pipeline behavior
 │   ├── node/                        ← Node-based contract/unit tests for helpers and commands
-│   ├── fixtures/                    ← Stable fixtures for handoff/review/security verification tests
+│   ├── contracts/                   ← Contract tests (behavioral verification via structural anchors)
+│   ├── integration/                 ← Integration tests (cross-module verification)
+│   ├── e2e/                         ← End-to-end tests (full convention chain)
+│   ├── fixtures/                    ← Stable fixtures for handoff/review/security/wiring tests
 │   └── test-*.sh                    ← Shell-level install and command contract checks
 │
 ├── docs/                            ← Shared design docs, cross-agent memory, and repo-specific instructions
@@ -459,7 +469,7 @@ Rules:
 - **v3** — phase-gated pipeline, model tier assignments, slash commands, lifecycle hooks, token budget documentation
 - **v4** — extracted skills from roles (separation of concerns), YAML frontmatter on all commands for VS Code, standardised output paths (`docs/reviews/`, `docs/security/`), release notes generation in documentation phase, verification-gate skill for all phases
 - **v4.1** — new structured-logging skill (cross-cutting: architect, security, developer, reviewer), retrospective protocol for self-improving feedback loops, conventional comments format in code-review, property-based testing in TDD, architectural fitness functions, serverless/edge threat vectors in security-audit, process learnings in release-docs
-- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs. v5.2+ added artifact timestamps. v5.3 added skill size convention with progressive disclosure. v5.4 added three-level test coverage (unit/integration/E2E). v5.5 added reviewer independence, adversarial gate roles, separate-context enforcement, and source_spec-anchored reviews.
+- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs. v5.2+ added artifact timestamps. v5.3 added skill size convention with progressive disclosure. v5.4 added three-level test coverage (unit/integration/E2E). v5.5 added reviewer independence, adversarial gate roles, separate-context enforcement, and source_spec-anchored reviews. v5.6 hardened Codex review methods and added known-risks verification in `/implement`. v5.7 added command↔skill wiring verification with `lib/wiring-check.js`. v5.8 hardened code-review skill with schema impact tracing, drift checks, reproduction requirements, and symmetric gate enforcement. v5.9 added CLAUDE.md section-level sync via `--sync-claude-md` flag.
 
 ---
 

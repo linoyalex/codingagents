@@ -34,7 +34,7 @@ bash /path/to/codingagents/upgrade.sh --codex
 ## Upgrade safety
 
 - Strongly avoid upgrading in the middle of an active feature cycle when a release changes gates, handoff requirements, command contracts, or required artifacts.
-- The current published example is `5.4.0`, which adds a new Phase 3 gating factor: integration-test output is now a required artifact and the verification step checks for visible-effect coverage against the production entry point.
+- The current published example is `5.9.0`, which adds a `--sync-claude-md` flag to `init.sh` and `upgrade.sh`. Without the flag, behavior is unchanged. If used on a legacy project, managed markers are inserted into CLAUDE.md — review the result to verify user content was preserved.
 - Safest path: finish the current feature before upgrade.
 - If you already upgraded mid-cycle, run `/status` first and resume from the last stable phase whose outputs satisfy the new release requirements.
 
