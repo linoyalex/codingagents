@@ -17,9 +17,6 @@
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
-| 8 | [ISS-043](tickets/ISS-043.md) | P1 — High | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
-| 8 | [ISS-045](tickets/ISS-045.md) | P1 — High | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
-| 8 | [ISS-049](tickets/ISS-049.md) | P1 — High | Feature | — | QA must default to fixture-driven behavioral tests for executable code, not structural checks |
 | 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 (closed) | Prevent scope expansion during post-review artifact rework |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 (closed) | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |

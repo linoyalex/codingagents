@@ -5,5 +5,6 @@
 
 | ID | Priority | Type | Title | Branch/Feature |
 |----|----------|------|-------|----------------|
-| ~~[ISS-039](tickets/ISS-039.md)~~ | ~~P1 — High~~ | ~~Feature~~ | ~~Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill~~ | ~~`feature/ISS-039-code-review-skill-hardening`~~ → merged 2026-04-15 |
-| [ISS-008](tickets/ISS-008.md) | P1 — High | Feature | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade | `feature/ISS-008-claude-md-sync` |
+| [ISS-043](tickets/ISS-043.md) | P1 — High | Feature | /test-design must instruct QA to test symmetric requirements across all enumerated components | `feature/ISS-043-045-049-qa-test-quality` |
+| [ISS-045](tickets/ISS-045.md) | P1 — High | Feature | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction | `feature/ISS-043-045-049-qa-test-quality` |
+| [ISS-049](tickets/ISS-049.md) | P1 — High | Feature | QA must default to fixture-driven behavioral tests for executable code, not structural checks | `feature/ISS-043-045-049-qa-test-quality` |
