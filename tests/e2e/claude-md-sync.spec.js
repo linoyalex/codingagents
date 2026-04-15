@@ -137,26 +137,44 @@ test('E2E: init without flag, existing CLAUDE.md, non-interactive keeps existing
 // ---------------------------------------------------------------------------
 
 /**
- * Helper: run init.sh under a real PTY using `script` command.
- * Sends `input` to stdin of the PTY-wrapped process.
+ * Helper: run init.sh under a real PTY using `expect`.
+ * Waits for the interactive prompt, sends `input`, then captures output.
  * Returns { output, exitCode, tmpDir }.
+ *
+ * Uses `expect` (Tcl) instead of `script` for reliable PTY I/O —
+ * macOS `script(1)` does not relay piped stdin to the child process.
  */
 function runInitUnderPty(tmpDir, input) {
   const initPath = path.join(ROOT_DIR, 'init.sh');
   const outputFile = path.join(tmpDir, 'pty-output.log');
 
-  // Create a wrapper script that feeds input to init.sh under a PTY
-  const wrapperPath = path.join(tmpDir, 'pty-wrapper.sh');
-  const escapedInput = input.replace(/'/g, "'\\''");
-  fs.writeFileSync(wrapperPath, [
-    '#!/usr/bin/env bash',
-    `cd "${tmpDir}"`,
-    `printf '${escapedInput}' | script -q "${outputFile}" bash "${initPath}" 2>&1`,
-    'exit $?',
+  // Build an expect script that waits for the prompt, sends input, captures output
+  const sendChar = input.length > 0 ? input.charAt(0) : '';
+  const expectPath = path.join(tmpDir, 'pty-driver.exp');
+  // If input is empty (EOF), just close stdin without sending
+  const sendBlock = sendChar
+    ? `expect {
+  -re "overwrite|CLAUDE.md exists" { send "${sendChar}\\r" }
+  timeout { exit 1 }
+}`
+    : `expect {
+  -re "overwrite|CLAUDE.md exists" { close -i $spawn_id; wait }
+  timeout { exit 1 }
+}`;
+
+  fs.writeFileSync(expectPath, [
+    '#!/usr/bin/env expect',
+    `log_file -noappend "${outputFile}"`,
+    'set timeout 15',
+    `spawn bash "${initPath}"`,
+    sendBlock,
+    'expect eof',
+    'catch wait result',
+    'exit [lindex $result 3]',
   ].join('\n'), { mode: 0o755 });
 
   try {
-    execSync(`bash "${wrapperPath}"`, {
+    execSync(`expect "${expectPath}"`, {
       cwd: tmpDir,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -479,16 +497,62 @@ test('E2E: malformed markers skip section with warning, exit 0', () => {
 
 // ---------------------------------------------------------------------------
 // E2E: missing docs/CLAUDE.md — error exit
+//
+// init.sh resolves source via SCRIPT_DIR (dirname of $0), so we must create
+// a source directory that mirrors the repo structure but omits docs/CLAUDE.md.
 // ---------------------------------------------------------------------------
 
+/**
+ * Create a minimal source directory with init.sh and its dependencies,
+ * but WITHOUT docs/CLAUDE.md so the missing-source path is exercised.
+ */
+function createSourceDirWithoutDocsClaude() {
+  const sourceDir = makeTempDir('missing-source-scripts');
+  // Copy init.sh
+  fs.copyFileSync(path.join(ROOT_DIR, 'init.sh'), path.join(sourceDir, 'init.sh'));
+  // Copy lib/sync-claude-md.sh
+  fs.mkdirSync(path.join(sourceDir, 'lib'), { recursive: true });
+  fs.copyFileSync(
+    path.join(ROOT_DIR, 'lib', 'sync-claude-md.sh'),
+    path.join(sourceDir, 'lib', 'sync-claude-md.sh')
+  );
+  // Copy CLAUDE.md template (init.sh copies this to target)
+  fs.copyFileSync(path.join(ROOT_DIR, 'CLAUDE.md'), path.join(sourceDir, 'CLAUDE.md'));
+  // Copy role files (init.sh iterates ROLE_*.md)
+  for (const f of fs.readdirSync(ROOT_DIR).filter(n => n.startsWith('ROLE_') && n.endsWith('.md'))) {
+    fs.copyFileSync(path.join(ROOT_DIR, f), path.join(sourceDir, f));
+  }
+  // Copy commands, skills, hooks, schemas dirs
+  for (const dir of ['commands', 'skills', 'hooks', 'schemas']) {
+    const src = path.join(ROOT_DIR, dir);
+    if (fs.existsSync(src)) {
+      fs.cpSync(src, path.join(sourceDir, dir), { recursive: true });
+    }
+  }
+  // Intentionally do NOT create docs/CLAUDE.md
+  return sourceDir;
+}
+
 test('E2E: sync aborts when docs/CLAUDE.md is missing from source', () => {
-  const tmpDir = makeTempDir('missing-source');
-  // Don't copy any source docs
-  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  const sourceDir = createSourceDirWithoutDocsClaude();
+  const tmpDir = makeTempDir('missing-source-target');
   fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), '# Project\n');
 
-  const { exitCode } = runScript('init.sh', '--sync-claude-md', { cwd: tmpDir });
-  assert.notEqual(exitCode, 0, 'must exit non-zero when docs/CLAUDE.md is missing');
-
-  cleanupDir(tmpDir);
+  try {
+    const cmd = `bash ${path.join(sourceDir, 'init.sh')} --sync-claude-md`;
+    const result = execSync(cmd, {
+      cwd: tmpDir,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 30000,
+    });
+    assert.fail('should have exited non-zero when docs/CLAUDE.md is missing');
+  } catch (err) {
+    assert.notEqual(err.status, 0, 'must exit non-zero when docs/CLAUDE.md is missing');
+    const output = (err.stdout || '') + (err.stderr || '');
+    assert.match(output, /docs\/CLAUDE\.md/i, 'error must mention docs/CLAUDE.md');
+  } finally {
+    cleanupDir(tmpDir);
+    cleanupDir(sourceDir);
+  }
 });
