@@ -1,22 +1,37 @@
 {
-  "feature": "code-review-skill-hardening",
-  "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "feature": "claude-md-sync",
+  "phase": 5,
+  "goal": "Diff-based code review in fresh context",
+  "scope": "Phase 6 review only",
   "relevant_files": [
-    "CHANGELOG.md",
-    "docs/CLAUDE.md"
+    "docs/features/claude-md-sync/architecture.md",
+    "docs/features/claude-md-sync/prd.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated",
-    "Release note created",
-    "docs/CLAUDE.md timestamp updated"
+    "AC1: init.sh --sync-claude-md populates eligible sections with managed markers",
+    "AC2: init.sh without flag prompts overwrite or exit with sync instructions (interactive)",
+    "AC2b: init.sh without flag copies template when no CLAUDE.md exists",
+    "AC2c: init.sh non-interactive keeps existing file with reminder",
+    "AC3: upgrade.sh --sync-claude-md replaces managed marker content, preserves rest",
+    "AC3b: upgrade.sh without flag prints sync reminder",
+    "AC3c: upgrade.sh --sync-claude-md migrates legacy files (no markers)",
+    "AC4: User content outside managed markers preserved unchanged",
+    "AC5: Output lists per-section action with counts including skipped",
+    "AC6: Byte-identical managed sections reported as unchanged",
+    "AC7: End-of-script CLAUDE.md status line reflects full outcome",
+    "AC7b: Pre-sync backup when changes pending; aborts on failure",
+    "AC8: Existing test-install-scripts.sh tests pass",
+    "AC9: New tests cover all scenarios"
   ],
   "verification_commands": [
-    "head -20 CHANGELOG.md",
-    "ls release-notes/ | tail -1"
+    "git diff main...HEAD",
+    "ls docs/features/claude-md-sync/review.md"
   ],
-  "source_spec": "docs/features/code-review-skill-hardening/prd.md",
-  "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-14T20:00:00Z"
+  "source_spec": "docs/features/claude-md-sync/prd.md",
+  "produced_by": "developer",
+  "timestamp": "2026-04-14T23:30:00Z",
+  "known_risks": [
+    "2 E2E tests fail due to platform limitations (macOS script(1) PTY input + SCRIPT_DIR source always present); contract tests cover both scenarios correctly",
+    "Missing Call Chain in arch doc — integration target chosen by QA"
+  ]
 }
