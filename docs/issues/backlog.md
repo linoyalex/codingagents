@@ -46,7 +46,7 @@
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
 | 30 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | — | Make backlog management skill configurable for different backlog systems |
 | 31 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | — | Support Codex, Gemini, and other LLMs as first-class coding agents |
-| 12 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | — | Configure default effort level and plan mode per pipeline command |
+| 11 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | — | Configure default effort level and plan mode per pipeline command |
 
 ---
 
@@ -201,7 +201,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **Wave 1 — Codex review method hardening (1):** ✅ **COMPLETE.** ISS-027 merged 2026-04-13. Codex review method hardened with install-path, sync-drift, test-truthfulness checks, and installer coverage contract tests.
 - **Wave 2 — Skill convention (2):** ✅ **COMPLETE.** ISS-013 merged 2026-04-13. Unblocked all skill content changes in Waves 3–5.
 - **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude’s code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA. ISS-044 added after RCA showed rework cycles are an unguarded scope-expansion vector (ISS-029 rev2 invented 6 ACs not in the ticket while addressing Codex findings). ISS-043/045/046 elevated to P1 after ISS-008 RCA showed QA test quality gaps cost ~50% rework in Phase 3. **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027, ISS-039, ISS-008. **Remaining:** ISS-043, ISS-045, ISS-046, ISS-044, ISS-001.
-- **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection and automatic status on fresh context. **Remaining:** ISS-028, ISS-032.
+- **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection, automatic status on fresh context, and per-command effort/plan-mode defaults. **Remaining:** ISS-028, ISS-032, ISS-047.
 - **Wave 5 — Release and planning structure (12):** Introduce semver and connect backlog planning to major/minor/patch release intent. **Remaining:** ISS-030.
 - **Wave 6 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews. **Remaining:** ISS-023, ISS-006, ISS-037, ISS-025, ISS-015, ISS-012.
 - **Wave 7 — Skill polish (20–21):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements. **Remaining:** ISS-019, ISS-017.
