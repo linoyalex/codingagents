@@ -164,17 +164,38 @@ test('Integration: upgrade.sh --sync-claude-md preserves user content outside ma
 
 // ---------------------------------------------------------------------------
 // Integration: sync with missing docs/CLAUDE.md exits non-zero
+//
+// init.sh resolves source via SCRIPT_DIR (dirname of $0), so we must create
+// an isolated source directory that has init.sh + dependencies but omits
+// docs/CLAUDE.md. Running the real repo's init.sh would always find docs/CLAUDE.md.
 // ---------------------------------------------------------------------------
 
 test('Integration: sync aborts with error when docs/CLAUDE.md is missing', () => {
-  const tmpDir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'claude-md-sync-missing-'));
+  // Build a source dir with init.sh and its dependencies, minus docs/CLAUDE.md
+  const sourceDir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'claude-md-sync-src-'));
+  fs.copyFileSync(path.join(ROOT_DIR, 'init.sh'), path.join(sourceDir, 'init.sh'));
+  fs.mkdirSync(path.join(sourceDir, 'lib'), { recursive: true });
+  fs.copyFileSync(
+    path.join(ROOT_DIR, 'lib', 'sync-claude-md.sh'),
+    path.join(sourceDir, 'lib', 'sync-claude-md.sh')
+  );
+  fs.copyFileSync(path.join(ROOT_DIR, 'CLAUDE.md'), path.join(sourceDir, 'CLAUDE.md'));
+  for (const f of fs.readdirSync(ROOT_DIR).filter(n => n.startsWith('ROLE_') && n.endsWith('.md'))) {
+    fs.copyFileSync(path.join(ROOT_DIR, f), path.join(sourceDir, f));
+  }
+  for (const dir of ['commands', 'skills', 'hooks', 'schemas']) {
+    const src = path.join(ROOT_DIR, dir);
+    if (fs.existsSync(src)) {
+      fs.cpSync(src, path.join(sourceDir, dir), { recursive: true });
+    }
+  }
+  // Intentionally do NOT create docs/CLAUDE.md in sourceDir
 
-  // Create minimal structure WITHOUT docs/CLAUDE.md
-  fs.mkdirSync(path.join(tmpDir, '.claude'), { recursive: true });
+  const tmpDir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'claude-md-sync-missing-'));
 
   try {
     execSync(
-      `bash ${path.join(ROOT_DIR, 'init.sh')} --sync-claude-md`,
+      `bash ${path.join(sourceDir, 'init.sh')} --sync-claude-md`,
       {
         cwd: tmpDir,
         encoding: 'utf8',
@@ -184,13 +205,14 @@ test('Integration: sync aborts with error when docs/CLAUDE.md is missing', () =>
     );
     assert.fail('init.sh --sync-claude-md should fail when docs/CLAUDE.md is missing');
   } catch (err) {
-    assert.notEqual(
-      err.status,
-      0,
-      'Exit code must be non-zero when docs/CLAUDE.md is missing'
+    // err.status is the process exit code; assert.fail would set it to undefined
+    assert.ok(
+      typeof err.status === 'number' && err.status !== 0,
+      `must exit non-zero when docs/CLAUDE.md is missing (got status: ${err.status})`
     );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(sourceDir, { recursive: true, force: true });
   }
 });
 
