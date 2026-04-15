@@ -1,5 +1,5 @@
 ## Feature: QA Test Quality Hardening
-**Generated:** 2026-04-15T23:00:00Z
+**Generated:** 2026-04-15T23:30:00Z
 **Phase:** Specify | Date: 2026-04-15
 **Tickets:** ISS-043, ISS-045, ISS-049
 
@@ -44,12 +44,13 @@ Traceability: PRD AC1-5a = ISS-043 AC1-5, PRD AC6-8a = ISS-045 AC1-3, PRD AC9-14
 #### ISS-049 — Fixture-driven test strategy
 
 - [ ] **AC9:** Given the TDD skill (SKILL.md or a sibling reference file loaded by it) is read by the QA agent, when the production artifact is executable code (shell script, JS module), then the skill includes guidance distinguishing structural checks (for declarative artifacts) from fixture-driven behavioral tests (for executable code).
-- [ ] **AC10:** Given `commands/test-design.md` is read by the QA agent, when deciding test strategy, then the command includes a 3-way decision point routing QA to the appropriate test pattern: (1) declarative text (markdown command/skill) → structural checks, (2) executable code (shell script, JS module, Python) → fixture-driven behavioral tests, (3) config with runtime semantics (JSON schema, settings with validation) → schema validation + fixture loading. Hybrid artifacts (e.g., templates that generate code) route to the most demanding strategy.
+- [ ] **AC10:** Given `commands/test-design.md` is read by the QA agent, when deciding test strategy, then the command includes a 3-way decision point routing QA to the appropriate test pattern: (1) declarative text (markdown command/skill) → structural checks, (2) executable code (shell script, JS module, Python) → fixture-driven behavioral tests, (3) config with runtime semantics (JSON schema, settings with validation) → schema validation + fixture loading. Hybrid artifacts (e.g., templates that generate code, configs with validation hooks) route by precedence: fixture-driven > schema+fixture > structural. If an artifact has any executable behavior, use fixture-driven tests.
 - [ ] **AC11:** Given the guidance in AC9/AC10, when a QA agent reads it, then it includes an artifact-type-to-test-strategy table with at least the three categories from AC10 and their rationale, so agents can pattern-match without ambiguity.
 - [ ] **AC11a (Skill-side test):** Given the test suite runs, when contract tests execute, then a test verifies the artifact-type routing guidance exists in the TDD skill (SKILL.md or its sibling reference file) using structural anchors.
 - [ ] **AC12 (No regression):** Given the existing test suite, when all tests run after implementation, then all previously passing tests continue to pass.
 - [ ] **AC13 (Stack-agnostic):** Given the guidance in AC9/AC10/AC11, when read by any agent, then it is not specific to one language. Minimum bar: at least two distinct toolchain examples (e.g., `node --test` + `pytest`, or `go test` + `npm test`) and "adapt to your stack" language.
 - [ ] **AC14 (Sibling discoverability):** Given the architect chooses to split TDD skill content into a sibling reference file, then `SKILL.md` must contain an explicit `[See reference: ...]` link to the sibling file following the progressive disclosure convention in `docs/CLAUDE.md`. A contract test verifies the link exists if a sibling file is present.
+- [ ] **AC14a (Skill size compliance):** Given the implementation is complete, then a contract test verifies one of: (a) a sibling reference file exists under `skills/tdd/` and `SKILL.md` contains a `[See reference: ...]` link to it, OR (b) `SKILL.md` remains under the prose line budget (120 lines), OR (c) `docs/features/qa-test-quality/architecture.md` contains an explicit "Skill Size Exception" section documenting why exceeding the budget is justified. At least one of these three conditions must be true.
 
 ### Screen States
 
