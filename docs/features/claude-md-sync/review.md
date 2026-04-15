@@ -75,4 +75,4 @@ The E2E test for missing `docs/CLAUDE.md` creates a temp dir without docs, but `
 1. ~~**2 E2E test failures**~~ — **RESOLVED.** Both E2E failures fixed per Codex test design review feedback:
    - PTY overwrite: replaced macOS-specific `script(1)` with `expect` for reliable cross-platform PTY I/O (all 4 PTY tests now pass)
    - Missing source: test now creates a source directory without `docs/CLAUDE.md` so `SCRIPT_DIR` resolves correctly (16/16 E2E pass)
-2. **ISS-046 created** — original tracking ticket; both issues now resolved.
+2. **ISS-049 created** — original tracking ticket; both issues now resolved.
