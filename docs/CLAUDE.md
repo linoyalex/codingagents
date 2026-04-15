@@ -159,6 +159,7 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 - **upgrade.sh idempotency gap** — resolve-feature.js copy is guarded by `if [ "$CORE_NEEDS_UPGRADE" = true ]`, so projects with recent core versions that re-run upgrade.sh won't receive the file if core is already up to date but the file is missing. Low risk in practice, but noted for future improvements to installer idempotency.
 - **Gate commands must stay symmetric** — `commands/review.md` and `commands/security-gate.md` must both contain `Source Spec Verification`, `Separate Context Check`, and `Symmetric Gate Enforcement` sections. If one gate adds a check, the other must add it too. Contract tests assert this invariant across both files simultaneously. ISS-039 discovered that a missing section in `security-gate.md` caused every reviewer following the symmetric enforcement instruction to file a false-positive HIGH finding.
 - **Integration tests depend on architecture documentation** — The TDD skill (ISS-022) now requires integration tests to understand call chains and entry points. If the Phase 2 architecture doc lacks a "Call Chain" or "Integration Points" section, the Phase 3 QA agent must note this gap in a comment and mark it in the handoff. Phase 2 architects should include these sections proactively to avoid Phase 3 delays. Future work (ISS-023) will make call chains a Phase 2 requirement.
+- **CLAUDE.md sync uses managed markers and a fail-closed allowlist** — `init.sh --sync-claude-md` and `upgrade.sh --sync-claude-md` sync only 3 section IDs (`code-conventions-must-follow`, `architecture-notes`, `known-gotchas`) from `docs/CLAUDE.md` to consumer projects. Content inside `<!-- managed:start/end -->` markers is framework-owned; content outside is user-owned and never touched. New bullets in `docs/CLAUDE.md` do NOT sync downstream until added to the allowlist in `lib/sync-claude-md.sh`. Legacy files without markers are migrated on first sync — review preserved lines for stale template text.
 
 ---
 
@@ -173,5 +174,5 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 
 ---
 
-*Last updated: 2026-04-14*
-*Updated by: documentation-specialist (v5.8.0 — code-review-skill-hardening)*
+*Last updated: 2026-04-15*
+*Updated by: documentation-specialist (v5.9.0 — claude-md-sync)*

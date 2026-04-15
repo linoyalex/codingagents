@@ -13,6 +13,38 @@ No unreleased changes documented yet.
 
 ---
 
+## [5.9.0] — 2026-04-15
+
+### Added
+- **Section-level CLAUDE.md sync via `--sync-claude-md` flag (AC1, AC3)** — `init.sh` and `upgrade.sh` now support opt-in section-level sync from `docs/CLAUDE.md` to the consumer's root `CLAUDE.md` using managed HTML comment markers (`<!-- managed:start:<id> -->`/`<!-- managed:end:<id> -->`)
+- **Fail-closed allowlist for eligible sections** — only 3 section IDs sync downstream (`code-conventions-must-follow`, `architecture-notes`, `known-gotchas`); new content in `docs/CLAUDE.md` does not sync until explicitly approved
+- **Interactive prompt for existing CLAUDE.md (AC2)** — when `init.sh` finds an existing `CLAUDE.md` and stdin is a terminal, user is prompted to overwrite or exit; invalid input and EOF default to exit (safe option); non-interactive mode keeps existing file with reminder (AC2c)
+- **Legacy migration for pre-sync files (AC3c)** — `upgrade.sh --sync-claude-md` on files without markers locates sections by heading, strips template scaffolding and template-identical lines, inserts managed markers, and preserves genuine user content below
+- **Per-section action report with status line (AC5, AC7)** — sync output lists each section with `[added]`, `[updated]`, `[unchanged]`, `[migrated]`, or `[skipped]` labels; end-of-script status line summarizes the outcome
+- **No-op detection (AC6)** — byte-identical managed sections reported as `[unchanged]` with no file modification
+- **Pre-sync backup with abort-on-failure (AC7b)** — creates `CLAUDE.md.pre-sync` before modifying existing files when changes are pending; aborts sync if backup cannot be created
+- **New `lib/sync-claude-md.sh` library** — standalone bash 3.2+ compatible library sourced on-demand by `init.sh` and `upgrade.sh`; uses awk for section extraction and atomic writes via temp files
+- **44 new tests across 3 layers (AC9)** — 24 contract tests (wiring + fixture-driven behavioral), 4 integration tests, 16 E2E tests including PTY-backed interactive prompt tests via `expect`
+
+### Changed
+- **`init.sh` interactive prompt redesigned** — previous `(y/N)` overwrite prompt replaced with `(o)verwrite / (e)xit` prompt; exit choice now halts the script immediately (before any file operations) to prevent partial installs
+- **`upgrade.sh` confirmation prompt conditional** — confirmation prompt now only shown when core/codex changes are pending; `--sync-claude-md` alone skips the prompt
+
+### Fixed
+- **Write-before-validate in init.sh** — `docs/CLAUDE.md` existence is now checked before copying the template or creating a backup, preventing file modification on validation failure
+- **Vacuous missing-source tests** — E2E and integration tests for the missing-source error path now create isolated source directories without `docs/CLAUDE.md` instead of relying on the real repo (where the file always exists)
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
 ## [5.8.0] — 2026-04-14
 
 ### Added
