@@ -18,10 +18,10 @@
 |-------|----|----------|------|------------|-------|
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
 | 8 | ~~[ISS-036](tickets/ISS-036.md)~~ | ~~P1 — High~~ | ~~Feature~~ | ~~ISS-013~~ | ~~Add command↔skill wiring verification to prevent artifact-slot drift~~ → closed 2026-04-14 |
-| 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
-| 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
-| 8 | [ISS-045](tickets/ISS-045.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
-| 8 | [ISS-046](tickets/ISS-046.md) | P2 — Medium | Feature | — | QA must default to fixture-driven behavioral tests for executable code, not structural checks |
+| 8 | ~~[ISS-039](tickets/ISS-039.md)~~ | ~~P1 — High~~ | ~~Feature~~ | ~~—~~ | ~~Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill~~ → closed 2026-04-15 |
+| 8 | [ISS-043](tickets/ISS-043.md) | P1 — High | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
+| 8 | [ISS-045](tickets/ISS-045.md) | P1 — High | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
+| 8 | [ISS-046](tickets/ISS-046.md) | P1 — High | Feature | — | QA must default to fixture-driven behavioral tests for executable code, not structural checks |
 | 9 | ~~[ISS-029](tickets/ISS-029.md)~~ | P2 — Medium | Feature | — | ~~Add clarification checkpoints + ticket fidelity check to `/specify` and `/architect`~~ → closed |
 | 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 | Prevent scope expansion during post-review artifact rework |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 | Add invariants-audit skill for cross-layer semantic review |
@@ -94,12 +94,9 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    │    ISS-027 — install-path checks + installer contract test (new AC7)
    │    Closed 2026-04-13
    │
-   ├─ Branch D: feature/ISS-039-code-review-skill-hardening
+   ├─ Branch D: feature/ISS-039-code-review-skill-hardening  ✅ MERGED
    │    ISS-039 — downstream-impact, drift-check, reproduction steps for Claude review
-   │    Touches: skills/code-review/SKILL.md, commands/review.md, tests/node/
-   │    Depends on: Batch 2 Branch B (same files). No overlap with A/B/C/E.
-   │    WHY HERE: Claude-side counterpart to ISS-027 (Codex). RCA showed Claude's
-   │    review skill missed 4 findings Codex caught — same defect classes.
+   │    Closed 2026-04-15
    │
    ├─ Branch E: feature/ISS-040-checkpoint-js-detection  ✅ MERGED (fixed in Batch 2 Branch B)
    │    ISS-040 — detectPhase() recognize .js/.mjs test files
@@ -122,6 +119,19 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    └─ Branch G: feature/ISS-042-implement-known-risks  ✅ MERGED
         ISS-042 — /implement must instruct developer to verify handoff known_risks
         Closed 2026-04-13
+
+Batch 2.75: ISS-043 + ISS-045 + ISS-046  (single branch, same files)
+   └─ Branch A: feature/ISS-043-045-046-qa-test-quality
+        ISS-043 — symmetric testing across all enumerated components
+        ISS-045 — adversarial contract robustness testing
+        ISS-046 — fixture-driven behavioral tests for executable code
+        Touches: commands/test-design.md, skills/tdd/SKILL.md, tests/node/
+        No overlap with Batch 3. WHY HERE: ISS-008 RCA showed QA applied
+        structural tests to executable code (ISS-046), didn't test whether
+        tests actually exercised claimed paths (ISS-045), and didn't verify
+        all members of symmetric sets (ISS-043). Codex caught all three
+        gap classes. Closing these before Batch 3 prevents the same rework
+        pattern on ISS-001 and ISS-044.
 
 Batch 3: ISS-001 + ISS-044  (parallel branches, no file overlap)
    ├─ Branch A: feature/ISS-001-invariants-audit
@@ -189,7 +199,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 
 - **Wave 1 — Codex review method hardening (1):** ✅ **COMPLETE.** ISS-027 merged 2026-04-13. Codex review method hardened with install-path, sync-drift, test-truthfulness checks, and installer coverage contract tests.
 - **Wave 2 — Skill convention (2):** ✅ **COMPLETE.** ISS-013 merged 2026-04-13. Unblocked all skill content changes in Waves 3–5.
-- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude’s code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA. ISS-044 added after RCA showed rework cycles are an unguarded scope-expansion vector (ISS-029 rev2 invented 6 ACs not in the ticket while addressing Codex findings). **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027. **Remaining:** ISS-039, ISS-043, ISS-044, ISS-001, ISS-008, ISS-046.
+- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude’s code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA. ISS-044 added after RCA showed rework cycles are an unguarded scope-expansion vector (ISS-029 rev2 invented 6 ACs not in the ticket while addressing Codex findings). ISS-043/045/046 elevated to P1 after ISS-008 RCA showed QA test quality gaps cost ~50% rework in Phase 3. **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027, ISS-039, ISS-008. **Remaining:** ISS-043, ISS-045, ISS-046, ISS-044, ISS-001.
 - **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection and automatic status on fresh context. **Remaining:** ISS-028, ISS-032.
 - **Wave 5 — Release and planning structure (12):** Introduce semver and connect backlog planning to major/minor/patch release intent. **Remaining:** ISS-030.
 - **Wave 6 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews. **Remaining:** ISS-023, ISS-006, ISS-037, ISS-025, ISS-015, ISS-012.
