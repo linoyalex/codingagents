@@ -27,6 +27,7 @@
 | 13 | [ISS-051](tickets/ISS-051.md) | P2 — Medium | Feature | — | Add release-manager skill and /release-plan command for ongoing release planning |
 | 14 | [ISS-046](tickets/ISS-046.md) | P2 — Medium | Architecture | — | Introduce shared project configuration and pipeline profiles for portable multi-project use |
 | 14 | [ISS-023](tickets/ISS-023.md) | P2 — Medium | Feature | — | Strengthen architecture decision skill with wiring diagrams, evidence rules, and observability naming |
+| 14 | [ISS-054](tickets/ISS-054.md) | P2 — Medium | Architecture | — | Formalize ADR practice — architect must read, write, and promote architectural decisions |
 | 15 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | ISS-046 | Implement the first portability slice: configurable paths, outputs, diff/test commands, and work-type profiles |
 | 15 | [ISS-006](tickets/ISS-006.md) | P2 — Medium | Feature | — | Add `review-history.md` to capture cross-review rework in feature artifacts |
 | 16 | [ISS-037](tickets/ISS-037.md) | P2 — Medium | Feature | — | Make review artifacts additive and expose the latest review state clearly |
