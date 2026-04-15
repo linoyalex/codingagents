@@ -94,8 +94,9 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    │    ISS-027 — install-path checks + installer contract test (new AC7)
    │    Closed 2026-04-13
    │
-   ├─ Branch D: feature/ISS-039-code-review-skill-hardening
+   ├─ Branch D: feature/ISS-039-code-review-skill-hardening  ✅ MERGED
    │    ISS-039 — downstream-impact, drift-check, reproduction steps for Claude review
+   │    Closed 2026-04-15
    │    Touches: skills/code-review/SKILL.md, commands/review.md, tests/node/
    │    Depends on: Batch 2 Branch B (same files). No overlap with A/B/C/E.
    │    WHY HERE: Claude-side counterpart to ISS-027 (Codex). RCA showed Claude's
@@ -105,8 +106,9 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    │    ISS-040 — detectPhase() recognize .js/.mjs test files
    │    Closed 2026-04-13 — landed as part of review-hardening branch.
    │
-   ├─ Branch F: feature/ISS-008-claude-md-sync
+   ├─ Branch F: feature/ISS-008-claude-md-sync  ✅ MERGED
    │    ISS-008 — sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade
+   │    Closed 2026-04-15
    │    Touches: init.sh, upgrade.sh, CLAUDE.md, tests/test-install-scripts.sh
    │    No overlap with A/B/C/D/E. WHY HERE: Accelerated from Wave 9 (Order 23)
    │    to Batch 2.5 because the split-brain between root CLAUDE.md (template
@@ -122,6 +124,17 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
    └─ Branch G: feature/ISS-042-implement-known-risks  ✅ MERGED
         ISS-042 — /implement must instruct developer to verify handoff known_risks
         Closed 2026-04-13
+
+Batch 2.75: ISS-043 + ISS-045 + ISS-049  (single branch — all touch same files)
+   └─ Branch A: feature/ISS-043-045-049-qa-test-quality
+        ISS-043 — symmetric testing across all enumerated components
+        ISS-045 — adversarial contract robustness testing
+        ISS-049 — fixture-driven behavioral tests for executable code
+        Touches: commands/test-design.md, skills/tdd/SKILL.md, tests/node/
+        Depends on: ISS-036 (closed). No overlap with Batch 3.
+        WHY COMBINED: All three address Phase 3 test quality gaps from
+        different angles, all touch the same two files. Single branch
+        avoids 3 serial merge conflicts in commands/test-design.md.
 
 Batch 3: ISS-001 + ISS-044  (parallel branches, no file overlap)
    ├─ Branch A: feature/ISS-001-invariants-audit
@@ -160,6 +173,7 @@ Batch 3: ISS-001 + ISS-044  (parallel branches, no file overlap)
 | ISS-043 | | | | ✓ | | | | | ✓ | | | | |
 | ISS-044 | | | | | ✓ | | ✓ | | ✓ | | | | |
 | ISS-045 | ✓ | | | ✓ | | | | | ✓ | | | | |
+| ISS-049 | ✓ | | | ✓ | | | | | ✓ | | | | |
 | ISS-001 | | | | | | | | | | | | | ✓ |
 
 Batch 2 Branch A and B → no overlap, safe in parallel.
@@ -174,7 +188,7 @@ Batch 2.5 A/B/C/D/E/F → no overlap between each other.
 ISS-042 touches `commands/implement.md` and `skills/tdd/` — no overlap with Batch 2.5.
   Ran as Batch 2.5 Branch G. ✅ MERGED 2026-04-13.
 ISS-043 touches `commands/test-design.md` — overlaps with ISS-036 (Batch 2.5 A).
-  Must run after ISS-036 merges, so deferred to Batch 3.
+  Must run after ISS-036 merges. Combined with ISS-045 and ISS-049 in Batch 2.75.
 ISS-001 depends on ISS-024 + ISS-014 + ISS-036 → must wait for Batch 2 + 2.5.
 ISS-044 depends on ISS-029 (same files: commands/specify.md, commands/architect.md).
   Also touches codex/reviewers/review-prd.md — no overlap with ISS-027 (review-code.md).
@@ -225,6 +239,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **ISS-040 at Order 8** is a pre-existing bug in `checkpoint.js` exposed during review-hardening RCA. `detectPhase()` hard-codes `.ts` test extensions, misclassifying `.js`-based test suites. No file overlap with anything in Batch 2.5, so it runs as a parallel branch.
 - **ISS-042 at Order 8** ✅ closed 2026-04-13. Ran as Batch 2.5 Branch G. known_risks read instruction added to implement.md and TDD skill.
 - **ISS-043 at Order 8** is a Phase 3 quality gap — QA tested one representative of each symmetric pair, not all members. Touches `commands/test-design.md` which overlaps with ISS-036 (Batch 2.5 A). Must wait for ISS-036 to merge; deferred to Batch 3.
+- **ISS-049 at Order 8** is a Phase 3 test strategy gap — QA defaulted to structural string-presence checks for executable code (`lib/sync-claude-md.sh`) instead of fixture-driven behavioral tests. RCA from ISS-008 Codex review: ~50% of Phase 3 rework was rewriting structural tests as fixture-driven ones. Touches the same files as ISS-043/045 (`commands/test-design.md`, `skills/tdd/SKILL.md`). Combined in Batch 2.75.
 - **ISS-045 at Order 8** is a complementary Phase 3 quality gap — QA accepted a contract specification literally without adversarially testing its edge cases (comment-only matches, unbounded escape hatches). Found by Codex review on ISS-027 architecture. Touches the same files as ISS-043 (`commands/test-design.md`, `skills/tdd/SKILL.md`). Can be combined with ISS-043 in a single branch. Originally ISS-044; renumbered to avoid conflict with ISS-044 (scope expansion prevention).
 - **ISS-034 at Order 16** is now sequenced behind ISS-046 so backlog-system flexibility can use the shared project configuration model instead of inventing a one-off config surface in the backlog skill alone.
 - **ISS-038 at Order 17** remains intentionally separate from ISS-005. ISS-005 validates the current framework through dogfooding; ISS-038 is the broader architecture effort to make Codex, Gemini, and future LLMs first-class authoring agents rather than Claude-centric adapters. It now sits behind ISS-046 so agent routing builds on the same shared project configuration foundation as paths, profiles, and optional functions.
