@@ -46,6 +46,7 @@
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
 | 30 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | — | Make backlog management skill configurable for different backlog systems |
 | 31 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | — | Support Codex, Gemini, and other LLMs as first-class coding agents |
+| 12 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | — | Configure default effort level and plan mode per pipeline command |
 
 ---
 
