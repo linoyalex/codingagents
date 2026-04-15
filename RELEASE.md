@@ -65,8 +65,9 @@ Recommended current roadmap:
 | `5.9.0` | `ISS-008` — CLAUDE.md section-level sync | **Shipped 2026-04-15** |
 | `5.10.0` | `ISS-043`, `ISS-045`, `ISS-046` — QA test quality hardening (Batch 2.75) | Planned |
 | `5.11.0` | `ISS-044`, `ISS-001` — scope control + invariants audit (Batch 3) | Planned |
-| `5.12.0` | `ISS-028`, `ISS-032` — ticket-aware selection + auto-status (Wave 4) | Planned |
+| `5.12.0` | `ISS-028`, `ISS-032`, `ISS-047` — ticket-aware selection, auto-status, per-command effort/plan-mode (Wave 4) | Planned |
 | `5.13.0` | `ISS-030` — semver automation (Wave 5) | Planned |
+| `5.14.0+` | `ISS-031`, `ISS-034`, `ISS-038` — doc artifact registry, backlog configurability, multi-agent routing (Wave 9) | Planned |
 
 Patch rule:
 
