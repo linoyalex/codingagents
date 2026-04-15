@@ -17,15 +17,16 @@
 | Order | ID | Priority | Type | Depends on | Title |
 |-------|----|----------|------|------------|-------|
 | 6 | [ISS-035](tickets/ISS-035.md) | P2 — Medium | Feature | — | Capture the backlog ticket ID in generated PRDs |
-| 8 | [ISS-039](tickets/ISS-039.md) | P1 — High | Feature | — | Add downstream-impact, drift-check, reproduction steps, and symmetric gate enforcement to code-review skill |
-| 8 | [ISS-043](tickets/ISS-043.md) | P2 — Medium | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
-| 8 | [ISS-045](tickets/ISS-045.md) | P2 — Medium | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
-| 8 | [ISS-008](tickets/ISS-008.md) | P1 — High | Feature | — | Sync project CLAUDE.md with reference docs/CLAUDE.md on init/upgrade |
+| 8 | [ISS-043](tickets/ISS-043.md) | P1 — High | Feature | — | /test-design must instruct QA to test symmetric requirements across all enumerated components |
+| 8 | [ISS-045](tickets/ISS-045.md) | P1 — High | Feature | — | /test-design must instruct QA to adversarially test contract robustness, not just satisfaction |
+| 8 | [ISS-049](tickets/ISS-049.md) | P1 — High | Feature | — | QA must default to fixture-driven behavioral tests for executable code, not structural checks |
 | 10 | [ISS-044](tickets/ISS-044.md) | P2 — Medium | Feature | ISS-029 (closed) | Prevent scope expansion during post-review artifact rework |
 | 10 | [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | ISS-036 (closed) | Add invariants-audit skill for cross-layer semantic review |
 | 11 | [ISS-028](tickets/ISS-028.md) | P2 — Medium | Feature | — | Add ticket-aware feature selection and backlog state commands |
+| 11 | [ISS-050](tickets/ISS-050.md) | P2 — Medium | Feature | — | Configure default effort level and plan mode per pipeline command |
 | 12 | [ISS-032](tickets/ISS-032.md) | P2 — Medium | Feature | — | Automatically run /status on fresh context to orient the agent |
 | 13 | [ISS-030](tickets/ISS-030.md) | P2 — Medium | Architecture | — | Introduce semantic versioning and tie backlog planning to major/minor/patch releases |
+| 13 | [ISS-051](tickets/ISS-051.md) | P2 — Medium | Feature | — | Add release-manager skill and /release-plan command for ongoing release planning |
 | 14 | [ISS-046](tickets/ISS-046.md) | P2 — Medium | Architecture | — | Introduce shared project configuration and pipeline profiles for portable multi-project use |
 | 14 | [ISS-023](tickets/ISS-023.md) | P2 — Medium | Feature | — | Strengthen architecture decision skill with wiring diagrams, evidence rules, and observability naming |
 | 15 | [ISS-047](tickets/ISS-047.md) | P2 — Medium | Feature | ISS-046 | Implement the first portability slice: configurable paths, outputs, diff/test commands, and work-type profiles |
@@ -187,9 +188,9 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 
 - **Wave 1 — Codex review method hardening (1):** ✅ **COMPLETE.** ISS-027 merged 2026-04-13. Codex review method hardened with install-path, sync-drift, test-truthfulness checks, and installer coverage contract tests.
 - **Wave 2 — Skill convention (2):** ✅ **COMPLETE.** ISS-013 merged 2026-04-13. Unblocked all skill content changes in Waves 3–5.
-- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-036, ISS-029, ISS-027 added to this wave after cross-review pattern analysis identified three recurring defect classes not previously covered. ISS-039 added after RCA showed Claude’s code-review skill has the same gap classes as ISS-027 (Codex side). ISS-040 and ISS-041 are checkpoint.js bugs surfaced during the same RCA. ISS-044 added after RCA showed rework cycles are an unguarded scope-expansion vector (ISS-029 rev2 invented 6 ACs not in the ticket while addressing Codex findings). **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027. **Remaining:** ISS-039, ISS-043, ISS-044, ISS-001, ISS-008.
-- **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection and automatic status on fresh context. **Remaining:** ISS-028, ISS-032.
-- **Wave 5 — Release and planning structure (12):** Introduce semver and connect backlog planning to major/minor/patch release intent. **Remaining:** ISS-030.
+- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-043/045/049 elevated to P1 after ISS-008 RCA showed QA test quality gaps cost ~50% rework in Phase 3. **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027, ISS-039, ISS-008. **Remaining:** ISS-043, ISS-045, ISS-049, ISS-044, ISS-001.
+- **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with ticket-aware feature selection, automatic status on fresh context, and per-command effort/plan-mode defaults. **Remaining:** ISS-028, ISS-032, ISS-050.
+- **Wave 5 — Release and planning structure (12–13):** Introduce semver, connect backlog planning to release intent, and add operational tooling to keep the release roadmap current as priorities shift. **Remaining:** ISS-030, ISS-051.
 - **Wave 6 — Project portability and configurability (14–17):** Keep the framework opinionated by default, but move project-specific paths, outputs, strictness, work-type profiles, backlog systems, and agent routing behind a shared configuration model instead of hardcoded codingagents conventions. **Remaining:** ISS-046, ISS-047, ISS-034, ISS-038.
 - **Wave 7 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, review history, additive review artifacts, self-review, post-implementation QA, and stage-matched Codex reviews. **Remaining:** ISS-023, ISS-006, ISS-037, ISS-025, ISS-015, ISS-012.
 - **Wave 8 — Skill polish (20–21):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements. **Remaining:** ISS-019, ISS-017.

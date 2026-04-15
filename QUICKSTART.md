@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+> **Current as of:** v5.9.0 (2026-04-15)
+
 This is the operator guide for adopting `codingagents` in a project and running the pipeline safely. Use:
 
 - [README.md](README.md) for the overview and current feature set
@@ -34,7 +36,7 @@ bash /path/to/codingagents/upgrade.sh --codex
 ## Upgrade safety
 
 - Strongly avoid upgrading in the middle of an active feature cycle when a release changes gates, handoff requirements, command contracts, or required artifacts.
-- The current published example is `5.4.0`, which adds a new Phase 3 gating factor: integration-test output is now a required artifact and the verification step checks for visible-effect coverage against the production entry point.
+- The current published example is `5.9.0`, which adds a `--sync-claude-md` flag to `init.sh` and `upgrade.sh`. Without the flag, behavior is unchanged. If used on a legacy project, managed markers are inserted into CLAUDE.md — review the result to verify user content was preserved.
 - Safest path: finish the current feature before upgrade.
 - If you already upgraded mid-cycle, run `/status` first and resume from the last stable phase whose outputs satisfy the new release requirements.
 
@@ -111,8 +113,15 @@ Phases 2-7 use `.claude/helpers/resolve-feature.js` and fail closed on malformed
 claude
 /status
 
+# Use plan mode + high effort for specify and architect — these phases
+# benefit from alignment before writing and thorough thinking.
+# For bug fixes or small refactors, medium effort without plan mode is fine.
+/effort high
+/plan
 /specify Add outfit recommendation feature that suggests 3 outfits from uploaded clothing
 /architect outfit-recommendations
+# Switch back for execution phases
+/effort medium
 /test-design outfit-recommendations
 /security-gate outfit-recommendations
 /implement outfit-recommendations

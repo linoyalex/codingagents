@@ -1,22 +1,22 @@
 {
-  "feature": "code-review-skill-hardening",
-  "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "feature": "claude-md-sync",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
+    "docs/features/claude-md-sync/prd.md",
     "CHANGELOG.md",
-    "docs/CLAUDE.md"
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
     "CHANGELOG.md updated",
-    "Release note created",
-    "docs/CLAUDE.md timestamp updated"
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
     "head -20 CHANGELOG.md",
-    "ls release-notes/ | tail -1"
+    "grep -i 'last updated' CLAUDE.md"
   ],
-  "source_spec": "docs/features/code-review-skill-hardening/prd.md",
-  "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-14T20:00:00Z"
+  "source_spec": "docs/features/claude-md-sync/prd.md",
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-14T23:55:00Z"
 }
