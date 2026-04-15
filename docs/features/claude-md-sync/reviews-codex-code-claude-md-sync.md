@@ -1,19 +1,17 @@
 # Review: claude-md-sync
-**Generated:** 2026-04-15T15:30:35Z
+**Generated:** 2026-04-15T16:29:29Z
 
 ## Findings
-- [MAJOR] [tests/integration/claude-md-sync.integration.test.js:169] The integration test named `sync aborts with error when docs/CLAUDE.md is missing` does not actually remove the source `docs/CLAUDE.md` that `init.sh` reads. It invokes the real repo `init.sh`, so `$SCRIPT_DIR/docs/CLAUDE.md` still exists and the script can succeed. The test then forces `assert.fail(...)`, catches its own assertion error, and treats `err.status === undefined` as a passing non-zero exit check. That makes the test vacuous and creates false confidence around a real failure path.
+- No verified findings in the reviewed diff. Residual risk: the feature still depends heavily on shell/`awk` text-shaping behavior across environments, so the strongest remaining risk is portability rather than a currently verified correctness defect.
 
 ## Open Questions
 - None.
 
 ## Merge Recommendation
-- REQUEST CHANGES
-
-## Resolutions (2026-04-15)
-- **[MAJOR] Vacuous integration test:** Fixed. Same SCRIPT_DIR issue as the prior E2E fix — created an isolated source directory without `docs/CLAUDE.md` so the error path is genuinely exercised. Also tightened the assertion to require `typeof err.status === 'number'` to prevent `assert.fail` exceptions (which have `status: undefined`) from masquerading as process failures.
+- APPROVE
 
 ## Verification Notes
 - Reviewed `git diff main...HEAD`.
-- Rechecked the current `init.sh` and `lib/sync-claude-md.sh` implementation paths. The previously identified runtime defects around the interactive exit path, write-before-validate ordering, and legacy template-line stripping appear fixed in the current diff.
-- Verified the remaining issue directly from the changed integration test: it runs the repo `init.sh` instead of an isolated source tree without `docs/CLAUDE.md`, and its catch block accepts the thrown `assert.fail` as if it were the script failure being tested.
+- Read `.claude/handoff.json` for context, though it is stale and now points at post-merge documentation work rather than the feature implementation.
+- Rechecked the current `init.sh`, `upgrade.sh`, `lib/sync-claude-md.sh`, and the changed contract/E2E/integration tests.
+- Verified that the previously identified defects are fixed in the current diff: interactive `init` exit now exits before install work, `init --sync-claude-md` validates `docs/CLAUDE.md` before modifying the target file, legacy migration now strips current-template lines, and the missing-source integration test now uses an isolated source tree and guards against swallowing `assert.fail(...)` as a fake process failure.

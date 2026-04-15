@@ -1,37 +1,22 @@
 {
   "feature": "claude-md-sync",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/claude-md-sync/architecture.md",
-    "docs/features/claude-md-sync/prd.md"
+    "docs/features/claude-md-sync/prd.md",
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC1: init.sh --sync-claude-md populates eligible sections with managed markers",
-    "AC2: init.sh without flag prompts overwrite or exit with sync instructions (interactive)",
-    "AC2b: init.sh without flag copies template when no CLAUDE.md exists",
-    "AC2c: init.sh non-interactive keeps existing file with reminder",
-    "AC3: upgrade.sh --sync-claude-md replaces managed marker content, preserves rest",
-    "AC3b: upgrade.sh without flag prints sync reminder",
-    "AC3c: upgrade.sh --sync-claude-md migrates legacy files (no markers)",
-    "AC4: User content outside managed markers preserved unchanged",
-    "AC5: Output lists per-section action with counts including skipped",
-    "AC6: Byte-identical managed sections reported as unchanged",
-    "AC7: End-of-script CLAUDE.md status line reflects full outcome",
-    "AC7b: Pre-sync backup when changes pending; aborts on failure",
-    "AC8: Existing test-install-scripts.sh tests pass",
-    "AC9: New tests cover all scenarios"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/claude-md-sync/review.md"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/features/claude-md-sync/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-14T23:30:00Z",
-  "known_risks": [
-    "2 E2E tests fail due to platform limitations (macOS script(1) PTY input + SCRIPT_DIR source always present); contract tests cover both scenarios correctly",
-    "Missing Call Chain in arch doc — integration target chosen by QA"
-  ]
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-14T23:55:00Z"
 }
