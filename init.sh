@@ -37,12 +37,20 @@ fi
 
 # Early interactive capture: when existing CLAUDE.md + no --sync-claude-md + terminal,
 # prompt the user immediately (before file operations) so PTY input is captured
-# before any pipe EOF is processed.
+# before any pipe EOF is processed. Exit immediately if user declines overwrite
+# to avoid a partial install.
 CLAUDE_MD_CHOICE=""
 if [ "$SYNC_CLAUDE_MD" = false ] && [ -f "$TARGET_DIR/CLAUDE.md" ] && [ -t 0 ]; then
   read -p "  CLAUDE.md exists — (o)verwrite with template / (e)xit to re-run with --sync-claude-md: " -n 1 -r || true
   CLAUDE_MD_CHOICE="$REPLY"
   echo
+  case "$CLAUDE_MD_CHOICE" in
+    o|O) ;; # continue with install
+    *)
+      echo "  Re-run with --sync-claude-md for section-level sync"
+      exit 0
+      ;;
+  esac
 fi
 
 # Enable trace mode for verbose output
@@ -142,38 +150,30 @@ echo "  Created docs directories (features, decisions) for project use"
 # --- CLAUDE.md ---
 echo "[6/7] Setting up CLAUDE.md..."
 if [ "$SYNC_CLAUDE_MD" = true ]; then
-  # --sync-claude-md: copy template then sync sections from docs/CLAUDE.md
+  # --sync-claude-md: validate source exists BEFORE modifying any files
+  local_source="$SCRIPT_DIR/docs/CLAUDE.md"
+  if [ ! -f "$local_source" ]; then
+    echo "Error: docs/CLAUDE.md not found at $local_source" >&2
+    exit 1
+  fi
   if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
     # Backup existing CLAUDE.md before overwriting with template
     cp "$TARGET_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md.pre-sync"
     echo "  Backup saved to CLAUDE.md.pre-sync — restore with: mv CLAUDE.md.pre-sync CLAUDE.md"
   fi
   cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-  local_source="$SCRIPT_DIR/docs/CLAUDE.md"
-  if [ ! -f "$local_source" ]; then
-    echo "Error: docs/CLAUDE.md not found at $local_source" >&2
-    exit 1
-  fi
   sync_claude_md "$local_source" "$TARGET_DIR/CLAUDE.md" "init"
   sync_exit=$?
   if [ "$sync_exit" -ne 0 ]; then
     exit "$sync_exit"
   fi
 elif [ -f "$TARGET_DIR/CLAUDE.md" ]; then
-  if [ -n "$CLAUDE_MD_CHOICE" ] || [ -t 0 ]; then
-    # Interactive: use early-captured choice
-    case "$CLAUDE_MD_CHOICE" in
-      o|O)
-        cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-        CLAUDE_MD_STATUS="overwritten with template"
-        echo "  Overwritten with template."
-        ;;
-      *)
-        echo "  Re-run with --sync-claude-md for section-level sync"
-        CLAUDE_MD_STATUS="kept existing"
-        ;;
-    esac
-  else
+  if [ "$CLAUDE_MD_CHOICE" = "o" ] || [ "$CLAUDE_MD_CHOICE" = "O" ]; then
+    # Interactive overwrite (exit/invalid/EOF already handled at early capture)
+    cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+    CLAUDE_MD_STATUS="overwritten with template"
+    echo "  Overwritten with template."
+  elif [ ! -t 0 ]; then
     # Non-interactive: keep existing, print reminder
     echo "  CLAUDE.md already exists — keeping existing file."
     echo "  Re-run with --sync-claude-md for section-level sync"

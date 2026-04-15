@@ -123,15 +123,30 @@ _sync_insert_markers() {
 # Migrate a legacy section (no markers) to marker-based.
 # Inserts markers + content, preserves non-template user content below.
 # Sets SYNC_PRESERVED_LINES global.
+# $6 (optional): template file — lines byte-identical to the template's section
+#   content are stripped (prevents stale framework text surviving as "user" content).
 _sync_migrate_section() {
   local file="$1" sid="$2" heading="$3" level="$4" cfile="$5"
+  local template_file="${6:-}"
   local sm="<!-- managed:start:${sid} -->"
   local em="<!-- managed:end:${sid} -->"
 
-  # Extract existing section content, strip template scaffolding
+  # Build a set of template lines to strip (if template provided)
+  local tpl_lines_file
+  tpl_lines_file=$(mktemp)
+  if [ -n "$template_file" ] && [ -f "$template_file" ]; then
+    _sync_extract_section "$template_file" "$heading" "$level" | \
+      awk 'NF { print }' > "$tpl_lines_file"
+  fi
+
+  # Extract existing section content, strip template scaffolding + template lines
   local preserved_file
   preserved_file=$(mktemp)
-  awk -v heading="$heading" -v level="$level" '
+  awk -v heading="$heading" -v level="$level" -v tfile="$tpl_lines_file" '
+    BEGIN {
+      while ((getline tl < tfile) > 0) tpl[tl] = 1
+      close(tfile)
+    }
     $0 == heading { collecting=1; next }
     collecting {
       if ($0 == "---") exit
@@ -143,9 +158,12 @@ _sync_migrate_section() {
       if ($0 ~ /^<!-- e\.g\./) next
       if ($0 ~ /^<!-- FILL IN/) next
       if ($0 ~ /^[[:space:]]*$/) next
+      if ($0 in tpl) next
       print
     }
   ' "$file" > "$preserved_file"
+
+  rm -f "$tpl_lines_file"
 
   SYNC_PRESERVED_LINES=$(wc -l < "$preserved_file" | tr -d ' ')
 
@@ -180,8 +198,9 @@ _sync_migrate_section() {
 # Main sync function
 # ---------------------------------------------------------------------------
 
-# Usage: sync_claude_md <source_path> <target_path> <mode>
+# Usage: sync_claude_md <source_path> <target_path> <mode> [template_path]
 #   mode: "init" or "upgrade"
+#   template_path: root template CLAUDE.md (for stripping template content during migration)
 # Sets CLAUDE_MD_STATUS global variable with result summary.
 # Prints per-section action report to stdout.
 # Returns 0 on success, 1 on error.
@@ -189,6 +208,7 @@ sync_claude_md() {
   local source_path="$1"
   local target_path="$2"
   local mode="$3"
+  local template_path="${4:-}"
 
   # --- Validate inputs ---
   if [ ! -f "$source_path" ] || [ ! -r "$source_path" ]; then
@@ -326,7 +346,7 @@ sync_claude_md() {
           ;;
         migrated)
           SYNC_PRESERVED_LINES=0
-          _sync_migrate_section "$tmp_path" "$sid" "$heading" "$level" "$cf"
+          _sync_migrate_section "$tmp_path" "$sid" "$heading" "$level" "$cf" "$template_path"
           eval "preserved_${idx}=\$SYNC_PRESERVED_LINES"
           ;;
       esac

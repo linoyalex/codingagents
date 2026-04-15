@@ -323,7 +323,7 @@ if [ "$SYNC_CLAUDE_MD" = true ]; then
     echo "Error: Target CLAUDE.md not found at $TARGET_DIR/CLAUDE.md" >&2
     exit 1
   fi
-  sync_claude_md "$local_source" "$TARGET_DIR/CLAUDE.md" "upgrade"
+  sync_claude_md "$local_source" "$TARGET_DIR/CLAUDE.md" "upgrade" "$SCRIPT_DIR/CLAUDE.md"
   sync_exit=$?
   if [ "$sync_exit" -ne 0 ]; then
     exit "$sync_exit"

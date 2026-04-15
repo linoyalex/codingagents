@@ -67,9 +67,10 @@ function runSyncFunction(sourceClaudeMd, targetClaudeMd, mode, opts = {}) {
   }
 
   const libPath = path.join(ROOT_DIR, 'lib', 'sync-claude-md.sh');
+  const tplArg = opts.templateContent ? ` "${templatePath}"` : '';
   const script = `
     source "${libPath}"
-    sync_claude_md "${sourcePath}" "${targetPath}" "${mode}"
+    sync_claude_md "${sourcePath}" "${targetPath}" "${mode}"${tplArg}
   `;
 
   try {
@@ -494,6 +495,77 @@ test('Error: sync aborts when source docs/CLAUDE.md is missing', () => {
     assert.fail('should have exited non-zero');
   } catch (err) {
     assert.notEqual(err.status, 0, 'must exit non-zero when source is missing');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+// --- AC3c: legacy migration strips template content ---
+
+test('AC3c: legacy migration strips lines byte-identical to root template', () => {
+  const source = '## Known Gotchas\n- Framework gotcha from docs\n';
+
+  // Template has both placeholder scaffolding AND actual content lines
+  const templateContent = [
+    '## Known Gotchas',
+    '- Template gotcha that should be stripped',
+    '- <!-- e.g. Example placeholder -->',
+  ].join('\n');
+
+  // Target has template lines + genuine user content
+  const target = [
+    '## Known Gotchas',
+    '- Template gotcha that should be stripped',
+    '- My genuine user gotcha',
+  ].join('\n');
+
+  const { targetContent, stdout, exitCode, tmpDir } = runSyncFunction(
+    source, target, 'upgrade', { templateContent }
+  );
+  try {
+    assert.equal(exitCode, 0);
+    assert.ok(
+      targetContent.includes('My genuine user gotcha'),
+      'genuine user content must survive migration'
+    );
+    assert.ok(
+      !targetContent.includes('Template gotcha that should be stripped'),
+      'template-identical lines must be stripped during migration'
+    );
+    // Only user content preserved — no stale template text as "preserved lines"
+    assert.match(stdout, /migrated/i, 'must report migrated');
+  } finally {
+    cleanupDir(tmpDir);
+  }
+});
+
+test('AC3c: legacy migration with only template content shows 0 preserved lines', () => {
+  const source = '## Known Gotchas\n- Framework gotcha from docs\n';
+
+  const templateContent = [
+    '## Known Gotchas',
+    '- Template line one',
+    '- Template line two',
+  ].join('\n');
+
+  // Target contains ONLY template content (no user additions)
+  const target = [
+    '## Known Gotchas',
+    '- Template line one',
+    '- Template line two',
+  ].join('\n');
+
+  const { stdout, exitCode, tmpDir } = runSyncFunction(
+    source, target, 'upgrade', { templateContent }
+  );
+  try {
+    assert.equal(exitCode, 0);
+    // Should report [migrated] without preserved-line count (all stripped)
+    assert.match(stdout, /\[migrated\]/, 'must report [migrated] without preserved count');
+    assert.ok(
+      !/preserved/i.test(stdout),
+      'must NOT mention preserved lines when all content was template'
+    );
   } finally {
     cleanupDir(tmpDir);
   }
