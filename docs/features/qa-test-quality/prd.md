@@ -23,6 +23,8 @@ All three are additive guidance changes to `commands/test-design.md` and `skills
 
 ### Acceptance Criteria
 
+Traceability: PRD AC1-5 = ISS-043 AC1-5, PRD AC6-8 = ISS-045 AC1-3, PRD AC9-13 = ISS-049 AC1-5.
+
 #### ISS-043 — Symmetric testing
 
 - [ ] **AC1:** Given `commands/test-design.md` is read by the QA agent, when the architecture enumerates multiple components receiving the same treatment, then the command instructs: "Write tests for ALL enumerated components, not just one representative."
@@ -64,6 +66,7 @@ Not applicable — this feature modifies framework methodology documents, not us
 - Tests must use structural anchors per `docs/CLAUDE.md` convention (heading names, template field labels), not phrase-binding
 - Guidance must be stack-agnostic per `docs/CLAUDE.md` convention
 - Skill size budget: TDD SKILL.md is at 112 lines; progressive disclosure threshold is 120 prose lines. Architect must decide whether to split into sibling reference files (precedent: code-review skill, ISS-039)
+- **Assumption (diverges from ticket AC):** AC2 (ISS-043 AC2), AC7 (ISS-045 AC2), and AC9 (ISS-049 AC1) changed location from the ticket-specified `skills/tdd/SKILL.md` to "SKILL.md or a sibling reference file loaded by it." Reason: TDD skill is at the progressive disclosure threshold; the architect needs freedom to split content into a sibling file. The required *content* is unchanged — only the *location* is flexible.
 
 ### RICE Score
 
