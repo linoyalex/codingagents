@@ -1,10 +1,10 @@
 {
-  "feature": "claude-md-sync",
+  "feature": "qa-test-quality",
   "phase": 6,
   "goal": "Post-merge documentation update",
   "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/claude-md-sync/prd.md",
+    "docs/features/qa-test-quality/prd.md",
     "CHANGELOG.md",
     "CLAUDE.md"
   ],
@@ -16,7 +16,7 @@
     "head -20 CHANGELOG.md",
     "grep -i 'last updated' CLAUDE.md"
   ],
-  "source_spec": "docs/features/claude-md-sync/prd.md",
+  "source_spec": "docs/features/qa-test-quality/prd.md",
   "produced_by": "code-reviewer",
-  "timestamp": "2026-04-14T23:55:00Z"
+  "timestamp": "2026-04-15T21:45:00Z"
 }
