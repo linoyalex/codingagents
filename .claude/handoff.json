@@ -3,19 +3,25 @@
   "phase": 2,
   "goal": "Write failing test shells from specs",
   "scope": "Phase 3 test design only",
-  "relevant_files": ["docs/features/invariants-audit/prd.md", "docs/features/invariants-audit/architecture.md"],
-  "acceptance_criteria": [
-    "AC1: Skill file at skills/invariants-audit/SKILL.md (<=120 prose lines, stop conditions footer, sibling files linked via [See reference:] convention)",
-    "AC1a: Installer/sync coverage — init.sh and upgrade.sh install to .claude/skills/invariants-audit/ with byte-identity sync tests",
-    "AC2: Teaches 5 review categories (state-machine, blocked paths, spec contradictions, fixture mismatches, syntax-not-behavior tests)",
-    "AC3: 5-step invariant review method (identify, encoded, enforced, tested, failure paths)",
-    "AC4: Claude commands reference skill (review, architect, security-gate, test-design)",
-    "AC5: Codex reviewers contain ## Invariant Checks section with Apply when: trigger (review-code, review-prd, review-architecture, review-test-design)",
-    "AC6: Wiring contract tests verify: Claude commands have Skill References table row for invariants-audit; Codex reviewers have ## Invariant Checks section with Apply when: trigger; structural anchor tests for required section headings",
-    "AC7: Usage guidance with trigger conditions vs normal review"
+  "relevant_files": [
+    "docs/features/invariants-audit/prd.md",
+    "docs/features/invariants-audit/architecture.md"
   ],
-  "verification_commands": ["grep -c 'invariants-audit' tests/node/command-skill-wiring.test.js", "grep -c 'invariants-audit' tests/node/core-skill-contracts.test.js"],
+  "acceptance_criteria": [
+    "AC1: Skill file exists at skills/invariants-audit/SKILL.md following size budget (<=120 prose lines, sibling refs, stop conditions footer)",
+    "AC1a: init.sh and upgrade.sh install to .claude/skills/invariants-audit/; byte-identity sync test verifies source/installed parity",
+    "AC2: Skill teaches 5 review categories — state-machine bugs, blocked/rejected/retry paths, spec-impl-test-hook contradictions, fixture-template-validator mismatches, syntax-not-behavior tests",
+    "AC3: Skill guides 5-step invariant analysis — identify invariant, where encoded, where enforced, where tested, failure paths",
+    "AC4: Claude commands reference the skill — review.md, architect.md, security-gate.md, test-design.md each have Skill References table entry",
+    "AC5: Codex reviewer prompts contain ## Invariant Checks section with Apply when trigger and checklist — review-code.md, review-prd.md, review-architecture.md, review-test-design.md",
+    "AC6: Wiring contract tests verify Claude command rows, Codex reviewer sections, and structural anchors without phrase-binding",
+    "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions"
+  ],
+  "verification_commands": [
+    "node --test tests/node/command-skill-wiring.test.js",
+    "node --test tests/node/core-skill-contracts.test.js"
+  ],
   "source_spec": "docs/features/invariants-audit/prd.md",
   "produced_by": "architect",
-  "timestamp": "2026-04-16T22:00:00Z"
+  "timestamp": "2026-04-16T20:15:00Z"
 }

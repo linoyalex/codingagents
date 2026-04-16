@@ -1,5 +1,5 @@
 ## Architecture: Invariants-Audit Skill for Cross-Layer Semantic Review
-**Generated:** 2026-04-16T22:00:00Z
+**Generated:** 2026-04-16T19:53:19Z
 **ADR:** ADR-invariants-audit | Date: 2026-04-16
 **Source PRD:** docs/features/invariants-audit/prd.md
 
@@ -29,8 +29,9 @@ framework-level.
 
 **Rollback / Fallback:** Remove `skills/invariants-audit/` and its installed copy.
 Remove the Skill References row from 4 commands and the `## Invariant Checks` section
-from 4 Codex reviewers. Remove the contract test file. Consumers revert to standard
-review methodology. No data model or schema changes to undo.
+from 4 Codex reviewers. Remove the wiring extensions from
+`tests/node/command-skill-wiring.test.js` and `tests/node/core-skill-contracts.test.js`.
+Consumers revert to standard review methodology. No data model or schema changes to undo.
 
 ### Workflow
 
@@ -60,8 +61,9 @@ For Codex reviewers: same logic via `## Invariant Checks` sections with
 |--------|------|---------------------|
 | `skills/invariants-audit/` | Methodology, categories, patterns, stop conditions | Command orchestration, reviewer identity, handoff schema |
 | `commands/{review,architect,security-gate,test-design}.md` | Skill References table row, skill-loading instruction | Methodology content (defers to skill) |
-| `codex/reviewers/review-{code,prd,architecture,test-design}.md` | `## Invariant Checks` section with trigger + checklist | Methodology authoring (derives from skill categories) |
-| `tests/contracts/invariants-audit.test.js` | Wiring verification, structural anchors | Skill content validation (use heading anchors, not prose) |
+| `codex/reviewers/review-{code,prd,architecture,test-design}.md` | `## Invariant Checks` section with trigger + checklist; `### Invariant Analysis` marker emission when triggers match | Methodology authoring (derives from skill categories) |
+| `tests/node/command-skill-wiring.test.js` | Wiring verification: command Skill References rows, Codex reviewer `## Invariant Checks` sections, `### Invariant Analysis` marker references, structural anchors | Skill content validation (use heading anchors, not prose) |
+| `tests/node/core-skill-contracts.test.js` | Line budget, byte-identity sync, sibling reference resolution | Command or reviewer wiring (defers to wiring suite) |
 
 ### Trust Boundaries
 
@@ -81,11 +83,11 @@ For Codex reviewers: same logic via `## Invariant Checks` sections with
 | `commands/architect.md` | Add Skill References row + loading instruction | AC4 | +3 |
 | `commands/security-gate.md` | Add Skill References row + loading instruction | AC4 | +3 |
 | `commands/test-design.md` | Add Skill References row + loading instruction | AC4 | +3 |
-| `codex/reviewers/review-code.md` | Append `## Invariant Checks` | AC5 | +12 |
-| `codex/reviewers/review-prd.md` | Append `## Invariant Checks` | AC5 | +12 |
-| `codex/reviewers/review-architecture.md` | Append `## Invariant Checks` | AC5 | +12 |
-| `codex/reviewers/review-test-design.md` | Append `## Invariant Checks` | AC5 | +12 |
-| `tests/node/command-skill-wiring.test.js` | Extend (Codex reviewer wiring, structural anchors) | AC5, AC6 | +40 |
+| `codex/reviewers/review-code.md` | Append `## Invariant Checks` (with `### Invariant Analysis` emission instruction) | AC5 | +14 |
+| `codex/reviewers/review-prd.md` | Append `## Invariant Checks` (with `### Invariant Analysis` emission instruction) | AC5 | +14 |
+| `codex/reviewers/review-architecture.md` | Append `## Invariant Checks` (with `### Invariant Analysis` emission instruction) | AC5 | +14 |
+| `codex/reviewers/review-test-design.md` | Append `## Invariant Checks` (with `### Invariant Analysis` emission instruction) | AC5 | +14 |
+| `tests/node/command-skill-wiring.test.js` | Extend (Codex reviewer wiring, `### Invariant Analysis` marker check, structural anchors) | AC5, AC6 | +50 |
 | `tests/node/core-skill-contracts.test.js` | Extend (budget, anchors, sync) | AC1a, AC6 | +10 |
 
 No changes to `init.sh` or `upgrade.sh` -- existing `cp -r skills/* .claude/skills/`
@@ -116,7 +118,7 @@ Five categories (AC2) with signals and example patterns per category:
 
 ### Codex Reviewer Integration
 
-Each reviewer gets a specialized `## Invariant Checks` section (~12 lines):
+Each reviewer gets a specialized `## Invariant Checks` section (~14 lines):
 
 | Reviewer | `**Apply when:**` trigger | Checklist focus |
 |----------|---------------------------|-----------------|
@@ -124,6 +126,11 @@ Each reviewer gets a specialized `## Invariant Checks` section (~12 lines):
 | review-prd | PRD covers state-machine behavior or multi-step workflows | blocked paths in ACs, AC-to-AC contradictions |
 | review-architecture | architecture includes state machines or multi-phase pipelines | spec-vs-architecture contradictions, missing failure paths |
 | review-test-design | tests verify workflow logic or pipeline behavior | syntax-not-behavior tests, missing transition coverage |
+
+Each `## Invariant Checks` section must include the instruction: "When triggers match,
+emit `### Invariant Analysis` section in the review output (either findings or
+'No invariant mismatches identified')." This makes the marker a named responsibility
+of each reviewer, not an unowned convention.
 
 **Ownership note:** `codex/reviewers/` is Codex-owned per docs/CLAUDE.md file ownership
 table. The `## Invariant Checks` sections are a cross-boundary integration. Precedent:
@@ -138,6 +145,8 @@ Per PRD AC6, this is the single named suite for all wiring verification:
 - Codex reviewer wiring (new check type): each of 4 reviewers has `## Invariant Checks`
   section with `**Apply when:**` trigger line AND at least one checklist item (line starting
   with `- `) derived from the review categories (AC2)
+- Invariant Analysis marker: each of 4 reviewers' `## Invariant Checks` section references
+  the `### Invariant Analysis` marker string (structural anchor check, not prose-binding)
 - Structural anchors: SKILL.md has `## Invariant Review Method`, `## Review Categories`,
   `## When to Use` headings
 - Sibling reference resolution: all `[See reference: ...]` links resolve to existing files
@@ -156,27 +165,29 @@ Per PRD AC6, this is the single named suite for all wiring verification:
 |---------|-----------|--------|
 | Skill not loaded by command | Wiring contract test fails | Reviewer misses invariant analysis |
 | `## Invariant Checks` missing from reviewer | Contract test fails | Codex reviewer skips invariant thinking |
+| `### Invariant Analysis` marker instruction missing from reviewer | Contract test fails (marker reference check) | Observable signal for skill application disappears silently |
 | Installed copy stale or missing | Byte-identity sync test fails | Runtime skill load fails |
 | Over-application to non-workflow changes | Mitigated by trigger conditions (AC7) | Token waste, no correctness impact |
-| Under-application on matching reviews | See mitigation below | Invariant bugs escape review — the primary defect class this skill targets |
+| Under-application on matching reviews | See mitigation below | Invariant bugs escape review -- the primary defect class this skill targets |
 | Sibling reference broken | Contract test checks link resolution | Reviewer gets partial methodology |
 
-**Under-application mitigation:** Wiring tests prove the skill and checklists are
-present but cannot enforce invocation. To create an observable signal: when a command
-loads the invariants-audit skill and the review artifact covers a feature whose PRD
-or architecture mentions state machines, workflow gates, or cross-layer contracts, the
-reviewer should include an `### Invariant Analysis` section in the review artifact
-(either findings or "No invariant mismatches identified"). This is a methodology
-convention, not a runtime gate — Codex reviewers and human reviewers can check for
-the section's presence as a second-order signal that the skill was applied. If repeated
-under-application is observed, escalate to ISS-060/ISS-061 review gates or ISS-053
-adversarial review council for enforcement.
+**Under-application mitigation:** Wiring tests prove the skill, checklists, and
+`### Invariant Analysis` emission instructions are present in all 4 Codex reviewers
+(structurally verified -- see Test Strategy). This ensures the convention survives
+refactoring. At runtime, when a reviewer's `**Apply when:**` triggers match, the
+reviewer emits an `### Invariant Analysis` section in the review artifact (either
+findings or "No invariant mismatches identified"). This is a methodology convention,
+not a runtime gate -- but its structural preservation is guaranteed by the wiring
+contract test. If repeated under-application is observed despite the instruction being
+present, escalate to ISS-060/ISS-061 review gates or ISS-053 adversarial review
+council for enforcement.
 
 ### Fitness Functions
 
 1. **Wiring contract** -- all 8 declared consumers reference the skill (automated, CI)
 2. **Structural anchors** -- required section headings survive refactoring (automated, CI)
 3. **Line budget** -- SKILL.md stays under 120 lines (automated, CI)
+4. **Invariant Analysis marker** -- all 4 Codex reviewers' `## Invariant Checks` sections reference the `### Invariant Analysis` marker (automated, CI)
 
 ### Rejected Alternatives
 
@@ -193,3 +204,19 @@ adversarial review council for enforcement.
 5. **Separate `tests/contracts/invariants-audit.test.js`** -- rejected because the PRD
    explicitly names `command-skill-wiring.test.js` as the wiring verification suite.
    Splitting wiring checks across two files creates ambiguity about where enforcement lives.
+
+### Codex Round 3 Resolution
+
+**Finding 1 (test file consistency):** Replaced the stale `tests/contracts/invariants-audit.test.js`
+reference in the Module Boundaries table with the two canonical files named in the PRD
+(`tests/node/command-skill-wiring.test.js` and `tests/node/core-skill-contracts.test.js`).
+Updated the Rollback section to name those files explicitly instead of the ambiguous
+"contract test file." The Rejected Alternatives #5 entry was already correct and is unchanged.
+
+**Finding 2 (Invariant Analysis marker ownership):** Took path (a) -- make the marker
+load-bearing. Each Codex reviewer's `## Invariant Checks` section now explicitly owns
+emitting the `### Invariant Analysis` marker when triggers match. A new structural anchor
+contract test (in `command-skill-wiring.test.js`) verifies each reviewer references the
+marker. Added Fitness Function #4 to preserve the convention. Rationale: this aligns with
+the framework's convention-over-enforcement model and follows the same structural
+verification pattern used for `## Skill References` tables and `## Apply when:` triggers.
