@@ -1,27 +1,36 @@
 {
   "feature": "invariants-audit",
-  "phase": 2,
-  "goal": "Write failing test shells from specs",
-  "scope": "Phase 3 test design only",
+  "phase": 3,
+  "goal": "Design-time security audit of invariants-audit feature",
+  "scope": "Phase 4 security gate only",
   "relevant_files": [
     "docs/features/invariants-audit/prd.md",
-    "docs/features/invariants-audit/architecture.md"
+    "docs/features/invariants-audit/architecture.md",
+    "docs/features/invariants-audit/review-claude-test-design-invariants-audit.md",
+    "tests/node/core-skill-contracts.test.js",
+    "tests/node/command-skill-wiring.test.js",
+    "tests/integration/invariants-audit.integration.test.js"
   ],
   "acceptance_criteria": [
-    "AC1: Skill file exists at skills/invariants-audit/SKILL.md following size budget (<=120 prose lines, sibling refs, stop conditions footer)",
-    "AC1a: init.sh and upgrade.sh install to .claude/skills/invariants-audit/; byte-identity sync test verifies source/installed parity",
-    "AC2: Skill teaches 5 review categories — state-machine bugs, blocked/rejected/retry paths, spec-impl-test-hook contradictions, fixture-template-validator mismatches, syntax-not-behavior tests",
-    "AC3: Skill guides 5-step invariant analysis — identify invariant, where encoded, where enforced, where tested, failure paths",
-    "AC4: Claude commands reference the skill — review.md, architect.md, security-gate.md, test-design.md each have Skill References table entry",
-    "AC5: Codex reviewer prompts contain ## Invariant Checks section with Apply when trigger and checklist — review-code.md, review-prd.md, review-architecture.md, review-test-design.md",
-    "AC6: Wiring contract tests verify Claude command rows, Codex reviewer sections, and structural anchors without phrase-binding",
-    "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions"
+    "AC1: Skill file exists at skills/invariants-audit/SKILL.md following size budget (<=120 prose lines, sibling refs via [See reference:] convention, stop conditions footer required)",
+    "AC1a: init.sh and upgrade.sh install to .claude/skills/invariants-audit/ with byte-identity sync tests verifying source/installed parity for SKILL.md and review-categories.md",
+    "AC2: Skill teaches 5 review categories — state-machine and transition bugs, blocked/rejected/retry/stale-state paths, spec vs implementation vs tests vs hooks contradictions, fixture-template-validator mismatches, tests that prove syntax/structure but not behavior",
+    "AC3: Skill guides 5-step invariant analysis — (1) identify invariant, (2) where encoded, (3) where enforced, (4) where tested, (5) failure paths",
+    "AC4: Claude commands reference the skill — review.md, architect.md, security-gate.md, test-design.md each have Skill References table row for invariants-audit pointing to skills/invariants-audit/SKILL.md",
+    "AC5: Codex reviewer prompts contain ## Invariant Checks section with **Apply when:** trigger and at least one checklist item — review-code.md, review-prd.md, review-architecture.md, review-test-design.md",
+    "AC6: Wiring contract tests verify: Claude command Skill References rows for invariants-audit; Codex reviewer ## Invariant Checks sections; Apply when: triggers; ### Invariant Analysis marker inside each Invariant Checks section; SKILL.md structural anchors (## Review Categories, ## Invariant Review Method, ## When to Use); stop conditions footer; sibling reference resolution",
+    "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions (workflow logic, state transitions, safety checks, test architecture changes)"
   ],
   "verification_commands": [
     "node --test tests/node/command-skill-wiring.test.js",
-    "node --test tests/node/core-skill-contracts.test.js"
+    "node --test tests/node/core-skill-contracts.test.js",
+    "node --test tests/integration/invariants-audit.integration.test.js"
+  ],
+  "known_risks": [
+    "M2 category-2 heading regex uses a complex co-occurrence pattern; if the implementer writes a heading with only one of the four category-2 terms the test will still fail correctly, but the regex is harder to read. Review if it causes confusion during GREEN phase.",
+    "L2 checklist tests fail at the section-not-found guard (correct RED), but will need the section to also contain a '- ' list item after the Apply when: trigger — implementer must add at least one list item, not just the trigger line."
   ],
   "source_spec": "docs/features/invariants-audit/prd.md",
-  "produced_by": "architect",
-  "timestamp": "2026-04-16T20:15:00Z"
+  "produced_by": "qa",
+  "timestamp": "2026-04-16T20:20:00Z"
 }
