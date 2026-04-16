@@ -74,6 +74,9 @@ test('AC1: symmetric testing instruction references enumerated components', () =
   // Extract the Symmetric Testing section
   const section = content.match(/### Symmetric Testing[\s\S]*?(?=\n### |\n## |$)/);
   assert.ok(section, 'Symmetric Testing section must exist');
+  // Semantic spot-check: heading anchor proves the section exists; this content
+  // assertion verifies the section actually instructs testing ALL enumerated
+  // components, not just that the heading is present.
   assert.match(
     section[0],
     /all.*enumerat|enumerat.*all/i,
@@ -165,6 +168,8 @@ test('AC4: behavioral binding section instructs binding to specific behavior', (
   const content = read('commands/test-design.md');
   const section = content.match(/### Behavioral Binding[\s\S]*?(?=\n### |\n## |$)/);
   assert.ok(section, 'Behavioral Binding section must exist');
+  // Semantic spot-check: verifies the section discusses binding to behavior,
+  // not just that the heading exists. Supplements the structural heading anchor.
   assert.match(
     section[0],
     /behavio(u?r|ral).*bind|bind.*behavio(u?r|ral)/i,
@@ -190,6 +195,8 @@ test('AC5: negative-pattern section instructs writing negative assertions for mu
   const content = read('commands/test-design.md');
   const section = content.match(/### Negative-Pattern Testing[\s\S]*?(?=\n### |\n## |$)/);
   assert.ok(section, 'Negative-Pattern Testing section must exist');
+  // Semantic spot-check: verifies the section discusses negative assertions or
+  // forbidden patterns, not just that the heading exists.
   assert.match(
     section[0],
     /negative.*assert|must.*not|forbidden.*pattern/i,
@@ -215,6 +222,8 @@ test('AC6: adversarial contract section instructs testing for trivial evasion', 
   const content = read('commands/test-design.md');
   const section = content.match(/### Adversarial Contract Testing[\s\S]*?(?=\n### |\n## |$)/);
   assert.ok(section, 'Adversarial Contract Testing section must exist');
+  // Semantic spot-check: verifies the section discusses trivial evasion scenarios,
+  // not just that the heading exists.
   assert.match(
     section[0],
     /trivial|evad|evasion|commented.out|escape.*hatch/i,
@@ -337,6 +346,8 @@ test('AC10: artifact-type strategy section documents hybrid precedence rule', ()
   const content = read('commands/test-design.md');
   const section = content.match(/### Artifact-Type Test Strategy[\s\S]*?(?=\n### |\n## |$)/);
   assert.ok(section, 'Artifact-Type Test Strategy section must exist');
+  // Semantic spot-check: verifies the section discusses hybrid/precedence rules,
+  // not just that the heading exists.
   assert.match(
     section[0],
     /hybrid|precedence/i,
@@ -371,6 +382,16 @@ test('AC11: artifact-type section contains a table with at least 3 data rows', (
     dataRows.length >= 3,
     `Table must have at least 3 data rows (categories), found ${dataRows.length}`
   );
+  // Each data row must have non-empty "Test approach" content (second column).
+  // Use slice(1,-1) not filter(Boolean) — filter collapses empty cells,
+  // making cells[1] point to the wrong column when a cell is blank.
+  for (const row of dataRows) {
+    const cells = row.split('|').slice(1, -1).map(c => c.trim());
+    assert.ok(
+      cells.length >= 2 && cells[1].length > 0,
+      `Table data row must have non-empty Test approach column: ${row}`
+    );
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -387,18 +408,16 @@ test('AC11a: test-quality-rules.md artifact-type table references declarative, e
 });
 
 // ---------------------------------------------------------------------------
-// AC12: No regression in existing tests (meta-check — run separately)
-// This test verifies no .skip or xtest markers were introduced
+// AC12: No regression in existing tests
+// Two-tier check: (1) structural — no skip markers in feature tests,
+// (2) runtime — pre-existing test suites still pass when executed.
 // ---------------------------------------------------------------------------
 
-test('AC12: no skipped tests in the qa-test-quality test files', () => {
-  // This is a structural check at the test file level;
-  // full regression is verified by running the full test suite.
-  // We check for test-skipping API calls by scanning lines for skip invocations,
-  // excluding this AC12 test block itself to avoid self-matching.
+test('AC12 (structural): no skipped tests in the qa-test-quality test files', () => {
   const testFiles = [
     'tests/contracts/qa-test-quality.test.js',
     'tests/integration/qa-test-quality.integration.test.js',
+    'tests/e2e/qa-test-quality.spec.js',
   ];
   for (const filePath of testFiles) {
     if (exists(filePath)) {
@@ -410,12 +429,61 @@ test('AC12: no skipped tests in the qa-test-quality test files', () => {
         if (/AC12/.test(line) && /test\(/.test(line)) { inAC12Block = true; continue; }
         if (inAC12Block && /^\}\);/.test(line.trim())) { inAC12Block = false; continue; }
         if (inAC12Block) continue;
-        // Check for skip invocations on non-AC12 lines
         assert.ok(
           !/\.(skip)\s*\(/.test(line) && !/\bxit\s*\(/.test(line) && !/\bxtest\s*\(/.test(line),
           `${filePath}:${i + 1} contains a skipped test`
         );
       }
+    }
+  }
+});
+
+test('AC12 (runtime): pre-existing test suites still pass', () => {
+  const { execFileSync } = require('node:child_process');
+
+  // Dynamically discover all JS test files across the test directories.
+  // This avoids hardcoding a subset — new test files are automatically covered.
+  const testDirs = ['tests/node', 'tests/contracts', 'tests/integration', 'tests/e2e'];
+  const allTestFiles = [];
+  for (const dir of testDirs) {
+    const absDir = path.join(ROOT_DIR, dir);
+    if (!fs.existsSync(absDir)) continue;
+    for (const file of fs.readdirSync(absDir)) {
+      if (file.endsWith('.test.js') || file.endsWith('.spec.js')) {
+        allTestFiles.push(path.join(dir, file));
+      }
+    }
+  }
+
+  // Exclude this feature's own test files (they're tested separately)
+  // and known pre-existing failures unrelated to this feature.
+  const excluded = new Set([
+    'tests/contracts/qa-test-quality.test.js',
+    'tests/integration/qa-test-quality.integration.test.js',
+    'tests/e2e/qa-test-quality.spec.js',
+    // Pre-existing failures (documented in Phase 6 review.md regression table):
+    'tests/node/core-skill-contracts.test.js',       // prd-writing SKILL.md budget
+    'tests/contracts/skill-size-convention.test.js',  // root/docs CLAUDE.md rule divergence
+  ]);
+  const preExisting = allTestFiles.filter(f => !excluded.has(f));
+
+  assert.ok(
+    preExisting.length > 0,
+    'Must find at least one pre-existing test file to verify regression'
+  );
+
+  for (const testFile of preExisting) {
+    const absPath = path.join(ROOT_DIR, testFile);
+    try {
+      // execFileSync avoids shell interpretation — safe with paths containing spaces.
+      execFileSync('node', ['--test', absPath], {
+        cwd: ROOT_DIR,
+        timeout: 30000,
+        stdio: 'pipe',
+      });
+    } catch (err) {
+      const stderr = err.stderr ? err.stderr.toString().slice(0, 500) : err.message;
+      assert.fail(`Pre-existing test regressed: ${testFile}\n${stderr}`);
     }
   }
 });

@@ -1,5 +1,5 @@
 ## Architecture: QA Test Quality Hardening
-**Generated:** 2026-04-16T00:15:00Z
+**Generated:** 2026-04-16T01:30:00Z
 **ADR:** N/A (no new module; additive guidance to existing files) | Date: 2026-04-15
 
 ### Decision
@@ -8,7 +8,7 @@ Split the new QA test quality guidance into two locations following the establis
 
 1. **Command-side (WHAT):** Add three new instruction sections to `commands/test-design.md` — symmetric testing, adversarial contract testing, and artifact-type test strategy routing. These are read by the QA agent at Phase 3 invocation.
 
-2. **Skill-side (HOW):** Create a new sibling reference file `skills/tdd/test-quality-rules.md` containing the expanded "What to Test First" list entries and the artifact-type-to-test-strategy table. `SKILL.md` stays focused on the core TDD cycle and links to the sibling via `[See reference: ...]`.
+2. **Skill-side (HOW):** Add brief list entries (positions 8–9) to the "What to Test First" list in `SKILL.md` and link to a new sibling reference file `skills/tdd/test-quality-rules.md`. The sibling contains expanded guidance under structural headings (`## Symmetric Coverage`, `## Contract Robustness`, `## Structural vs Fixture-Driven Testing`, `## Artifact-Type Test Strategy`) plus the artifact-type-to-test-strategy table. `SKILL.md` stays focused on the core TDD cycle.
 
 This follows the progressive disclosure pattern established by the code-review skill (ISS-039), which split into `SKILL.md` + three sibling reference files.
 
@@ -59,15 +59,16 @@ New `## Test Quality Rules` section with `###` subsections:
 - AC6: `### Adversarial Contract Testing`
 - AC10: `### Artifact-Type Test Strategy` (3-way routing with hybrid precedence)
 
-**In `skills/tdd/test-quality-rules.md`** (reusable reference loaded by the command):
-- AC9: Structural vs fixture-driven distinction and guidance
-- AC11: Artifact-type-to-test-strategy table (3 categories + rationale)
-- AC13: Stack-agnostic examples (minimum 2 distinct toolchains)
+**In `skills/tdd/test-quality-rules.md`** (reusable reference loaded via `[See reference: ...]` from SKILL.md):
+- `## Symmetric Coverage` heading — expanded guidance for AC2/AC3a (structural anchor for skill-side tests)
+- `## Contract Robustness` heading — expanded guidance for AC7/AC8a (structural anchor for skill-side tests)
+- `## Structural vs Fixture-Driven Testing` heading — AC9 distinction and guidance
+- `## Artifact-Type Test Strategy` heading — AC11 table (3+ categories with rationale) and AC13 stack-agnostic examples (minimum 2 toolchains)
 
-**In `skills/tdd/SKILL.md`** (minimal changes — stays under budget):
-- AC2: Append "Symmetric requirements across all enumerated components" at position 8 in "What to Test First"
-- AC7: Append "Contract robustness — can the safety invariant be trivially evaded?" at position 9
-- Add `[See reference: .claude/skills/tdd/test-quality-rules.md]` link
+**In `skills/tdd/SKILL.md`** (minimal changes — stays under budget at ~116 lines):
+- AC2: Append labeled entry at position 8 in "What to Test First": "`[symmetric-coverage]` Symmetric requirements across all enumerated components" (protected by label anchor: `[symmetric-coverage]`)
+- AC7: Append labeled entry at position 9: "`[contract-robustness]` Contract robustness — can the safety invariant be trivially evaded?" (protected by label anchor: `[contract-robustness]`)
+- AC14: Add `[See reference: .claude/skills/tdd/test-quality-rules.md]` link (contract-tested — structural bridge to sibling)
 
 **In contract tests:**
 - AC3, AC3a: Structural anchor tests for command-side and skill-side symmetric testing
@@ -79,20 +80,24 @@ New `## Test Quality Rules` section with `###` subsections:
 
 ### Structural Anchors for Tests
 
-Tests must use heading names and section labels, not phrase content. Proposed anchors:
+Tests must use heading names and structural labels, not phrase content. Proposed anchors:
 
-| AC | Anchor target | Anchor pattern |
-|----|--------------|----------------|
-| AC1/AC3 | `commands/test-design.md` | `### Symmetric Testing` under `## Test Quality Rules` |
-| AC4 | `commands/test-design.md` | `### Behavioral Binding` under `## Test Quality Rules` |
-| AC5 | `commands/test-design.md` | `### Negative-Pattern Testing` under `## Test Quality Rules` |
-| AC6/AC8 | `commands/test-design.md` | `### Adversarial Contract Testing` under `## Test Quality Rules` |
-| AC10 | `commands/test-design.md` | `### Artifact-Type Test Strategy` under `## Test Quality Rules` |
-| AC2/AC3a | `skills/tdd/SKILL.md` or sibling | Entry in "What to Test First" list containing `symmetric` |
-| AC7/AC8a | `skills/tdd/SKILL.md` or sibling | Entry in "What to Test First" list containing `contract robustness` |
-| AC9/AC11/AC11a | `skills/tdd/test-quality-rules.md` | Heading: `## Artifact-Type Test Strategy` + table with 3+ rows |
-| AC14 | `skills/tdd/SKILL.md` | Pattern: `[See reference:` pointing to sibling |
-| AC14a | Multiple | Sibling file exists OR SKILL.md ≤120 lines OR arch doc has "Skill Size Exception" heading |
+| AC | Anchor target | Anchor type | Anchor pattern |
+|----|--------------|-------------|----------------|
+| AC1/AC3 | `commands/test-design.md` | Heading | `### Symmetric Testing` under `## Test Quality Rules` |
+| AC4 | `commands/test-design.md` | Heading | `### Behavioral Binding` under `## Test Quality Rules` |
+| AC5 | `commands/test-design.md` | Heading | `### Negative-Pattern Testing` under `## Test Quality Rules` |
+| AC6/AC8 | `commands/test-design.md` | Heading | `### Adversarial Contract Testing` under `## Test Quality Rules` |
+| AC10 | `commands/test-design.md` | Heading | `### Artifact-Type Test Strategy` under `## Test Quality Rules` |
+| AC2 | `skills/tdd/SKILL.md` | Label | `[symmetric-coverage]` in `## What to Test First` section |
+| AC3a | `skills/tdd/test-quality-rules.md` | Heading | `## Symmetric Coverage` |
+| AC7 | `skills/tdd/SKILL.md` | Label | `[contract-robustness]` in `## What to Test First` section |
+| AC8a | `skills/tdd/test-quality-rules.md` | Heading | `## Contract Robustness` |
+| AC9/AC11/AC11a | `skills/tdd/test-quality-rules.md` | Heading + table | `## Artifact-Type Test Strategy` + table with 3+ rows |
+| AC14 | `skills/tdd/SKILL.md` | Pattern | `[See reference:` pointing to sibling |
+| AC14a | Multiple | Composite | Sibling file exists OR SKILL.md ≤120 lines OR arch doc has "Skill Size Exception" heading |
+
+**Anchor strategy:** All anchors are either headings or labels — both are structural markers that the convention explicitly permits. The `[symmetric-coverage]` and `[contract-robustness]` bracketed labels on list items serve the same role as template field labels: stable identifiers that the surrounding prose can change around without breaking tests. The SKILL.md list entries (AC2, AC7) and sibling headings (AC3a, AC8a) are independently protected. The `[See reference: ...]` link (AC14) is the structural bridge connecting the two.
 
 ### Sync Requirements
 

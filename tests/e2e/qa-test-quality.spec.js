@@ -62,7 +62,9 @@ test('E2E chain: commands/test-design.md has complete test quality rules additio
   assert.match(command, /^### Adversarial Contract Testing$/m, 'Must have Adversarial Contract Testing (AC6)');
   assert.match(command, /^### Artifact-Type Test Strategy$/m, 'Must have Artifact-Type Test Strategy (AC10)');
 
-  // Verify subsection ordering: Symmetric -> Behavioral -> Negative -> Adversarial -> Artifact-Type
+  // Verify subsection ordering matches architecture.md § Content Placement Rules,
+  // which lists them as: AC1 Symmetric, AC4 Behavioral, AC5 Negative, AC6 Adversarial, AC10 Artifact-Type.
+  // Source: docs/features/qa-test-quality/architecture.md "In commands/test-design.md" section.
   const symmetricIdx = command.indexOf('### Symmetric Testing');
   const behavioralIdx = command.indexOf('### Behavioral Binding');
   const negativeIdx = command.indexOf('### Negative-Pattern Testing');
@@ -120,6 +122,16 @@ test('E2E chain: skills/tdd/test-quality-rules.md has all methodology headings a
   assert.ok(tableRows, 'Section must contain a markdown table');
   const dataRows = tableRows.filter(row => !/^\|\s*Artifact/i.test(row));
   assert.ok(dataRows.length >= 3, `Table must have >=3 data rows, found ${dataRows.length}`);
+  // Each data row must have non-empty "Test approach" content (second column).
+  // Use slice(1,-1) not filter(Boolean) — filter collapses empty cells,
+  // making cells[1] point to the wrong column when a cell is blank.
+  for (const row of dataRows) {
+    const cells = row.split('|').slice(1, -1).map(c => c.trim());
+    assert.ok(
+      cells.length >= 2 && cells[1].length > 0,
+      `Table data row must have non-empty Test approach column: ${row}`
+    );
+  }
 
   // AC13: Stack-agnostic — at least 2 toolchains
   const toolchains = [];

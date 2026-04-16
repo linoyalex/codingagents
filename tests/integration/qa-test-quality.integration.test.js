@@ -54,11 +54,16 @@ test('INTEGRATION happy path: commands/test-design.md references tdd skill AND s
   // Step 1: Read the production entry point (commands/test-design.md)
   const command = read('commands/test-design.md');
 
-  // Assert visible output: command references the tdd skill
+  // Assert visible output: command's Skill References table wires to skills/tdd/SKILL.md
   assert.match(
     command,
-    /tdd/,
-    'commands/test-design.md (production entry point) must reference the tdd skill'
+    /^## Skill References$/m,
+    'commands/test-design.md must have a "## Skill References" table'
+  );
+  assert.match(
+    command,
+    /\|\s*tdd\s*\|\s*skills\/tdd\/SKILL\.md\s*\|/,
+    'Skill References table must map tdd to skills/tdd/SKILL.md'
   );
 
   // Assert visible output: command has all 5 new test quality subsections
@@ -105,11 +110,12 @@ test('INTEGRATION edge: sibling reference file linked from SKILL.md exists on di
   const match = skill.match(/\[See reference:\s*([^\]]+)\]/);
   assert.ok(match, 'SKILL.md must contain a [See reference:] link');
 
-  // The link may use .claude/skills/ prefix — resolve the source path too
-  const siblingPath = 'skills/tdd/test-quality-rules.md';
+  // Resolve the extracted path — links use .claude/skills/ prefix, map to source path
+  const linkedPath = match[1].trim();
+  const sourcePath = linkedPath.replace(/^\.claude\//, '');
   assert.ok(
-    exists(siblingPath),
-    `Sibling reference file ${siblingPath} must exist on disk`
+    exists(sourcePath),
+    `Sibling reference file at extracted path "${sourcePath}" (from link "${linkedPath}") must exist on disk`
   );
 });
 

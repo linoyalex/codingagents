@@ -177,5 +177,5 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 
 ---
 
-*Last updated: 2026-04-15*
-*Updated by: documentation-specialist (v5.9.0 — claude-md-sync)*
+*Last updated: 2026-04-16*
+*Updated by: documentation-specialist (v5.10.0 — qa-test-quality)*
