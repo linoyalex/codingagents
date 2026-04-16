@@ -1021,3 +1021,67 @@ test('AC6 (invariants-audit): all [See reference: ...] links in SKILL.md resolve
     `skills/invariants-audit/SKILL.md has broken [See reference:] links: ${missingRefs.join(', ')} (AC6)`
   );
 });
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC5 — Checklist item in ## Invariant Checks section
+// L2 FIX: PRD AC6 requires "at least one checklist item derived from the review
+// categories (AC2)". The section heading and Apply when: trigger are tested above.
+// This block adds the missing structural check for at least one markdown list item
+// (line starting with "- ") within the ## Invariant Checks section of each reviewer.
+// ---------------------------------------------------------------------------
+
+test('AC5 (invariants-audit): codex/reviewers/review-code.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-code.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-code.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-code.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-prd.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-prd.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-prd.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-prd.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-architecture.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-architecture.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-architecture.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-architecture.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-test-design.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-test-design.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-test-design.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-test-design.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
