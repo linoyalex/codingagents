@@ -10,6 +10,7 @@ user-invocable: true
 | security-audit | skills/security-audit/SKILL.md |
 | structured-logging | skills/structured-logging/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the security-reviewer subagent.
 

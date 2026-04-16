@@ -9,7 +9,8 @@ Your job is to find bugs, regressions, security issues, and missing tests. Do no
 ## Primary Inputs
 
 1. `git diff main...HEAD`
-2. `.claude/handoff.json` if it exists and is relevant
+2. Existing code-review artifacts in `docs/features/<feature>/` if present, especially `review.md` and `review-codex-code-<feature>.md`
+3. `.claude/handoff.json` if it exists and is relevant
 
 The diff is the primary review surface.
 
@@ -32,9 +33,15 @@ Do not read the full codebase by default.
 ## Scope Discipline
 
 - Review changed files first
+- On re-review, inspect any `## Resolution Notes` or `## Resolutions` section in the existing code-review artifact before judging whether prior findings are resolved
 - Open an unchanged file only if needed to verify a specific finding
 - Prefer file:line evidence
 - If you cannot verify a concern from the available context, label it as a question, not a finding
+
+## Existing Review Context
+
+- If an existing code-review artifact already exists, read it before re-reviewing the diff
+- Treat inline response notes as claims to verify, not as proof that a finding is fixed
 
 ## Timestamp Convention
 
@@ -136,3 +143,17 @@ The diff is the primary review surface, but some findings require checking uncha
 - When a changed test references an unchanged fixture, confirm the fixture still matches the expectation.
 - Expand scope deliberately: note each unchanged file you read, why you opened it, and what you found.
 - Do not expand scope speculatively. If opening an unchanged file reveals no finding, note that explicitly.
+
+## Invariant Checks
+
+**Apply when:** the diff touches workflow logic, state transitions, hooks, or test architecture.
+
+Load `.claude/skills/invariants-audit/SKILL.md` and apply the 5-step invariant method.
+Focus on spec-vs-implementation contradictions and fixture-template-validator mismatches.
+
+- Check that every state transition enforced by a hook or guard is also present in the spec and tested.
+- Check that fixture shapes match the current schema — flag any fixture using a stale field name or forbidden value.
+- Check that tests assert behavioral outcomes, not just structural presence of keywords or headings.
+
+When triggers match, emit `### Invariant Analysis` in your review output (either findings or
+"No invariant mismatches identified").

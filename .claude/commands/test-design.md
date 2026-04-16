@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | tdd | skills/tdd/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the qa subagent.
 

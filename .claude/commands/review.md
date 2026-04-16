@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | code-review | skills/code-review/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the code-reviewer subagent.
 

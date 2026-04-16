@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | architecture-decision | skills/architecture-decision/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the architect subagent.
 
