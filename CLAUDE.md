@@ -3,57 +3,37 @@
 > This file is loaded automatically by Claude Code at the start of every session.
 > It is the single source of truth for project conventions and agent routing.
 > Keep it current. It is more valuable than any other file in this repo.
+>
+> For framework-specific development instructions, see `docs/CLAUDE.md`.
 
 ---
 
 ## Project Overview
 
-<!-- FILL IN: 2-3 sentence description of what this project does and who it's for -->
-<!-- Example: "An AI-powered closet designer that helps users visualise and organise their wardrobe.
-Built with Next.js and the Anthropic API. Primary users are fashion-conscious individuals
-who want outfit recommendations from their existing clothing." -->
+The **codingagents** framework — a token-efficient, phase-gated multi-agent development pipeline for Claude Code. Eight role definitions, reusable skills, slash commands, lifecycle hooks, structured handoffs, and deployment tooling. This repo is the source; `init.sh` and `upgrade.sh` install it into target projects.
 
 ---
 
 ## Tech Stack
 
-<!-- FILL IN your actual values -->
 ```
-Runtime:      Node 22 / Python 3.12
-Framework:    Next.js 15 / FastAPI
-Database:     PostgreSQL via Prisma / Supabase
-Auth:         Clerk / NextAuth / Supabase Auth
-Storage:      Vercel Blob / AWS S3
-Deployment:   Vercel / AWS / Railway
-Package mgr:  pnpm / npm / uv
+Runtime:      Node 22
+Testing:      node --test (built-in test runner)
+Shell:        bash (set -euo pipefail)
+Package mgr:  npm
 ```
 
 ---
 
 ## Commands
 
-<!-- FILL IN: These exact commands must work from the project root -->
 ```bash
-# Install dependencies
-pnpm install
-
-# Start local dev server
-pnpm dev
-
-# Run unit tests
-pnpm test
-
-# Run E2E tests
-pnpm test:e2e
-
-# Lint and format
-pnpm lint
-
-# Type check
-pnpm typecheck
-
-# Build for production
-pnpm build
+node --test tests/                    # Run all tests
+node --test tests/contracts/          # Contract tests only
+node --test tests/integration/        # Integration tests only
+node --test tests/e2e/                # E2E tests only
+bash tests/test-install-scripts.sh    # Installer tests
+bash tests/test-command-contracts.sh  # Command contract checks
 ```
 
 ---
@@ -104,210 +84,61 @@ Feature request
 | Bug fix (no spec needed) | `developer` | sonnet |
 | Security incident / auth change | `security-reviewer` | opus |
 | New dependency approval | `architect` | opus |
-| Accessibility audit | `ux-designer` | sonnet |
 | CLAUDE.md update | `documentation-specialist` | haiku |
 | PR review (always fresh context) | `code-reviewer` | sonnet |
-
-### CI/CD (automated, no interactive session)
-```bash
-# Pre-commit: deterministic, no LLM
-pnpm lint && pnpm typecheck && pnpm test
-
-# On PR: lightweight Haiku scan for secrets in diff only
-claude -p "Scan for hardcoded secrets: $(git diff main...HEAD)" \
-  --model claude-haiku-4-5 --allowedTools "Bash(git diff *)"
-
-# Dependency audit: no LLM
-npm audit --audit-level=high
-```
 
 ---
 
 ## Code Conventions
 
-<!-- FILL IN: Project-specific patterns all agents must follow -->
-
 ### Must Follow
-- **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
-- **Review artifact freshness check** — when a phase consumes a review artifact (`review.md`, `security-audit.md`, `review-codex-*.md`, or equivalent), re-read the file from disk at phase start and echo the current `**Generated:**` line before acting on its findings. Do not rely on carried conversational context or memory for review state. If the artifact is regenerated during the session, reopen it and use the newest timestamped copy.
-- **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
-- **Separate context for gate phases** — Phase 4 (security gate) and Phase 6 (code review) must run in separate agent sessions from authoring phases (1–3, 5). This prevents implicit trust inheritance and requires reviewers to re-derive coverage expectations from source spec independently. Enforced via `produced_by` check in role headers and documented in review document headers.
-- **Handoff source_spec is required** — all handoffs must include a resolvable `source_spec` pointing to the originating PRD (for features) or ticket file/URL (for bugfixes). Reviewers load source_spec before reading diff. Checkpoint validates file existence.
-- [ ] <!-- e.g. All API routes must validate input with Zod before touching the database -->
-- [ ] <!-- e.g. All async functions must handle the rejection case explicitly -->
-- [ ] <!-- e.g. No direct database access from UI components -->
-- [ ] <!-- e.g. All new environment variables must be added to .env.example with a description -->
-
-### Naming
-- <!-- e.g. React components: PascalCase -->
-- <!-- e.g. Utility functions: camelCase -->
-- <!-- e.g. Database tables: snake_case -->
-- <!-- e.g. API endpoints: kebab-case, versioned /api/v1/... -->
-
-### Folder Structure
-```
-src/
-├── app/          # Next.js app router pages and layouts
-├── components/   # Shared UI components
-├── lib/          # Business logic and utilities
-├── server/       # Server-only code (API, DB)
-└── types/        # Shared TypeScript types
-```
+- **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time.
+- **Review artifact freshness check** — when a phase consumes a review artifact, re-read the file from disk at phase start and echo the current `**Generated:**` line before acting on its findings.
+- **Separate context for gate phases** — Phase 4 (security gate) and Phase 6 (code review) must run in separate agent sessions from authoring phases (1–3, 5). Enforced via `produced_by` check.
+- **Handoff source_spec is required** — all handoffs must include a resolvable `source_spec` pointing to the originating PRD or ticket. Reviewers load source_spec before reading diff.
+- **Skill size budget** — SKILL.md ≤120 prose lines with sibling reference files. Stop conditions footer required for pipeline-gating skills.
+- **Sibling reference files must document their purpose boundary** — state what content belongs and when to split (e.g., at ~80 lines or off-purpose content).
+- **Tests must use structural anchors** (heading names, template field labels), not phrase-binding.
+- **Guidance must be stack-agnostic** — include "adapt to your stack" language with multiple toolchain examples.
+- **Source and installed copies must be kept in sync** — byte-identical between `skills/`, `commands/`, `hooks/` and their `.claude/` counterparts.
+- **Commands must have a `## Skill References` table** and **skills must have a `## Required Artifacts` table** — wiring contract tests enforce both.
+- Shell scripts use `set -euo pipefail`
+- All JSON schemas use draft-07 with `additionalProperties: false`
+- No hardcoded absolute paths — use relative paths from project root
 
 ---
 
 ## Absolute Constraints (Agents Must Never Violate)
 
-These are non-negotiable. If a task would require violating one, stop and ask.
-
 - ❌ Never commit secrets, API keys, or credentials to source code
-- ❌ Never access the database directly from a UI component or page
-- ❌ Never add a new npm/pip dependency without checking if an existing one covers the need
+- ❌ Never add a new dependency without checking if an existing one covers the need
 - ❌ Never use `any` in TypeScript without an explicit `// TODO: type this` comment
 - ❌ Never remove or skip an existing test to make the suite pass
-- ❌ Never deploy to production without the full test suite passing
 - ❌ Gate reviewers must never write to src/ — read-only on implementation files
-<!-- Add your project-specific constraints here -->
 
 ---
 
 ## Known Gotchas
 
-- **Handoff source_spec must be resolvable** — if a PRD or ticket file is moved or deleted after handoff, the review phase will halt with an error. Keep file paths canonical and update handoff if source location changes.
-- **Separate-context enforcement depends on produced_by** — gate reviewers must be launched in a different agent session. If an agent omits `produced_by` from handoff, the check silently passes (defense-in-depth). Enforce via role discipline.
-- **Reviewer Independence is a methodology, not automatic** — the code-review skill documents the PRD-first approach, but enforcement depends on reviewer discipline to follow it. Contract tests verify the methodology is present.
-- **Review artifacts can go stale in chat context** — if `review.md`, `security-audit.md`, or `review-codex-*.md` is regenerated after an earlier pass, the session may still carry the old findings in memory. Treat the on-disk file and its current `**Generated:**` line as the source of truth, and re-open the file before resolving or forwarding review feedback.
-- <!-- e.g. The auth callback URL must be updated in Clerk dashboard when changing domains -->
-- <!-- e.g. Prisma client must be regenerated after schema changes: `pnpm db:generate` -->
-- <!-- e.g. The image upload endpoint has a 4MB limit — validate client-side first -->
-- <!-- e.g. Environment variables prefixed with NEXT_PUBLIC_ are exposed to the browser -->
+- **Handoff source_spec must be resolvable** — if a PRD or ticket file is moved after handoff, the review phase will halt. Keep file paths canonical.
+- **Separate-context enforcement depends on produced_by** — gate reviewers must be launched in a different agent session. If an agent omits `produced_by`, the check silently passes.
+- **Reviewer Independence is a methodology, not automatic** — enforcement depends on reviewer discipline. Contract tests verify the methodology is present.
+- **Review artifacts can go stale in chat context** — treat the on-disk file and its `**Generated:**` line as the source of truth; re-open before resolving feedback.
 
 ---
 
 ## Architecture Notes
 
-<!-- FILL IN: Key decisions that all agents should be aware of -->
-
-### Data Flow
-<!-- e.g. Diagram or description of how data moves through the system -->
+See `docs/CLAUDE.md` for full architecture notes including:
+- Core abstraction (WHO/WHAT/HOW), phase contract, hooks lifecycle
+- File ownership boundaries (Claude vs Codex vs Shared)
+- Naming conventions, folder structure
+- Known gotchas specific to framework development
 
 ### ADR Index
-<!-- Link to your Architecture Decision Records -->
-- [ADR-001: ...](docs/decisions/ADR-001.md)
-
-### Patterns in Use
-<!-- e.g. Repository pattern for all DB access via src/server/repositories/ -->
-<!-- e.g. Service layer between routes and repositories -->
+- [Dogfood proposal](docs/design/dogfood-proposal.md) — using codingagents to develop codingagents
 
 ---
 
-## Phase Handoff Protocol
-
-Every agent must write `.claude/handoff.json` at the end of its phase. This is the canonical
-contract between pipeline phases — the next agent reads it at session start.
-
-### Required fields
-- `feature` — feature name or ID
-- `phase` — pipeline phase number (1-7)
-- `goal` — what the next phase should accomplish (one sentence)
-- `scope` — what is in scope for the next phase
-- `relevant_files` — file paths the next agent should read first
-- `acceptance_criteria` — AC IDs the next phase must satisfy
-- `verification_commands` — commands to verify the next phase's output
-- `source_spec` — resolvable pointer to the originating spec (PRD path, ticket path, or GitHub issue URL). For bugfix handoffs, precedence: ticket file (`docs/issues/tickets/ISS-NNN.md`) > GitHub issue URL > other declared source.
-
-### Optional fields
-- `constraints` — hard constraints the next phase must respect
-- `known_risks` — open questions or risks for the next phase
-- `produced_by` — agent role that produced this handoff
-- `timestamp` — ISO 8601 timestamp
-
-The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js` Stop hook
-validates handoff presence; `restore-context.js` loads it as primary context at session start.
-
----
-
-## Memory & Instruction Governance
-
-### What belongs where
-
-| Content type | Location | Loaded | Max size |
-|---|---|---|---|
-| Project conventions, agent routing, absolute constraints | `CLAUDE.md` | Always (every session) | ~250 lines |
-| Reusable procedures (TDD, code review, security audit) | `skills/*.md` | On demand (by commands) | ~150 lines each |
-| Phase-specific context for the next agent | `.claude/handoff.json` | At session start (by hook) | ~50 lines |
-| Per-feature briefs and acceptance criteria | `docs/features/<feature>/prd.md`, `docs/features/<feature>/architecture.md` | By phase spec | No hard limit |
-| Agent memory (patterns, decisions, tech radar) | `.claude/agent-memory/` | By agent on demand | ~150 lines each |
-| Cross-agent memory (settled decisions, codebase map, process) | `docs/memory/` | At session start (via bootstrap) | ~50 lines each |
-
-### Rules
-- Do not duplicate information across locations. If it's in a skill, don't repeat it in CLAUDE.md.
-- CLAUDE.md must stay under ~250 lines. If it grows beyond this, extract content to skills or handoff packets.
-- Skills are loaded on demand by commands, not always-loaded. Do not paste skill content into CLAUDE.md.
-- Handoff packets are ephemeral — overwritten each phase. Do not store permanent knowledge in them.
-- Review memory files quarterly. Remove entries that are no longer relevant or that duplicate what's in code.
-
----
-
-## Context & Token Management
-
-### Session rules (all agents must follow)
-- **Start fresh** for each pipeline phase — never carry a prior phase's session forward
-- **60% context = compact now** — run `/compact` before auto-compaction fires; don't wait
-- **10 file limit** — never open more than 10 files in a single session; if you need more, you're doing too much at once
-- **Read only what the phase spec says** — the pipeline section above defines exactly what each agent reads; no agent should expand that scope
-
-### Preventing context loss across compaction
-
-Install the Ruflo hooks to archive conversation turns before compaction and restore
-importance-ranked context at session start:
-
-```bash
-npx ruflo@latest init
-# Then keep only .claude/settings.json hooks config — skip the rest of Ruflo
-```
-
-The hooks to keep in `.claude/settings.json`:
-```json
-{
-  "hooks": {
-    "PreCompact": [{
-      "matcher": "",
-      "hooks": [{"type": "command", "command": "node .claude/helpers/archive-context.js"}]
-    }],
-    "SessionStart": [{
-      "matcher": "",
-      "hooks": [{"type": "command", "command": "node .claude/helpers/restore-context.js"}]
-    }]
-  }
-}
-```
-
-### Token budget per feature cycle (target)
-| Phase | Model | Target tokens |
-|-------|-------|--------------|
-| 1 Specify | Haiku | ~3K |
-| 2 Architect | Opus | ~8K |
-| 3 Test Design | Sonnet | ~10K |
-| 4 Security Gate | Opus | ~6K |
-| 5 Implement | Sonnet | ~25K |
-| 6 Review | Sonnet | ~8K |
-| 7 Document | Haiku | ~3K |
-| **Total** | | **~63K** |
-
-Compare to an unstructured single-session approach: 200K–400K tokens, Opus throughout.
-
----
-
-The following agents maintain persistent memory across sessions for this project.
-Their memory files are committed to version control:
-
-- `architect` → `.claude/agent-memory/architect/MEMORY.md`
-- `documentation-specialist` → `.claude/agent-memory/documentation-specialist/MEMORY.md`
-
-Do not manually edit these files. They are maintained by the agents themselves.
-
----
-
-*Last updated: 2026-04-13*
-*Updated by: documentation-specialist*
+*Last updated: 2026-04-16*
+*Updated by: manual optimization — removed template placeholders and sections covered by installed skills*
