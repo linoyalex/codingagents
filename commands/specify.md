@@ -68,6 +68,25 @@ Do not block indefinitely on optional clarification.
 
 If no triggers fire: proceed directly to Step 3.
 
+## Review Feedback Loop
+
+If you are revising an existing PRD after review, reuse the existing feature slug/folder
+instead of inventing a new one.
+
+Before rewriting the PRD, read any phase-relevant PRD review artifacts already present
+in `docs/features/<feature-slug>/`, especially:
+- `review-prd-<feature-slug>.md`
+- `review-codex-prd-<feature-slug>.md`
+
+Treat those findings as the review scope unless the user explicitly broadens scope.
+
+When you address a finding, append or refresh a `## Resolution Notes` section in each
+review artifact you used. For every finding you touched, add one bullet in this shape:
+- [ADDRESSED | DEFERRED | DISPUTED] <finding label or short quote> — <what changed and where, or why it remains open>
+
+Do not delete the original findings. Later reviewers will verify these notes against
+the revised PRD.
+
 ## Step 3 — Write PRD
 
 After clarification is resolved (or if no clarification was needed), incorporate user
@@ -77,7 +96,7 @@ answers into the PRD, then:
   (e.g. "Add user auth flow" → "user-auth", "Search filters for dashboard" → "search-filters")
 - Create docs/features/<feature-slug>/ if it doesn't exist
 - Write the PRD to docs/features/<feature-slug>/prd.md
-- Read only the feature request, the ticket (if referenced in Step 1), and docs/CLAUDE.md (for convention verification) — no src/, no unrelated files
+- Read only the feature request, the ticket (if referenced in Step 1), docs/CLAUDE.md (for convention verification), and any existing PRD review artifacts in `docs/features/<feature-slug>/` — no src/, no unrelated files
 - product-owner writes: User Story, Acceptance Criteria (Given/When/Then), Out of Scope
 - ux-designer adds: Screen States table (Empty / Loading / Populated / Error / Success per screen)
 - Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time — do not preserve stale values.

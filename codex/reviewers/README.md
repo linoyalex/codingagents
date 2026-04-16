@@ -13,6 +13,8 @@ output file.
 - Treat `.claude/handoff.json` as context only, not the primary review surface
 - Codex reviews are advisory only; they do not change the Claude pipeline automatically
 - Write review artifacts into `docs/features/<feature>/` so later phases can find them
+- On re-review, open any existing phase-relevant review artifact in `docs/features/<feature>/` first and inspect inline `## Resolution Notes` or `## Resolutions` before writing the new artifact
+- Treat inline response notes as claims to verify, not as proof that the finding is resolved
 
 ## Recommended Output Files
 
@@ -37,6 +39,9 @@ conditions.
 Use the diff as the primary review surface. Open an unchanged file only if needed to
 verify a specific finding.
 Use .claude/handoff.json only for acceptance criteria, relevant files, and known risks.
+If `docs/features/<feature>/review.md` or `docs/features/<feature>/review-codex-code-<feature>.md`
+already exists, read it first and inspect any `## Resolution Notes` / `## Resolutions`
+section before re-reviewing.
 Write the result to docs/features/<feature>/review-codex-code-<feature>.md.
 Do not modify production code.
 ```
@@ -56,6 +61,9 @@ docs/features/<feature>/prd.md.
 Focus on acceptance-criteria coverage, missing negative cases, boundary conditions,
 authorization coverage, and weak assertions.
 Use .claude/handoff.json only for acceptance criteria, relevant files, and known risks.
+If `docs/features/<feature>/review-test-design-<feature>.md` or
+`docs/features/<feature>/review-codex-tests-<feature>.md` already exists, read it first
+and inspect any `## Resolution Notes` / `## Resolutions` section before re-reviewing.
 Write the result to docs/features/<feature>/review-codex-tests-<feature>.md.
 Keep the review findings first and scoped to test design.
 ```
@@ -75,6 +83,9 @@ on the current branch.
 Focus on unjustified complexity, missing failure modes, dependency risks, scaling
 assumptions, and mismatches with the PRD.
 Use .claude/handoff.json only for acceptance criteria, relevant files, and known risks.
+If `docs/features/<feature>/review-architecture-<feature>.md` or
+`docs/features/<feature>/review-codex-architecture-<feature>.md` already exists, read it
+first and inspect any `## Resolution Notes` / `## Resolutions` section before re-reviewing.
 Write the result to docs/features/<feature>/review-codex-architecture-<feature>.md.
 Keep the review advisory and findings first.
 ```
@@ -93,6 +104,9 @@ Review docs/features/<feature>/prd.md on the current branch.
 Focus on ambiguity, missing acceptance criteria, UX gaps, unclear edge cases,
 accessibility expectations, and testability.
 Use .claude/handoff.json only for acceptance criteria and risk context when relevant.
+If `docs/features/<feature>/review-prd-<feature>.md` or
+`docs/features/<feature>/review-codex-prd-<feature>.md` already exists, read it first and
+inspect any `## Resolution Notes` / `## Resolutions` section before re-reviewing.
 Write the result to docs/features/<feature>/review-codex-prd-<feature>.md.
 Keep the review scoped, findings first, and advisory only.
 ```
