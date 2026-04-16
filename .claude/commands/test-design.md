@@ -49,6 +49,34 @@ Rules:
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
 
+## Test Quality Rules
+
+### Symmetric Testing
+
+When the architecture explicitly enumerates components (e.g., 5 subsections, 3 artifact types, N pipeline phases), write a test for all enumerated components — not just one or two. Incomplete coverage of an explicit list is a common QA gap. If the architecture does not explicitly enumerate components, this rule does not apply.
+
+### Behavioral Binding
+
+Tests must bind to specific behavioral outcomes, not implementation details. Assert what the system does (visible output, state change, side effect), not how it does it internally. Behavioral binding ensures tests survive refactoring and catch real regressions.
+
+### Negative-Pattern Testing
+
+For every must-not constraint in the spec, write a negative assertion that verifies the forbidden pattern is absent. Negative assertions catch regressions where a removed capability is accidentally reintroduced or a safety invariant is violated.
+
+### Adversarial Contract Testing
+
+For each safety invariant or contract, write at least one test that verifies the invariant cannot be trivially evaded — e.g., by commenting out a check, adding an escape hatch, or replacing a constraint with a no-op. If trivial evasion passes the test suite, the contract is not meaningfully enforced.
+
+### Artifact-Type Test Strategy
+
+Route test strategy based on the artifact type being tested:
+
+- **Declarative artifacts** (markdown documents, templates, schemas): use structural assertions — verify headings, required sections, field presence, and structural relationships. Content wording may change; structure must not.
+- **Executable artifacts** (shell scripts, JS modules, hooks): use behavioral assertions — run the code and assert on output, exit codes, side effects. Fixture-driven tests with known inputs and expected outputs.
+- **Config artifacts** (JSON schemas, settings files): use schema validation and constraint assertions — verify required fields, types, allowed values, and that invalid input is rejected.
+
+For hybrid artifacts that combine types, the executable or config strategy takes precedence over declarative — behavioral correctness outranks structural presence.
+
 ## Artifact Wiring Verification
 
 Before committing RED shells, verify that every skill artifact declared in `## Required Artifacts`
