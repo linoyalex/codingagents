@@ -14,7 +14,7 @@
     "AC3: Skill guides 5-step invariant analysis — (1) identify invariant, (2) where encoded, (3) where enforced, (4) where tested, (5) failure paths",
     "AC4: Claude commands reference the skill — review.md, architect.md, security-gate.md, test-design.md each have Skill References table row for invariants-audit pointing to skills/invariants-audit/SKILL.md",
     "AC5: Codex reviewer prompts contain ## Invariant Checks section with **Apply when:** trigger and at least one checklist item — review-code.md, review-prd.md, review-architecture.md, review-test-design.md",
-    "AC6: Wiring contract tests verify: Claude command Skill References rows for invariants-audit; Codex reviewer ## Invariant Checks sections; Apply when: triggers; ### Invariant Analysis marker inside each Invariant Checks section; SKILL.md structural anchors (## Review Categories, ## Invariant Review Method, ## When to Use); stop conditions footer; sibling reference resolution",
+    "AC6: Wiring contract tests verify: Claude command Skill References rows for invariants-audit; Codex reviewer ## Invariant Checks sections; Apply when: triggers; ### Invariant Analysis output-instruction (emit.*###.*Invariant Analysis) inside each Invariant Checks section; SKILL.md structural anchors (## Review Categories, ## Invariant Review Method, ## When to Use); stop conditions footer; sibling reference resolution for all skills",
     "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions (workflow logic, state transitions, safety checks, test architecture changes)"
   ],
   "verification_commands": [
@@ -23,5 +23,5 @@
   ],
   "source_spec": "docs/features/invariants-audit/prd.md",
   "produced_by": "developer",
-  "timestamp": "2026-04-16T21:30:00Z"
+  "timestamp": "2026-04-16T23:10:00Z"
 }
