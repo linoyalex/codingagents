@@ -18,6 +18,7 @@ Audit of all skills against the new size convention:
 | security-audit | 143 | inline | Compliant |
 | structured-logging | 127 | inline | Compliant |
 | tdd | 85 | inline | Compliant |
+| invariants-audit | 64 | progressive disclosure | Compliant (split: review-categories.md sibling) |
 | verification-gate | 74 | progressive disclosure | Compliant (pilot conversion) |
 
 ## Needs Trimming (251–300 total lines)
