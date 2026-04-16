@@ -127,16 +127,12 @@ Batch 2.5: ISS-036 + ISS-029 + ISS-027 + ISS-039 + ISS-040 + ISS-042 + ISS-008
         ISS-042 — /implement must instruct developer to verify handoff known_risks
         Closed 2026-04-13
 
-Batch 2.75: ISS-043 + ISS-045 + ISS-049  (single branch — all touch same files)
-   └─ Branch A: feature/ISS-043-045-049-qa-test-quality
+Batch 2.75: ISS-043 + ISS-045 + ISS-049  ✅ ALL MERGED
+   └─ Branch A: feature/ISS-043-045-049-qa-test-quality  ✅ MERGED
         ISS-043 — symmetric testing across all enumerated components
         ISS-045 — adversarial contract robustness testing
         ISS-049 — fixture-driven behavioral tests for executable code
-        Touches: commands/test-design.md, skills/tdd/SKILL.md, tests/node/
-        Depends on: ISS-036 (closed). No overlap with Batch 3.
-        WHY COMBINED: All three address Phase 3 test quality gaps from
-        different angles, all touch the same two files. Single branch
-        avoids 3 serial merge conflicts in commands/test-design.md.
+        Closed 2026-04-16
 
 Batch 3: ISS-001 + ISS-044  (parallel branches, no file overlap)
    ├─ Branch A: feature/ISS-001-invariants-audit
@@ -204,7 +200,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 
 - **Wave 1 — Codex review method hardening (1):** ✅ **COMPLETE.** ISS-027 merged 2026-04-13. Codex review method hardened with install-path, sync-drift, test-truthfulness checks, and installer coverage contract tests.
 - **Wave 2 — Skill convention (2):** ✅ **COMPLETE.** ISS-013 merged 2026-04-13. Unblocked all skill content changes in Waves 3–5.
-- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-043/045/049 elevated to P1 after ISS-008 RCA showed QA test quality gaps cost ~50% rework in Phase 3. ISS-007 accelerated from Wave 9 (Order 22) to Wave 3 (Order 9) — upgrade.sh uses major-only version tracking (`v5`), silently skipping all minor releases for projects already at v5. `--force` unblocks until ISS-030 adds proper semver. ISS-055 added alongside ISS-007 — hook scripts use `require()` which breaks in `"type": "module"` projects; `.cjs` rename fixes it. **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027, ISS-039, ISS-008. **Remaining:** ISS-007, ISS-055, ISS-043, ISS-045, ISS-049, ISS-044, ISS-001.
+- **Wave 3 — Test & review layer hardening (3–10):** Closes the biggest failure patterns in test design and review quality, then hardens reviewer methodology, source-intent checking, PRD/ticket traceability, adversarial review, command↔skill wiring, ticket fidelity, installer coverage, and invariants. **Core of the reliability milestone.** ISS-043/045/049 elevated to P1 after ISS-008 RCA showed QA test quality gaps cost ~50% rework in Phase 3. ISS-007 accelerated from Wave 9 (Order 22) to Wave 3 (Order 9) — upgrade.sh uses major-only version tracking (`v5`), silently skipping all minor releases for projects already at v5. `--force` unblocks until ISS-030 adds proper semver. ISS-055 added alongside ISS-007 — hook scripts use `require()` which breaks in `"type": "module"` projects; `.cjs` rename fixes it. **Done:** ISS-022, ISS-024, ISS-014, ISS-033, ISS-041, ISS-040, ISS-029, ISS-042, ISS-036, ISS-027, ISS-039, ISS-008, ISS-043, ISS-045, ISS-049. **Remaining:** ISS-007, ISS-055, ISS-044, ISS-001.
 - **Wave 4 — Workflow ergonomics (11–12):** Improve operator ergonomics with branch management, ticket-aware feature selection, automatic status on fresh context, and per-command effort/plan-mode defaults. ISS-052 elevated to P1 after Batch 2.75 PRD was committed to main — no command creates or verifies feature branches. **Remaining:** ISS-052, ISS-028, ISS-032, ISS-050.
 - **Wave 5 — Release and planning structure (12–13):** Introduce semver, connect backlog planning to release intent, and add operational tooling to keep the release roadmap current as priorities shift. **Remaining:** ISS-030, ISS-051.
 - **Wave 6 — Project portability and configurability (14–17):** Keep the framework opinionated by default, but move project-specific paths, outputs, strictness, work-type profiles, backlog systems, and agent routing behind a shared configuration model instead of hardcoded codingagents conventions. **Remaining:** ISS-046, ISS-047, ISS-034, ISS-038.
