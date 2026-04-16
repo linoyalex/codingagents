@@ -1001,27 +1001,40 @@ test('AC6 (invariants-audit): SKILL.md has stop conditions footer (pipeline-gati
 });
 
 // ---------------------------------------------------------------------------
-// invariants-audit: AC6 — Sibling reference resolution
-// All [See reference: ...] links in SKILL.md must resolve to existing files
+// Sibling reference resolution — all skills
+// Auto-discovers every skills/*/SKILL.md that contains [See reference: ...] links
+// and verifies each link resolves to an existing file.
+// Generalised from the invariants-audit-specific test (AC6) to cover all skills
+// (e.g. prd-writing/SKILL.md ticket-fidelity.md reference added in this branch).
 // ---------------------------------------------------------------------------
 
-test('AC6 (invariants-audit): all [See reference: ...] links in SKILL.md resolve to existing files', () => {
-  const content = read('skills/invariants-audit/SKILL.md');
-  const refPattern = /\[See reference:\s*([^\]]+)\]/g;
-  let match;
-  const missingRefs = [];
+test('all skills: every [See reference: ...] link in SKILL.md files resolves to an existing file', () => {
+  const skillsDir = path.join(ROOT_DIR, 'skills');
+  const skillDirs = fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name);
 
-  while ((match = refPattern.exec(content)) !== null) {
-    const refPath = match[1].trim();
-    if (!exists(refPath)) {
-      missingRefs.push(refPath);
+  const refPattern = /\[See reference:\s*([^\]]+)\]/g;
+  const allBroken = [];
+
+  for (const skillName of skillDirs) {
+    const skillFile = `skills/${skillName}/SKILL.md`;
+    if (!exists(skillFile)) continue;
+
+    const content = read(skillFile);
+    let match;
+    while ((match = refPattern.exec(content)) !== null) {
+      const refPath = match[1].trim();
+      if (!exists(refPath)) {
+        allBroken.push(`${skillFile}: broken ref → ${refPath}`);
+      }
     }
   }
 
   assert.deepEqual(
-    missingRefs,
+    allBroken,
     [],
-    `skills/invariants-audit/SKILL.md has broken [See reference:] links: ${missingRefs.join(', ')} (AC6)`
+    `One or more SKILL.md files have broken [See reference:] links:\n  ${allBroken.join('\n  ')}`
   );
 });
 
