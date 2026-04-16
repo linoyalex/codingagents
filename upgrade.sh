@@ -132,7 +132,7 @@ if [ "$CORE_NEEDS_UPGRADE" = true ] || [ "$CODEX_NEEDS_INSTALL" = true ]; then
   if [ "$CORE_NEEDS_UPGRADE" = true ]; then
     echo "  [core] Upgrade $CURRENT_CORE → $NEW_VERSION"
     echo "    - Back up .claude/ to .claude.backup-$CURRENT_CORE/"
-    echo "    - Replace hook files (checkpoint.cjs, restore-context.cjs, archive-context.cjs)"
+    echo "    - Replace hook files (checkpoint.cjs, restore-context.cjs, archive-context.cjs, resolve-feature.cjs)"
     echo "    - Replace role files in .claude/agents/"
     echo "    - Replace skill files in .claude/skills/"
     echo "    - Add schemas/ directory"
