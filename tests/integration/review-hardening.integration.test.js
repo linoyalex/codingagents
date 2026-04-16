@@ -33,7 +33,7 @@ const { execSync } = require('node:child_process');
 const os = require('node:os');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const CHECKPOINT = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
+const CHECKPOINT = path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs');
 const FIXTURES_DIR = path.join(ROOT_DIR, 'tests', 'fixtures', 'review-hardening');
 
 function read(relativePath) {
@@ -185,7 +185,7 @@ test('INTEGRATION edge: checkpoint.js accepts bugfix handoff with ticket file as
 test('INTEGRATION wiring: checkpoint.js file references source_spec in its validation logic', () => {
   // This test imports the production entry point (checkpoint.js) and asserts
   // visible output: that source_spec validation is present in the checkpoint source.
-  const checkpointSource = read('hooks/checkpoint.js');
+  const checkpointSource = read('hooks/checkpoint.cjs');
 
   // Assert visible output: the production file contains source_spec validation code
   assert.match(
@@ -201,7 +201,7 @@ test('INTEGRATION wiring: checkpoint.js file references source_spec in its valid
 
 test('INTEGRATION separate-context: checkpoint.js records produced_by for gate-phase role check', () => {
   // The production entry point must persist produced_by so gate commands can check it.
-  const checkpointSource = read('hooks/checkpoint.js');
+  const checkpointSource = read('hooks/checkpoint.cjs');
   assert.match(
     checkpointSource,
     /produced_by/,

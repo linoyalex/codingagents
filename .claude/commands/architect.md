@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | architecture-decision | skills/architecture-decision/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the architect subagent.
 
@@ -22,7 +23,7 @@ continuing from a previous phase, end this session and start a new one.
 Model: This phase should run with claude-opus-4-6.
 
 Before reading any implementation files, run:
-`node .claude/helpers/resolve-feature.js --command architect --phase 2 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command architect --phase 2 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
@@ -34,7 +35,7 @@ checkpoint from the previous session rather than restarting the phase.
 Your task: produce docs/features/$ARGUMENTS/architecture.md
 
 Rules:
-- Read ONLY: docs/features/$ARGUMENTS/prd.md + the Architecture Notes section of CLAUDE.md
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + any existing architecture review artifacts in `docs/features/$ARGUMENTS/` + the Architecture Notes section of CLAUDE.md
   (If the repo has a docs/CLAUDE.md, read that file for project-specific architecture context instead of the root template)
 - If you need to understand an existing pattern, read ONE representative file — not a whole module
 - Never Glob src/
@@ -43,6 +44,22 @@ Rules:
 - Include the architecture skill's reliability fields: decision confidence, revisit trigger, rollback/fallback, and trust boundaries when relevant
 - If a key architectural assumption is still ambiguous, record it explicitly instead of smoothing it over
 - Output must be under 200 lines
+
+## Review Feedback Loop
+
+Before revising the architecture, read any phase-relevant architecture review artifacts
+already present in `docs/features/$ARGUMENTS/`, especially:
+- `review-architecture-$ARGUMENTS.md`
+- `review-codex-architecture-$ARGUMENTS.md`
+
+Treat those findings as the review scope unless the user explicitly broadens scope.
+
+When you address a finding, append or refresh a `## Resolution Notes` section in each
+review artifact you used. For every finding you touched, add one bullet in this shape:
+- [ADDRESSED | DEFERRED | DISPUTED] <finding label or short quote> — <what changed and where, or why it remains open>
+
+Do not delete the original findings. Later reviewers will verify these notes against
+the revised architecture.
 
 ## Review Checkpoint
 

@@ -5,6 +5,7 @@
 
 | ID | Priority | Type | Title | Closed | Resolution |
 |----|----------|------|-------|--------|------------|
+| [ISS-055](tickets/ISS-055.md) | P1 — High | Bug | Rename hook scripts to .cjs for ESM project compatibility | 2026-04-16 | Renamed all 4 hooks (`checkpoint`, `resolve-feature`, `archive-context`, `restore-context`) from `.js` to `.cjs`; updated settings.json, init.sh, upgrade.sh, command files, and tests; verified in synthetic ESM project |
 | [ISS-002](tickets/ISS-002.md) | P1 — High | Bug | Phase 6 writes forward handoff on REQUEST_CHANGES | 2026-04-06 | Fixed in `commands/review.md`; regression test added |
 | [ISS-003](tickets/ISS-003.md) | P1 — High | Bug | Phase 4 writes handoff on BLOCKING security findings | 2026-04-06 | Fixed in `commands/security-gate.md`; regression test added |
 | [ISS-004](tickets/ISS-004.md) | P2 — Medium | Bug | Phase 4 verification regex mismatch with template | 2026-04-06 | Fixed in `skills/verification-gate/SKILL.md`; regression tests added |

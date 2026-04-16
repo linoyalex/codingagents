@@ -28,12 +28,44 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
 }
 
+/**
+ * Read a file and inline all [See reference: path] sibling references.
+ * Replaces each reference token with the content of the linked file so that
+ * content assertions work regardless of whether content is inline or split.
+ *
+ * When the sibling file opens with a heading line (e.g. "## Section Name"),
+ * that line is stripped before inlining because the parent file already
+ * contains the heading — keeping it would create a duplicate that breaks
+ * section-extraction regexes.
+ */
+function readWithSiblings(relativePath) {
+  let content = read(relativePath);
+  const linkPattern = /\[See reference:\s*([^\]]+)\]/g;
+  let match;
+  while ((match = linkPattern.exec(content)) !== null) {
+    const refPath = match[1].trim();
+    let refContent = '';
+    try {
+      refContent = read(refPath);
+      // Strip leading heading line from the sibling to avoid duplicating
+      // the heading that already appears in the parent file.
+      refContent = refContent.replace(/^#{1,6} [^\n]*\n/, '');
+    } catch (_) {
+      // leave the token in place if the file is missing (other tests catch that)
+    }
+    content = content.replace(match[0], refContent);
+    // Reset regex since we mutated the string
+    linkPattern.lastIndex = 0;
+  }
+  return content;
+}
+
 // ---------------------------------------------------------------------------
 // AC0: Ticket Fidelity — prd-writing skill contains the procedure
 // ---------------------------------------------------------------------------
 
 test('AC0: skills/prd-writing/SKILL.md has a Ticket Fidelity Procedure section', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   assert.match(
     skill,
     /^## Ticket Fidelity Procedure$/m,
@@ -42,7 +74,7 @@ test('AC0: skills/prd-writing/SKILL.md has a Ticket Fidelity Procedure section',
 });
 
 test('AC0: Ticket Fidelity Procedure instructs transcribing ticket ACs, not paraphrasing', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
@@ -53,7 +85,7 @@ test('AC0: Ticket Fidelity Procedure instructs transcribing ticket ACs, not para
 });
 
 test('AC0: Ticket Fidelity Procedure instructs flagging divergences as assumptions', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
@@ -64,7 +96,7 @@ test('AC0: Ticket Fidelity Procedure instructs flagging divergences as assumptio
 });
 
 test('AC0: Ticket Fidelity Procedure requires detecting drift in scope, severity, or specificity', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   // PRD AC0: "diverges from the ticket AC in scope, severity, or specificity"
@@ -81,7 +113,7 @@ test('AC0: Ticket Fidelity Procedure requires detecting drift in scope, severity
 // ---------------------------------------------------------------------------
 
 test('AC0a: Ticket Fidelity Procedure requires verifying convention values against docs/CLAUDE.md', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
@@ -92,7 +124,7 @@ test('AC0a: Ticket Fidelity Procedure requires verifying convention values again
 });
 
 test('AC0a: Ticket Fidelity Procedure specifies docs/CLAUDE.md as canonical with root fallback', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   // Must specify docs/CLAUDE.md as the canonical source (not just "CLAUDE.md")
@@ -114,7 +146,7 @@ test('AC0a: Ticket Fidelity Procedure specifies docs/CLAUDE.md as canonical with
 // ---------------------------------------------------------------------------
 
 test('AC0b: Ticket Fidelity Procedure requires checking for internal contradictions', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
@@ -129,7 +161,7 @@ test('AC0b: Ticket Fidelity Procedure requires checking for internal contradicti
 // ---------------------------------------------------------------------------
 
 test('AC0c: Ticket Fidelity Procedure requires enumerating or asking about open-ended scope', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(
@@ -140,7 +172,7 @@ test('AC0c: Ticket Fidelity Procedure requires enumerating or asking about open-
 });
 
 test('AC0c: Ticket Fidelity Procedure includes the "ask the user which ones apply" alternative', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   // PRD AC0c: "enumerate the candidates OR ask the user which ones apply"
@@ -558,7 +590,7 @@ test('Ticket-not-found: commands/specify.md instructs blocking or asking user on
 });
 
 test('Ticket-not-found: prd-writing skill documents degraded-mode warning for missing ticket', () => {
-  const skill = read('skills/prd-writing/SKILL.md');
+  const skill = readWithSiblings('skills/prd-writing/SKILL.md');
   const section = skill.match(/## Ticket Fidelity Procedure[\s\S]*?(?=\n## [^#]|$)/);
   assert.ok(section, 'Ticket Fidelity Procedure section must exist');
   assert.match(

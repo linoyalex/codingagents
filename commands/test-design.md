@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | tdd | skills/tdd/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the qa subagent.
 
@@ -22,7 +23,7 @@ continuing from a previous phase, end this session and start a new one.
 Model: This phase should run with claude-sonnet-4-6.
 
 Before reading any implementation files, run:
-`node .claude/helpers/resolve-feature.js --command test-design --phase 3 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command test-design --phase 3 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
@@ -31,7 +32,7 @@ Before reading any implementation files, run:
 Your task: write failing test shells for feature: $ARGUMENTS
 
 Rules:
-- Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md
+- Read ONLY: docs/features/$ARGUMENTS/prd.md + docs/features/$ARGUMENTS/architecture.md + any existing test-design review artifacts in `docs/features/$ARGUMENTS/`
 - Do NOT read src/ — tests must be derived from the spec, not the implementation
 - Write contract tests to: tests/contracts/$ARGUMENTS.test.ts
 - Write integration tests to: tests/integration/$ARGUMENTS.integration.test.ts
@@ -48,6 +49,22 @@ Rules:
   modules directly do not satisfy this check. This is a blocking gate — Phase 3 cannot complete without it.
 - Run Phase 3 verification from verification-gate skill
 - Run the tests to confirm they fail, then commit with message: "test: $ARGUMENTS failing shells (RED)"
+
+## Review Feedback Loop
+
+Before revising the test plan or RED shells, read any phase-relevant test-design review
+artifacts already present in `docs/features/$ARGUMENTS/`, especially:
+- `review-test-design-$ARGUMENTS.md`
+- `review-codex-tests-$ARGUMENTS.md`
+
+Treat those findings as the review scope unless the user explicitly broadens scope.
+
+When you address a finding, append or refresh a `## Resolution Notes` section in each
+review artifact you used. For every finding you touched, add one bullet in this shape:
+- [ADDRESSED | DEFERRED | DISPUTED] <finding label or short quote> — <what changed and where, or why it remains open>
+
+Do not delete the original findings. Later reviewers will verify these notes against
+the revised test artifacts.
 
 ## Test Quality Rules
 

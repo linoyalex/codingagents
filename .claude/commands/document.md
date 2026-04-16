@@ -22,7 +22,7 @@ continuing from a previous phase, end this session and start a new one.
 Model: This phase should run with claude-haiku-4-5.
 
 Before reading any documentation files, run:
-`node .claude/helpers/resolve-feature.js --command document --phase 7 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command document --phase 7 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.

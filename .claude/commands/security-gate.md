@@ -10,6 +10,7 @@ user-invocable: true
 | security-audit | skills/security-audit/SKILL.md |
 | structured-logging | skills/structured-logging/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the security-reviewer subagent.
 
@@ -24,7 +25,7 @@ continuing from a previous phase, end this session and start a new one.
 Model: This phase should run with claude-opus-4-6.
 
 Before reading any implementation files, run:
-`node .claude/helpers/resolve-feature.js --command security-gate --phase 4 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command security-gate --phase 4 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
@@ -45,6 +46,15 @@ Check the `produced_by` field in the incoming handoff. If `produced_by` matches 
 ## Symmetric Gate Enforcement
 
 When verifying a gate-phase check (e.g., `produced_by`, `source_spec`, `separate context`), confirm the identical check exists in both `commands/review.md` and `commands/security-gate.md`. If one gate has a check the other lacks, raise a HIGH finding.
+
+## Existing Review Context
+
+If this is a re-review, read any existing security review artifacts already present in
+`docs/features/$ARGUMENTS/` before auditing, especially:
+- `security-audit.md`
+
+Inspect any `## Resolution Notes` or `## Resolutions` section first. Treat response
+notes as claims to verify against the current design, not as proof that a concern is fixed.
 
 Your task: design-time security audit for feature: $ARGUMENTS
 

@@ -9,7 +9,8 @@ Your job is to spot ambiguity, missing acceptance criteria, missing user states,
 ## Primary Inputs
 
 1. `docs/features/<feature>/prd.md`
-2. `.claude/handoff.json` if it exists
+2. Existing PRD review artifacts in `docs/features/<feature>/` if present, especially `review-prd-<feature>.md` and `review-codex-prd-<feature>.md`
+3. `.claude/handoff.json` if it exists
 
 ## Review Priorities
 
@@ -22,8 +23,14 @@ Your job is to spot ambiguity, missing acceptance criteria, missing user states,
 ## Scope Discipline
 
 - Read the PRD first
+- On re-review, inspect any `## Resolution Notes` or `## Resolutions` section in the existing PRD review artifact before judging whether prior findings are resolved
 - Use `handoff.json` only for context, not as a substitute for the PRD
 - Do not expand into architecture or implementation suggestions unless they are required to explain a PRD gap
+
+## Existing Review Context
+
+- If an existing PRD review artifact already exists, read it before re-reviewing the PRD
+- Treat inline response notes as claims to verify, not as proof that a finding is fixed
 
 ## Timestamp Convention
 
@@ -57,3 +64,17 @@ Include a `**Generated:** <current ISO 8601 timestamp>` line immediately after t
 - missing accessibility expectations
 - user flows with no error or empty handling
 - unclear out-of-scope boundaries
+
+## Invariant Checks
+
+**Apply when:** the PRD covers state-machine behavior, multi-step workflows, or phase-gated pipelines.
+
+Load `.claude/skills/invariants-audit/SKILL.md` and apply the 5-step invariant method.
+Focus on blocked/rejected/retry/stale-state paths and AC-to-AC contradictions.
+
+- Check that every AC naming a "blocked," "rejected," or "retry" outcome also specifies what state the system enters and how recovery works.
+- Check that ACs do not contradict each other — e.g., one AC allows an action another forbids.
+- Check that error paths and empty states are specified with the same precision as the happy path.
+
+When triggers match, emit `### Invariant Analysis` in your review output (either findings or
+"No invariant mismatches identified").

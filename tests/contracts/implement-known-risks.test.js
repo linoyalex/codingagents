@@ -156,7 +156,7 @@ test('AC4: resolve-feature.js succeeds when handoff.json is missing and explicit
     result = {
       exitCode: 0,
       stdout: execSync(
-        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args implement-known-risks`,
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.cjs')}" --command implement --phase 5 --args implement-known-risks`,
         { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
       ),
       stderr: '',
@@ -190,7 +190,7 @@ test('AC5: resolve-feature.js halts with visible error on malformed handoff.json
     result = {
       exitCode: 0,
       stdout: execSync(
-        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args ""`,
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.cjs')}" --command implement --phase 5 --args ""`,
         { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
       ),
       stderr: '',

@@ -231,19 +231,19 @@ test('E2E sync: source skills/code-review/SKILL.md and installed .claude/skills/
 // E2E: Empty state — pipeline agent with no prior handoff
 // ---------------------------------------------------------------------------
 
-test('E2E empty state: checkpoint.js exists and is a valid Node.js script', () => {
+test('E2E empty state: checkpoint.cjs exists and is a valid Node.js script', () => {
   assert.ok(
-    exists('hooks/checkpoint.js'),
-    'hooks/checkpoint.js must exist — it is the production handoff validation entry point'
+    exists('hooks/checkpoint.cjs'),
+    'hooks/checkpoint.cjs must exist — it is the production handoff validation entry point'
   );
 
-  const checkpoint = read('hooks/checkpoint.js');
+  const checkpoint = read('hooks/checkpoint.cjs');
 
   // Must validate source_spec
   assert.match(
     checkpoint,
     /source_spec/,
-    'hooks/checkpoint.js must validate source_spec (empty state: new handoff without source_spec is rejected)'
+    'hooks/checkpoint.cjs must validate source_spec (empty state: new handoff without source_spec is rejected)'
   );
 });
 
@@ -288,7 +288,7 @@ test('E2E regression: all required files for review-hardening feature exist', ()
     'ROLE_CODE_REVIEWER.md',
     'ROLE_SECURITY.md',
     'CLAUDE.md',
-    'hooks/checkpoint.js',
+    'hooks/checkpoint.cjs',
   ];
 
   const missing = requiredFiles.filter(f => !exists(f));

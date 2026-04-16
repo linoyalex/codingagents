@@ -8,8 +8,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const RESTORE_SCRIPT = path.join(ROOT_DIR, 'hooks', 'restore-context.js');
-const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
+const RESTORE_SCRIPT = path.join(ROOT_DIR, 'hooks', 'restore-context.cjs');
+const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs');
 
 function makeTempDir(t, prefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -236,11 +236,11 @@ test('restore-context surfaces checkpoint_pending in restored output', (t) => {
   );
 });
 
-// Sync: restore-context.js source/installed copies
-test('Sync: hooks/restore-context.js matches .claude/helpers/restore-context.js', () => {
-  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'restore-context.js'), 'utf8');
-  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'restore-context.js'), 'utf8');
-  assert.equal(source, installed, 'Source and installed copies of restore-context.js must be byte-identical');
+// Sync: restore-context.cjs source/installed copies
+test('Sync: hooks/restore-context.cjs matches .claude/helpers/restore-context.cjs', () => {
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'restore-context.cjs'), 'utf8');
+  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'restore-context.cjs'), 'utf8');
+  assert.equal(source, installed, 'Source and installed copies of restore-context.cjs must be byte-identical');
 });
 
 // AC5: only spec docs exist in feature dir after phases 1–3

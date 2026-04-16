@@ -9,6 +9,7 @@ user-invocable: true
 |-------|-------------|
 | code-review | skills/code-review/SKILL.md |
 | verification-gate | skills/verification-gate/SKILL.md |
+| invariants-audit | skills/invariants-audit/SKILL.md |
 
 Use the code-reviewer subagent.
 
@@ -18,7 +19,7 @@ that wrote the code.
 Model: This phase should run with claude-sonnet-4-6.
 
 Before reading any implementation files, run:
-`node .claude/helpers/resolve-feature.js --command review --phase 6 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command review --phase 6 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
@@ -45,6 +46,16 @@ Even if the role check passes, independently re-derive your coverage expectation
 ## Symmetric Gate Enforcement
 
 When verifying any gate-phase check (e.g., `produced_by`, `source_spec`, `separate context`), confirm the identical check exists in both `commands/review.md` and `commands/security-gate.md`. If one gate has a check the other lacks, raise a HIGH finding.
+
+## Existing Review Context
+
+If this is a re-review, read any existing code-review artifacts already present in
+`docs/features/$ARGUMENTS/` before reviewing the diff, especially:
+- `review.md`
+- `review-codex-code-$ARGUMENTS.md`
+
+Inspect any `## Resolution Notes` or `## Resolutions` section first. Treat response
+notes as claims to verify against the current diff, not as proof that a concern is fixed.
 
 Your task: review the current branch against main.
 

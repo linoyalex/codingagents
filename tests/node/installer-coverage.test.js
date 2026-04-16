@@ -1,5 +1,5 @@
 // Production wiring test seam: init.sh and upgrade.sh
-// This contract test verifies every source file (skills/*/SKILL.md, commands/*.md, hooks/*.js)
+// This contract test verifies every source file (skills/*/SKILL.md, commands/*.md, hooks/*.cjs)
 // is operationalized by the installer and upgrade scripts.
 // Mechanism-agnostic: isCoveredByScript() accepts literal paths, source paths, directory
 // copies, loops, manifests, or any mechanism that references the file or a covering ancestor
@@ -76,11 +76,11 @@ function collectSourceFiles() {
     }
   }
 
-  // hooks/*.js
+  // hooks/*.cjs
   const hooksDir = path.join(ROOT_DIR, 'hooks');
   if (fs.existsSync(hooksDir)) {
     for (const entry of fs.readdirSync(hooksDir, { withFileTypes: true })) {
-      if (!entry.isDirectory() && entry.name.endsWith('.js')) {
+      if (!entry.isDirectory() && entry.name.endsWith('.cjs')) {
         files.push({ source: `hooks/${entry.name}`, type: 'hook' });
       }
     }
@@ -205,7 +205,7 @@ test('at least one source file of each type is found', () => {
 
   assert.ok(skills.length > 0, 'No skills/*/SKILL.md files found — check directory structure');
   assert.ok(commands.length > 0, 'No commands/*.md files found — check directory structure');
-  assert.ok(hooks.length > 0, 'No hooks/*.js files found — check directory structure');
+  assert.ok(hooks.length > 0, 'No hooks/*.cjs files found — check directory structure');
 });
 
 // --- AC7: init.sh coverage ---
@@ -250,7 +250,7 @@ test('AC7: init.sh operationalizes every commands/*.md file', () => {
   );
 });
 
-test('AC7: init.sh operationalizes every hooks/*.js file', () => {
+test('AC7: init.sh operationalizes every hooks/*.cjs file', () => {
   const initActive = activeLines(readScript('init.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'hook');
   const failures = [];
@@ -312,7 +312,7 @@ test('AC7: upgrade.sh operationalizes every commands/*.md file', () => {
   );
 });
 
-test('AC7: upgrade.sh operationalizes every hooks/*.js file', () => {
+test('AC7: upgrade.sh operationalizes every hooks/*.cjs file', () => {
   const upgradeActive = activeLines(readScript('upgrade.sh'));
   const files = collectSourceFiles().filter(f => f.type === 'hook');
   const failures = [];

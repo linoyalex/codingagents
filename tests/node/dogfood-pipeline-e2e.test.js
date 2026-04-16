@@ -15,8 +15,8 @@ const { spawnSync } = require('node:child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const INIT_SCRIPT = path.join(ROOT_DIR, 'init.sh');
-const RESTORE_SCRIPT = path.join(ROOT_DIR, 'hooks', 'restore-context.js');
-const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
+const RESTORE_SCRIPT = path.join(ROOT_DIR, 'hooks', 'restore-context.cjs');
+const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs');
 
 function makeTempDir(t, prefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));

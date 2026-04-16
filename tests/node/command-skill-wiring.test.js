@@ -707,3 +707,397 @@ test('Structural: fail-closed bypass edge case -- key commands have explicit Ski
   assert.match(implement, /^## Skill References$/m,
     'implement.md must have explicit ## Skill References table (not rely on prose heuristic)');
 });
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC4 — Claude commands Skill References table wiring
+// Feature: invariants-audit
+// Production-wiring seam: commands/* -> skills/invariants-audit/SKILL.md
+// RED state: skills/invariants-audit/SKILL.md does not exist yet; commands
+//            do not yet have a Skill References row for invariants-audit.
+// ---------------------------------------------------------------------------
+
+test('AC4 (invariants-audit): commands/review.md has Skill References row for invariants-audit', () => {
+  const content = read('commands/review.md');
+  assert.match(
+    content,
+    /^## Skill References$/m,
+    'commands/review.md must have a ## Skill References section'
+  );
+  assert.match(
+    content,
+    /invariants-audit/,
+    'commands/review.md Skill References table must include a row for invariants-audit (AC4)'
+  );
+  assert.match(
+    content,
+    /skills\/invariants-audit\/SKILL\.md/,
+    'commands/review.md Skill References row must reference skills/invariants-audit/SKILL.md (AC4)'
+  );
+});
+
+test('AC4 (invariants-audit): commands/architect.md has Skill References row for invariants-audit', () => {
+  const content = read('commands/architect.md');
+  assert.match(
+    content,
+    /^## Skill References$/m,
+    'commands/architect.md must have a ## Skill References section'
+  );
+  assert.match(
+    content,
+    /invariants-audit/,
+    'commands/architect.md Skill References table must include a row for invariants-audit (AC4)'
+  );
+  assert.match(
+    content,
+    /skills\/invariants-audit\/SKILL\.md/,
+    'commands/architect.md Skill References row must reference skills/invariants-audit/SKILL.md (AC4)'
+  );
+});
+
+test('AC4 (invariants-audit): commands/security-gate.md has Skill References row for invariants-audit', () => {
+  const content = read('commands/security-gate.md');
+  assert.match(
+    content,
+    /^## Skill References$/m,
+    'commands/security-gate.md must have a ## Skill References section'
+  );
+  assert.match(
+    content,
+    /invariants-audit/,
+    'commands/security-gate.md Skill References table must include a row for invariants-audit (AC4)'
+  );
+  assert.match(
+    content,
+    /skills\/invariants-audit\/SKILL\.md/,
+    'commands/security-gate.md Skill References row must reference skills/invariants-audit/SKILL.md (AC4)'
+  );
+});
+
+test('AC4 (invariants-audit): commands/test-design.md has Skill References row for invariants-audit', () => {
+  const content = read('commands/test-design.md');
+  assert.match(
+    content,
+    /^## Skill References$/m,
+    'commands/test-design.md must have a ## Skill References section'
+  );
+  assert.match(
+    content,
+    /invariants-audit/,
+    'commands/test-design.md Skill References table must include a row for invariants-audit (AC4)'
+  );
+  assert.match(
+    content,
+    /skills\/invariants-audit\/SKILL\.md/,
+    'commands/test-design.md Skill References row must reference skills/invariants-audit/SKILL.md (AC4)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC5 — Codex reviewer ## Invariant Checks section present
+// ---------------------------------------------------------------------------
+
+test('AC5 (invariants-audit): codex/reviewers/review-code.md has ## Invariant Checks section', () => {
+  const content = read('codex/reviewers/review-code.md');
+  assert.match(
+    content,
+    /^## Invariant Checks$/m,
+    'codex/reviewers/review-code.md must have a ## Invariant Checks section (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-prd.md has ## Invariant Checks section', () => {
+  const content = read('codex/reviewers/review-prd.md');
+  assert.match(
+    content,
+    /^## Invariant Checks$/m,
+    'codex/reviewers/review-prd.md must have a ## Invariant Checks section (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-architecture.md has ## Invariant Checks section', () => {
+  const content = read('codex/reviewers/review-architecture.md');
+  assert.match(
+    content,
+    /^## Invariant Checks$/m,
+    'codex/reviewers/review-architecture.md must have a ## Invariant Checks section (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-test-design.md has ## Invariant Checks section', () => {
+  const content = read('codex/reviewers/review-test-design.md');
+  assert.match(
+    content,
+    /^## Invariant Checks$/m,
+    'codex/reviewers/review-test-design.md must have a ## Invariant Checks section (AC5)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC5 — Apply when: trigger present in each reviewer
+// ---------------------------------------------------------------------------
+
+test('AC5 (invariants-audit): codex/reviewers/review-code.md Invariant Checks has Apply when: trigger', () => {
+  const content = read('codex/reviewers/review-code.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-code.md must have ## Invariant Checks section to check trigger'
+  );
+  assert.match(
+    section,
+    /\*\*Apply when:\*\*/,
+    'codex/reviewers/review-code.md ## Invariant Checks must contain an **Apply when:** trigger (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-prd.md Invariant Checks has Apply when: trigger', () => {
+  const content = read('codex/reviewers/review-prd.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-prd.md must have ## Invariant Checks section to check trigger'
+  );
+  assert.match(
+    section,
+    /\*\*Apply when:\*\*/,
+    'codex/reviewers/review-prd.md ## Invariant Checks must contain an **Apply when:** trigger (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-architecture.md Invariant Checks has Apply when: trigger', () => {
+  const content = read('codex/reviewers/review-architecture.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-architecture.md must have ## Invariant Checks section to check trigger'
+  );
+  assert.match(
+    section,
+    /\*\*Apply when:\*\*/,
+    'codex/reviewers/review-architecture.md ## Invariant Checks must contain an **Apply when:** trigger (AC5)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-test-design.md Invariant Checks has Apply when: trigger', () => {
+  const content = read('codex/reviewers/review-test-design.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-test-design.md must have ## Invariant Checks section to check trigger'
+  );
+  assert.match(
+    section,
+    /\*\*Apply when:\*\*/,
+    'codex/reviewers/review-test-design.md ## Invariant Checks must contain an **Apply when:** trigger (AC5)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC5 / AC6 — ### Invariant Analysis output instruction inside Invariant Checks
+// Each reviewer's ## Invariant Checks section must instruct the reviewer to emit
+// `### Invariant Analysis` in the review output when triggers match.
+// Regex /emit.*###.*Invariant Analysis/i confirms the prose instruction is present,
+// not just the backtick-quoted marker text.
+// ---------------------------------------------------------------------------
+
+test('AC6 (invariants-audit): codex/reviewers/review-code.md Invariant Checks references ### Invariant Analysis marker', () => {
+  const content = read('codex/reviewers/review-code.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-code.md must have ## Invariant Checks section'
+  );
+  assert.match(
+    section,
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-code.md)'
+  );
+});
+
+test('AC6 (invariants-audit): codex/reviewers/review-prd.md Invariant Checks references ### Invariant Analysis marker', () => {
+  const content = read('codex/reviewers/review-prd.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-prd.md must have ## Invariant Checks section'
+  );
+  assert.match(
+    section,
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-prd.md)'
+  );
+});
+
+test('AC6 (invariants-audit): codex/reviewers/review-architecture.md Invariant Checks references ### Invariant Analysis marker', () => {
+  const content = read('codex/reviewers/review-architecture.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-architecture.md must have ## Invariant Checks section'
+  );
+  assert.match(
+    section,
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-architecture.md)'
+  );
+});
+
+test('AC6 (invariants-audit): codex/reviewers/review-test-design.md Invariant Checks references ### Invariant Analysis marker', () => {
+  const content = read('codex/reviewers/review-test-design.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-test-design.md must have ## Invariant Checks section'
+  );
+  assert.match(
+    section,
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-test-design.md)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC6 — Structural anchors in SKILL.md
+// ---------------------------------------------------------------------------
+
+test('AC6 (invariants-audit): SKILL.md has required ## Review Categories structural anchor', () => {
+  const content = read('skills/invariants-audit/SKILL.md');
+  assert.match(
+    content,
+    /^## Review Categories$/m,
+    'skills/invariants-audit/SKILL.md must have a ## Review Categories heading (AC6 structural anchor)'
+  );
+});
+
+test('AC6 (invariants-audit): SKILL.md has required ## Invariant Review Method structural anchor', () => {
+  const content = read('skills/invariants-audit/SKILL.md');
+  assert.match(
+    content,
+    /^## Invariant Review Method$/m,
+    'skills/invariants-audit/SKILL.md must have a ## Invariant Review Method heading (AC6 structural anchor)'
+  );
+});
+
+test('AC6 (invariants-audit): SKILL.md has required ## When to Use structural anchor', () => {
+  const content = read('skills/invariants-audit/SKILL.md');
+  assert.match(
+    content,
+    /^## When to Use$/m,
+    'skills/invariants-audit/SKILL.md must have a ## When to Use heading (AC6 structural anchor)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC6 — Stop conditions footer present in SKILL.md
+// ---------------------------------------------------------------------------
+
+test('AC6 (invariants-audit): SKILL.md has stop conditions footer (pipeline-gating requirement)', () => {
+  const content = read('skills/invariants-audit/SKILL.md');
+  assert.match(
+    content,
+    /\*\*STOP CONDITIONS/,
+    'skills/invariants-audit/SKILL.md must end with **STOP CONDITIONS footer (AC6)'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Sibling reference resolution — all skills
+// Auto-discovers every skills/*/SKILL.md that contains [See reference: ...] links
+// and verifies each link resolves to an existing file.
+// Generalised from the invariants-audit-specific test (AC6) to cover all skills
+// (e.g. prd-writing/SKILL.md ticket-fidelity.md reference added in this branch).
+// ---------------------------------------------------------------------------
+
+test('all skills: every [See reference: ...] link in SKILL.md files resolves to an existing file', () => {
+  const skillsDir = path.join(ROOT_DIR, 'skills');
+  const skillDirs = fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name);
+
+  const refPattern = /\[See reference:\s*([^\]]+)\]/g;
+  const allBroken = [];
+
+  for (const skillName of skillDirs) {
+    const skillFile = `skills/${skillName}/SKILL.md`;
+    if (!exists(skillFile)) continue;
+
+    const content = read(skillFile);
+    let match;
+    while ((match = refPattern.exec(content)) !== null) {
+      const refPath = match[1].trim();
+      if (!exists(refPath)) {
+        allBroken.push(`${skillFile}: broken ref → ${refPath}`);
+      }
+    }
+  }
+
+  assert.deepEqual(
+    allBroken,
+    [],
+    `One or more SKILL.md files have broken [See reference:] links:\n  ${allBroken.join('\n  ')}`
+  );
+});
+
+// ---------------------------------------------------------------------------
+// invariants-audit: AC5 — Checklist item in ## Invariant Checks section
+// L2 FIX: PRD AC6 requires "at least one checklist item derived from the review
+// categories (AC2)". The section heading and Apply when: trigger are tested above.
+// This block adds the missing structural check for at least one markdown list item
+// (line starting with "- ") within the ## Invariant Checks section of each reviewer.
+// ---------------------------------------------------------------------------
+
+test('AC5 (invariants-audit): codex/reviewers/review-code.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-code.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-code.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-code.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-prd.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-prd.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-prd.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-prd.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-architecture.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-architecture.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-architecture.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-architecture.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});
+
+test('AC5 (invariants-audit): codex/reviewers/review-test-design.md Invariant Checks has at least one checklist item', () => {
+  const content = read('codex/reviewers/review-test-design.md');
+  const section = extractSection(content, /^## Invariant Checks$/);
+  assert.ok(
+    section !== null,
+    'codex/reviewers/review-test-design.md must have ## Invariant Checks section to check for checklist items'
+  );
+  assert.match(
+    section,
+    /^- /m,
+    'codex/reviewers/review-test-design.md ## Invariant Checks must contain at least one checklist item (line starting with "- ") derived from AC2 categories (AC5/L2)'
+  );
+});

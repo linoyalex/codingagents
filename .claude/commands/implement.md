@@ -24,7 +24,7 @@ continuing from a previous phase, end this session and start a new one.
 Model: This phase should run with claude-sonnet-4-6.
 
 Before reading any implementation files, run:
-`node .claude/helpers/resolve-feature.js --command implement --phase 5 --args "$ARGUMENTS"`
+`node .claude/helpers/resolve-feature.cjs --command implement --phase 5 --args "$ARGUMENTS"`
 
 - If that command exits non-zero, stop and relay the error.
 - If it succeeds, treat the returned `feature` as the only valid target for this phase.
@@ -33,7 +33,7 @@ Before reading any implementation files, run:
 Your task: implement the resolved feature using strict TDD.
 
 Rules:
-- Read ONLY: docs/features/<feature>/architecture.md + test files in tests/contracts/ and tests/e2e/
+- Read ONLY: docs/features/<feature>/architecture.md + test files in tests/contracts/ and tests/e2e/ + relevant review feedback files in `docs/features/<feature>/` if present (`security-audit.md`, `review.md`, `review-codex-code-<feature>.md`, and test-design review artifacts)
 - Do NOT read the whole codebase — read only files you need to implement a specific failing test
 - Follow the RED → GREEN → REFACTOR cycle from the tdd skill with a commit at each step:
 
@@ -63,6 +63,21 @@ Context discipline:
 - If context reaches 60%: run /compact immediately
 - If you need to read more than 10 files: split the task
 - If the RED failure is unrelated, stale, or contradicts the architecture/PRD, stop and resolve that mismatch before coding
+
+## Review Feedback Loop
+
+Before revising the implementation after review, read the relevant review feedback files
+already present in `docs/features/<feature>/`, especially:
+- `security-audit.md`
+- `review.md`
+- `review-codex-code-<feature>.md`
+
+When you address a finding, append or refresh a `## Resolution Notes` section in each
+review artifact you used. For every finding you touched, add one bullet in this shape:
+- [ADDRESSED | DEFERRED | DISPUTED] <finding label or short quote> — <what changed and where, or why it remains open>
+
+Do not delete the original findings. Later reviewers will verify these notes against
+the revised implementation.
 
 ## Artifact Wiring Verification
 

@@ -544,12 +544,12 @@ test('ERROR STATE: review gate halts when produced_by matches the current review
 });
 
 // Empty state: no handoff.json in a fresh environment → checkpoint rejects
-test('EMPTY STATE: checkpoint.js rejects handoffs that are missing source_spec', () => {
-  const checkpoint = read('hooks/checkpoint.js');
+test('EMPTY STATE: checkpoint.cjs rejects handoffs that are missing source_spec', () => {
+  const checkpoint = read('hooks/checkpoint.cjs');
   assert.match(
     checkpoint,
     /source_spec/,
-    'hooks/checkpoint.js must validate source_spec presence'
+    'hooks/checkpoint.cjs must validate source_spec presence'
   );
 });
 
@@ -603,14 +603,14 @@ test('MIGRATION: all pipeline command handoff templates include source_spec', ()
   );
 });
 
-test('MIGRATION: checkpoint.js remediation message includes source_spec in required fields list', () => {
-  const checkpoint = read('hooks/checkpoint.js');
+test('MIGRATION: checkpoint.cjs remediation message includes source_spec in required fields list', () => {
+  const checkpoint = read('hooks/checkpoint.cjs');
   // The error message that tells users what fields are required must include source_spec
   const remediationMatch = checkpoint.match(/Write handoff\.json with required fields:([^\n]+)/);
-  assert.ok(remediationMatch, 'checkpoint.js must have a remediation message listing required fields');
+  assert.ok(remediationMatch, 'checkpoint.cjs must have a remediation message listing required fields');
   assert.match(
     remediationMatch[1],
     /source_spec/,
-    'checkpoint.js remediation message must list source_spec as a required field'
+    'checkpoint.cjs remediation message must list source_spec as a required field'
   );
 });

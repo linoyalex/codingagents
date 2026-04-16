@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * checkpoint.js
+ * checkpoint.cjs
  * Runs via Stop hook. Detects pipeline phase from file existence,
  * validates handoff.json (blocking gate), logs token usage, writes
  * a checkpoint JSON, and prints the next action.
  *
- * Install: place at .claude/helpers/checkpoint.js
+ * Install: place at .claude/helpers/checkpoint.cjs
  */
 
 const fs = require('fs');

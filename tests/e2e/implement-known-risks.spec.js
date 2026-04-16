@@ -11,7 +11,7 @@
  *   If all E2E tests pass, the developer is told to read known_risks during GREEN,
  *   the TDD skill reinforces the check, the instruction gracefully handles empty/missing
  *   risks, and source/installed copies are in sync. The pre-existing malformed-JSON
- *   guard (resolve-feature.js) prevents the developer from reaching GREEN with a
+ *   guard (resolve-feature.cjs) prevents the developer from reaching GREEN with a
  *   broken handoff.
  *
  * Cases covered:
@@ -140,7 +140,7 @@ test('E2E sync: skills/tdd/SKILL.md source and installed are byte-identical', ()
 // E2E Chain 4: Pre-existing guard chain (AC5 end-to-end)
 // ---------------------------------------------------------------------------
 
-test('E2E guard chain: resolve-feature.js halts on malformed handoff before developer reaches GREEN', () => {
+test('E2E guard chain: resolve-feature.cjs halts on malformed handoff before developer reaches GREEN', () => {
   // Behavioral test: exercise the actual entry point with malformed JSON
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikr-e2e-'));
   const claudeDir = path.join(tmpDir, '.claude');
@@ -152,7 +152,7 @@ test('E2E guard chain: resolve-feature.js halts on malformed handoff before deve
     result = {
       exitCode: 0,
       stdout: execSync(
-        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.js')}" --command implement --phase 5 --args ""`,
+        `node "${path.join(ROOT_DIR, 'hooks', 'resolve-feature.cjs')}" --command implement --phase 5 --args ""`,
         { cwd: tmpDir, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
       ),
       stderr: '',
@@ -162,19 +162,19 @@ test('E2E guard chain: resolve-feature.js halts on malformed handoff before deve
   }
 
   // Guard must halt (non-zero exit) with visible error
-  assert.notEqual(result.exitCode, 0, 'resolve-feature.js must exit non-zero on malformed handoff');
+  assert.notEqual(result.exitCode, 0, 'resolve-feature.cjs must exit non-zero on malformed handoff');
   assert.match(
     result.stderr + result.stdout,
     /error|invalid|malformed|parse|handoff/i,
-    'resolve-feature.js must produce visible error on malformed handoff'
+    'resolve-feature.cjs must produce visible error on malformed handoff'
   );
 
-  // commands/implement.md must invoke resolve-feature.js before GREEN
+  // commands/implement.md must invoke resolve-feature.cjs before GREEN
   const implement = read('commands/implement.md');
-  assert.match(implement, /resolve-feature/, 'commands/implement.md must invoke resolve-feature.js');
+  assert.match(implement, /resolve-feature/, 'commands/implement.md must invoke resolve-feature.cjs');
   const resolveIdx = implement.indexOf('resolve-feature');
   const greenIdx = implement.indexOf('Step 2 GREEN');
-  assert.ok(resolveIdx < greenIdx, 'resolve-feature.js must be invoked before the GREEN section');
+  assert.ok(resolveIdx < greenIdx, 'resolve-feature.cjs must be invoked before the GREEN section');
 });
 
 // ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ test('E2E regression: all required files for implement-known-risks feature exist
     '.claude/commands/implement.md',
     'skills/tdd/SKILL.md',
     '.claude/skills/tdd/SKILL.md',
-    'hooks/resolve-feature.js',
+    'hooks/resolve-feature.cjs',
     'docs/features/implement-known-risks/prd.md',
     'docs/features/implement-known-risks/architecture.md',
   ];

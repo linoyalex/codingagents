@@ -33,7 +33,7 @@ const { execSync } = require('node:child_process');
 const os = require('node:os');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const RESOLVE_FEATURE = path.join(ROOT_DIR, 'hooks', 'resolve-feature.js');
+const RESOLVE_FEATURE = path.join(ROOT_DIR, 'hooks', 'resolve-feature.cjs');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf8');
@@ -165,13 +165,13 @@ test('INTEGRATION misuse AC5: resolve-feature.js exits non-zero with malformed h
 // ---------------------------------------------------------------------------
 
 test('INTEGRATION wiring: resolve-feature.js imports and calls validateHandoff from checkpoint.js', () => {
-  const source = read('hooks/resolve-feature.js');
+  const source = read('hooks/resolve-feature.cjs');
 
   // Assert: the production file imports validateHandoff
   assert.match(
     source,
     /require.*checkpoint/,
-    'resolve-feature.js must require checkpoint.js'
+    'resolve-feature.cjs must require checkpoint.cjs'
   );
   assert.match(
     source,

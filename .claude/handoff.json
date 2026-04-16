@@ -1,23 +1,27 @@
 {
-  "feature": "qa-test-quality",
+  "feature": "invariants-audit",
   "phase": 7,
-  "goal": "Pipeline complete. Merge to main after final checks.",
-  "scope": "No further phases",
+  "goal": "Pipeline complete. All documentation updated. Ready for merge to main.",
+  "scope": "No further phases after document",
   "relevant_files": [
     "CHANGELOG.md",
     "docs/CLAUDE.md",
-    "release-notes/2026-04-16_v5.10.0_qa-test-quality.md"
+    "release-notes/2026-04-16_v5.11.0_invariants-audit.md"
   ],
   "acceptance_criteria": [
-    "CHANGELOG.md updated",
-    "Release note created",
-    "docs/CLAUDE.md timestamp updated"
+    "CHANGELOG.md updated with all 7 ACs from invariants-audit PRD",
+    "Release note created at release-notes/2026-04-16_v5.11.0_invariants-audit.md",
+    "docs/CLAUDE.md timestamp updated to 2026-04-16 and attribution line updated",
+    "Root CLAUDE.md expanded with full skill-size convention matching docs/CLAUDE.md",
+    "Verification: 296/298 contract tests pass; 2 pre-existing failures unrelated to this feature"
   ],
   "verification_commands": [
-    "head -20 CHANGELOG.md",
-    "ls release-notes/ | tail -1"
+    "head -30 CHANGELOG.md | grep -i invariants",
+    "ls -la release-notes/2026-04-16*.md",
+    "grep 'Last updated.*2026-04-16' docs/CLAUDE.md",
+    "node --test tests/contracts/skill-size-convention.test.js 2>&1 | grep 'AC9.*root CLAUDE.md and docs'"
   ],
-  "source_spec": "docs/features/qa-test-quality/prd.md",
+  "source_spec": "docs/features/invariants-audit/prd.md",
   "produced_by": "documentation-specialist",
-  "timestamp": "2026-04-16T03:20:00Z"
+  "timestamp": "2026-04-16T23:59:59Z"
 }

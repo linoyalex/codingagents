@@ -8,7 +8,7 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..');
 // --- Unit tests for classifyFeatureArgs and resolveFeatureTarget ---
 
 const { classifyFeatureArgs, parseCliArgs, resolveFeatureTarget } = require(
-  path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.js')
+  path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.cjs')
 );
 
 // classifyFeatureArgs
@@ -240,7 +240,7 @@ test('resolveFeatureTarget: valid slug with wrong handoff phase succeeds with wa
   assert.ok(result.warnings.some(w => /phase/.test(w)), 'should warn about phase mismatch');
 });
 
-// --- Command wiring tests: all pipeline commands must use resolve-feature.js ---
+// --- Command wiring tests: all pipeline commands must use resolve-feature.cjs ---
 
 function readCommand(name) {
   return fs.readFileSync(path.join(ROOT_DIR, 'commands', `${name}.md`), 'utf8');
@@ -256,74 +256,74 @@ const PIPELINE_COMMANDS = [
 ];
 
 for (const { name, phase } of PIPELINE_COMMANDS) {
-  test(`/${name} command wires through resolve-feature.js with phase ${phase}`, () => {
+  test(`/${name} command wires through resolve-feature.cjs with phase ${phase}`, () => {
     const source = readCommand(name);
 
     assert.match(
       source,
-      /resolve-feature\.js/,
-      `/${name} must invoke resolve-feature.js for safe feature resolution`
+      /resolve-feature\.cjs/,
+      `/${name} must invoke resolve-feature.cjs for safe feature resolution`
     );
 
     const phasePattern = new RegExp(`--phase\\s+${phase}`);
     assert.match(
       source,
       phasePattern,
-      `/${name} must pass --phase ${phase} to resolve-feature.js`
+      `/${name} must pass --phase ${phase} to resolve-feature.cjs`
     );
 
     assert.match(
       source,
       /--args\s+"\$ARGUMENTS"/,
-      `/${name} must forward $ARGUMENTS to resolve-feature.js`
+      `/${name} must forward $ARGUMENTS to resolve-feature.cjs`
     );
 
     assert.match(
       source,
       /exits?\s+non-zero.*stop|If that command exits non-zero/i,
-      `/${name} must stop on non-zero exit from resolve-feature.js`
+      `/${name} must stop on non-zero exit from resolve-feature.cjs`
     );
   });
 }
 
 // specify (Phase 1) is an exception — no prior handoff to validate
-test('/specify does not require resolve-feature.js (Phase 1 has no prior handoff)', () => {
+test('/specify does not require resolve-feature.cjs (Phase 1 has no prior handoff)', () => {
   const source = readCommand('specify');
   // Phase 1 takes raw args — no handoff fallback risk
   assert.doesNotMatch(
     source,
-    /resolve-feature\.js/,
-    '/specify is Phase 1 and should not need resolve-feature.js'
+    /resolve-feature\.cjs/,
+    '/specify is Phase 1 and should not need resolve-feature.cjs'
   );
 });
 
 // --- Installed copy sync test ---
 
-test('checkpoint.js installed copy is byte-identical to hooks/ source', () => {
-  const sourcePath = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
-  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.js');
+test('checkpoint.cjs installed copy is byte-identical to hooks/ source', () => {
+  const sourcePath = path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs');
+  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.cjs');
 
   const source = fs.readFileSync(sourcePath, 'utf8');
   const installed = fs.readFileSync(installedPath, 'utf8');
 
   assert.equal(source, installed,
-    'hooks/checkpoint.js and .claude/helpers/checkpoint.js must be byte-identical. ' +
+    'hooks/checkpoint.cjs and .claude/helpers/checkpoint.cjs must be byte-identical. ' +
     'Edit the hooks/ source, then copy to .claude/helpers/.');
 });
 
-test('resolve-feature.js installed copy is byte-identical to hooks/ source', () => {
-  const sourcePath = path.join(ROOT_DIR, 'hooks', 'resolve-feature.js');
-  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.js');
+test('resolve-feature.cjs installed copy is byte-identical to hooks/ source', () => {
+  const sourcePath = path.join(ROOT_DIR, 'hooks', 'resolve-feature.cjs');
+  const installedPath = path.join(ROOT_DIR, '.claude', 'helpers', 'resolve-feature.cjs');
 
   const source = fs.readFileSync(sourcePath, 'utf8');
   const installed = fs.readFileSync(installedPath, 'utf8');
 
   assert.equal(source, installed,
-    'hooks/resolve-feature.js and .claude/helpers/resolve-feature.js must be byte-identical. ' +
+    'hooks/resolve-feature.cjs and .claude/helpers/resolve-feature.cjs must be byte-identical. ' +
     'Edit the hooks/ source, then copy to .claude/helpers/.');
 });
 
-// --- Installed command copies must also wire through resolve-feature.js ---
+// --- Installed command copies must also wire through resolve-feature.cjs ---
 
 test('installed commands (.claude/commands/) match source commands for resolve-feature wiring', () => {
   for (const { name } of PIPELINE_COMMANDS) {
@@ -335,13 +335,13 @@ test('installed commands (.claude/commands/) match source commands for resolve-f
     const source = fs.readFileSync(sourcePath, 'utf8');
     const installed = fs.readFileSync(installedPath, 'utf8');
 
-    const sourceHasResolve = /resolve-feature\.js/.test(source);
-    const installedHasResolve = /resolve-feature\.js/.test(installed);
+    const sourceHasResolve = /resolve-feature\.cjs/.test(source);
+    const installedHasResolve = /resolve-feature\.cjs/.test(installed);
 
     assert.equal(
       sourceHasResolve,
       installedHasResolve,
-      `${name}: source and installed must agree on resolve-feature.js wiring`
+      `${name}: source and installed must agree on resolve-feature.cjs wiring`
     );
   }
 });

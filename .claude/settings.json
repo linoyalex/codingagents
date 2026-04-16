@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/helpers/archive-context.js"
+            "command": "node .claude/helpers/archive-context.cjs"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/helpers/restore-context.js"
+            "command": "node .claude/helpers/restore-context.cjs"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/helpers/checkpoint.js"
+            "command": "node .claude/helpers/checkpoint.cjs"
           }
         ]
       }
