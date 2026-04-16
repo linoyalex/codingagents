@@ -1,5 +1,5 @@
 ## Architecture: Invariants-Audit Skill for Cross-Layer Semantic Review
-**Generated:** 2026-04-16T21:00:00Z
+**Generated:** 2026-04-16T21:30:00Z
 **ADR:** ADR-invariants-audit | Date: 2026-04-16
 **Source PRD:** docs/features/invariants-audit/prd.md
 
@@ -85,7 +85,7 @@ For Codex reviewers: same logic via `## Invariant Checks` sections with
 | `codex/reviewers/review-prd.md` | Append `## Invariant Checks` | AC5 | +12 |
 | `codex/reviewers/review-architecture.md` | Append `## Invariant Checks` | AC5 | +12 |
 | `codex/reviewers/review-test-design.md` | Append `## Invariant Checks` | AC5 | +12 |
-| `tests/contracts/invariants-audit.test.js` | Create | AC6 | ~130 |
+| `tests/node/command-skill-wiring.test.js` | Extend (Codex reviewer wiring, structural anchors) | AC5, AC6 | +40 |
 | `tests/node/core-skill-contracts.test.js` | Extend (budget, anchors, sync) | AC1a, AC6 | +10 |
 
 No changes to `init.sh` or `upgrade.sh` -- existing `cp -r skills/* .claude/skills/`
@@ -131,10 +131,15 @@ ISS-027 added Install-Path Tracing sections to `review-code.md` in the same patt
 
 ### Test Strategy
 
-**Contract tests** (`tests/contracts/invariants-audit.test.js`, new):
+**Wiring contract suite** (`tests/node/command-skill-wiring.test.js`, extend):
+Per PRD AC6, this is the single named suite for all wiring verification:
 - Claude command wiring: each of 4 commands has `invariants-audit` in Skill References table
-- Codex reviewer wiring: each of 4 reviewers has `## Invariant Checks` + `**Apply when:**`
-- Structural anchors: SKILL.md has `## Invariant Review Method`, `## Review Categories`, `## When to Use`
+  (auto-discovered by existing dynamic checks)
+- Codex reviewer wiring (new check type): each of 4 reviewers has `## Invariant Checks`
+  section with `**Apply when:**` trigger line AND at least one checklist item (line starting
+  with `- `) derived from the review categories (AC2)
+- Structural anchors: SKILL.md has `## Invariant Review Method`, `## Review Categories`,
+  `## When to Use` headings
 - Sibling reference resolution: all `[See reference: ...]` links resolve to existing files
 - Stop conditions footer present
 
@@ -143,7 +148,6 @@ ISS-027 added Install-Path Tracing sections to `review-code.md` in the same patt
 - Byte-identity sync: source equals installed copy for SKILL.md and review-categories.md
 
 **Existing tests** (no changes needed):
-- `command-skill-wiring.test.js` -- auto-discovers new Skill References rows
 - `installer-coverage.test.js` -- auto-discovers new skill files under `skills/`
 
 ### Failure Modes
@@ -174,3 +178,6 @@ ISS-027 added Install-Path Tracing sections to `review-code.md` in the same patt
    include irrelevant checks per reviewer, diluting signal.
 4. **Multiple sibling files (one per category)** -- rejected because each would be only
    8-10 lines, below useful standalone size. The 5 categories are always applied as a set.
+5. **Separate `tests/contracts/invariants-audit.test.js`** -- rejected because the PRD
+   explicitly names `command-skill-wiring.test.js` as the wiring verification suite.
+   Splitting wiring checks across two files creates ambiguity about where enforcement lives.
