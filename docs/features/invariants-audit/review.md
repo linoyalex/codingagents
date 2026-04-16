@@ -153,4 +153,5 @@ this branch and are not blocking for this feature.
 
 ## Resolution Notes (Pass 2 — This Review)
 
-_(To be filled by developer after addressing Pass 2 findings.)_
+- [ADDRESSED] BLOCKING: 9 contract tests in clarification-checkpoints.test.js broken by prd-writing refactor — added `readWithSiblings()` helper to `tests/contracts/clarification-checkpoints.test.js` that inlines `[See reference: path]` tokens before asserting content, so AC0/AC0a/AC0b/AC0c/Ticket-not-found tests resolve the sibling file. Committed in `a9b9e66` (`test(prd-writing): resolve sibling references before asserting ticket-fidelity content`). Result: 9 fail → 0 fail.
+- [ADDRESSED] BLOCKING: `docs/memory/skill-migration-audit.md` missing `invariants-audit` entry — added a Compliant row for `invariants-audit` (64 lines, progressive disclosure, review-categories.md sibling). Committed in `4b3a5d0` (`fix(skill-migration-audit): document invariants-audit skill`). Result: AC5 regression eliminated; skill-size-convention.test.js back to 3 pre-existing AC9 failures only.
