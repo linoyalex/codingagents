@@ -43,6 +43,8 @@ Use Arrange / Act / Assert and plain-English test names that describe behavior, 
 5. Primary production wiring
 6. Most likely race condition
 7. Boundary values and important edge cases
+8. `[symmetric-coverage]` Symmetric requirements across all enumerated components
+9. `[contract-robustness]` Contract robustness — can the safety invariant be trivially evaded?
 
 ## Three-Level Test Coverage
 
@@ -88,6 +90,8 @@ Use selectively for data transformations, mathematical properties, validation lo
 - Skipped tests to fake green
 - Fake RED states caused by bad setup or unrelated failures
 - One-off implementations that only satisfy today's test inputs
+
+[See reference: .claude/skills/tdd/test-quality-rules.md]
 
 ## Session Discipline
 

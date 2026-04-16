@@ -64,8 +64,9 @@ Recommended current roadmap:
 | `5.8.0` | `ISS-039` — code review skill hardening | **Shipped 2026-04-14** |
 | `5.9.0` | `ISS-008` — CLAUDE.md section-level sync | **Shipped 2026-04-15** |
 | `5.10.0` | `ISS-043`, `ISS-045`, `ISS-049` — QA test quality hardening (Batch 2.75) | Planned |
+| `5.10.1` | `ISS-007` — force upgrade + clean reinstall (accelerated from Wave 9) | Planned |
 | `5.11.0` | `ISS-044`, `ISS-001` — scope control + invariants audit (Batch 3) | Planned |
-| `5.12.0` | `ISS-028`, `ISS-032`, `ISS-050` — ticket-aware selection, auto-status, per-command effort/plan-mode (Wave 4) | Planned |
+| `5.12.0` | `ISS-052`, `ISS-028`, `ISS-032`, `ISS-050` — branch management, ticket-aware selection, auto-status, per-command effort/plan-mode (Wave 4) | Planned |
 | `5.13.0` | `ISS-030`, `ISS-051` — semver policy + release-manager skill (Wave 5) | Planned |
 | `5.14.0+` | `ISS-031`, `ISS-034`, `ISS-038` — doc artifact registry, backlog configurability, multi-agent routing (Wave 9) | Planned |
 

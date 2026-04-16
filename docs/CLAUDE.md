@@ -66,8 +66,10 @@ For Codex sessions specifically, also read `docs/memory/codex-rules.md`.
 
 ### Must Follow
 - **Artifact timestamps** — every pipeline-generated feature artifact must include a `**Generated:** <ISO 8601>` line immediately after the document's top-level heading. On regeneration, always replace the prior timestamp with the current time. See commands and skill templates for placement details.
+- **Review artifact freshness check** — when a phase consumes a review artifact (`review.md`, `security-audit.md`, `review-codex-*.md`, or equivalent), re-read the file from disk at phase start and echo the current `**Generated:**` line before acting on its findings. Do not rely on carried conversational context or memory for review state. If the artifact is regenerated during the session, reopen it and use the newest timestamped copy.
 - Shell scripts use `set -euo pipefail`
 - **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
+- **Sibling reference files must document their purpose boundary** — each sibling reference file must state what content belongs in the file and when it should be split into focused siblings (e.g., at ~80 lines or when off-purpose content is added). This prevents combined sibling files from becoming undifferentiated dumping grounds as the skill grows.
 - Commands include YAML frontmatter (`description`, `user-invocable: true`)
 - Roles include version number, pipeline phase, model spec, allowed/disallowed tools, and DoD
 - All JSON schemas use draft-07 with `additionalProperties: false`
@@ -159,6 +161,7 @@ Roles are slim (~100 lines). Skills are loaded on demand by commands. Commands o
 - **upgrade.sh idempotency gap** — resolve-feature.js copy is guarded by `if [ "$CORE_NEEDS_UPGRADE" = true ]`, so projects with recent core versions that re-run upgrade.sh won't receive the file if core is already up to date but the file is missing. Low risk in practice, but noted for future improvements to installer idempotency.
 - **Gate commands must stay symmetric** — `commands/review.md` and `commands/security-gate.md` must both contain `Source Spec Verification`, `Separate Context Check`, and `Symmetric Gate Enforcement` sections. If one gate adds a check, the other must add it too. Contract tests assert this invariant across both files simultaneously. ISS-039 discovered that a missing section in `security-gate.md` caused every reviewer following the symmetric enforcement instruction to file a false-positive HIGH finding.
 - **Integration tests depend on architecture documentation** — The TDD skill (ISS-022) now requires integration tests to understand call chains and entry points. If the Phase 2 architecture doc lacks a "Call Chain" or "Integration Points" section, the Phase 3 QA agent must note this gap in a comment and mark it in the handoff. Phase 2 architects should include these sections proactively to avoid Phase 3 delays. Future work (ISS-023) will make call chains a Phase 2 requirement.
+- **Review artifacts can go stale in chat context** — if `review.md`, `security-audit.md`, or `review-codex-*.md` is regenerated after an earlier pass, the session may still carry the old findings in memory. Treat the on-disk file and its current `**Generated:**` line as the source of truth, and re-open the file before resolving or forwarding review feedback.
 - **CLAUDE.md sync uses managed markers and a fail-closed allowlist** — `init.sh --sync-claude-md` and `upgrade.sh --sync-claude-md` sync only 3 section IDs (`code-conventions-must-follow`, `architecture-notes`, `known-gotchas`) from `docs/CLAUDE.md` to consumer projects. Content inside `<!-- managed:start/end -->` markers is framework-owned; content outside is user-owned and never touched. New bullets in `docs/CLAUDE.md` do NOT sync downstream until added to the allowlist in `lib/sync-claude-md.sh`. Legacy files without markers are migrated on first sync — review preserved lines for stale template text.
 
 ---
@@ -174,5 +177,5 @@ The root `CLAUDE.md` is a template that `init.sh` copies to target projects. Whe
 
 ---
 
-*Last updated: 2026-04-15*
-*Updated by: documentation-specialist (v5.9.0 — claude-md-sync)*
+*Last updated: 2026-04-16*
+*Updated by: documentation-specialist (v5.10.0 — qa-test-quality)*

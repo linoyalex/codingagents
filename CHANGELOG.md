@@ -9,7 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes documented yet.
+### Added
+- **Symmetric testing instruction in test-design command (AC1, AC3)** — QA agents now receive explicit guidance to test ALL enumerated components when the architecture lists multiple items receiving the same treatment, not just one representative
+- **Symmetric coverage entry in TDD skill What to Test First list (AC2, AC3a)** — `[symmetric-coverage]` labeled entry at position 8 ensures symmetric requirements are checked across all TDD skill consumers
+- **Behavioral binding instruction (AC4)** — QA agents are instructed to bind test assertions to specific behavior the PRD requires, not just keyword presence in a file
+- **Negative-pattern testing instruction (AC5)** — when an AC specifies a "must not" property, QA agents must write a negative-pattern assertion that fails if the forbidden pattern is present
+- **Adversarial contract testing instruction (AC6, AC8)** — QA agents now test that safety contracts cannot be trivially satisfied by commented-out code, escape hatches, or string matches hitting dead code
+- **Contract robustness entry in TDD skill What to Test First list (AC7, AC8a)** — `[contract-robustness]` labeled entry at position 9 ensures adversarial contract testing is checked across all TDD skill consumers
+- **Structural vs fixture-driven testing guidance (AC9)** — new `## Structural vs Fixture-Driven Testing` section in sibling reference file distinguishes when to use structural checks (declarative artifacts) vs fixture-driven behavioral tests (executable code)
+- **3-way artifact-type test strategy routing (AC10, AC11, AC11a)** — new decision table routes QA to the appropriate test pattern: declarative → structural, executable → fixture-driven, config → schema validation, hybrid → executable precedence
+- **Stack-agnostic toolchain examples (AC13)** — all guidance includes `node --test` + `pytest` examples with "adapt to your stack" language
+- **New sibling reference file `skills/tdd/test-quality-rules.md`** — progressive disclosure split keeps SKILL.md under the 120-line budget while providing expanded test quality guidance; linked via `[See reference:]` convention (AC14, AC14a)
+- **48 new tests across 3 layers** — 37 contract tests (structural anchors for all 18 ACs + drift sync + error states), 6 integration tests (command → skill → sibling chain wiring), 5 E2E tests (full convention chain + sync verification)
+- **Runtime regression check (AC12)** — AC12 test now dynamically discovers and executes all pre-existing test suites across 4 test directories via `execFileSync`, catching regressions that skip-marker scans cannot detect
+
+### Changed
+- **`commands/test-design.md` expanded with Test Quality Rules section** — 5 new subsections (Symmetric Testing, Behavioral Binding, Negative-Pattern Testing, Adversarial Contract Testing, Artifact-Type Test Strategy) under a new `## Test Quality Rules` heading
+- **`skills/tdd/SKILL.md` expanded with 2 new What to Test First entries** — skill stays at ~118 lines (under 120-line budget) with new entries for symmetric coverage and contract robustness
 
 ---
 

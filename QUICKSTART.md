@@ -40,6 +40,12 @@ bash /path/to/codingagents/upgrade.sh --codex
 - Safest path: finish the current feature before upgrade.
 - If you already upgraded mid-cycle, run `/status` first and resume from the last stable phase whose outputs satisfy the new release requirements.
 
+### Known mid-cycle upgrade hazards
+
+- **Handoff field mismatch:** If your current handoff was written before `source_spec` became required (v5.5+), the review command will halt. Fix: add `"source_spec": "docs/features/<feature>/<prd-file>.md"` to `.claude/handoff.json` manually.
+- **ESM project incompatibility:** Hook scripts use CommonJS (`require()`). If your project has `"type": "module"` in `package.json`, hooks will fail. Fix: rename `.claude/helpers/*.js` to `.cjs`, or wait for ISS-055 which ships this fix.
+- **Version detection gap:** `upgrade.sh` currently uses major-only version tracking (`v5`). If you previously upgraded to any v5.x, subsequent minor releases are silently skipped. Workaround: `echo "core=v4.1" > .claude/.codingagents-version` then re-run `upgrade.sh`. ISS-007 (`--force` flag) will fix this permanently.
+
 After install or upgrade:
 
 1. Edit `CLAUDE.md` with your project-specific overview, stack, commands, conventions, constraints, and gotchas.
