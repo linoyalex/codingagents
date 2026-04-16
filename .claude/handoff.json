@@ -1,15 +1,12 @@
 {
   "feature": "invariants-audit",
-  "phase": 3,
-  "goal": "Design-time security audit of invariants-audit feature",
-  "scope": "Phase 4 security gate only",
+  "phase": 4,
+  "goal": "Implement feature using strict TDD",
+  "scope": "Phase 5 implementation only",
   "relevant_files": [
-    "docs/features/invariants-audit/prd.md",
     "docs/features/invariants-audit/architecture.md",
-    "docs/features/invariants-audit/review-claude-test-design-invariants-audit.md",
-    "tests/node/core-skill-contracts.test.js",
-    "tests/node/command-skill-wiring.test.js",
-    "tests/integration/invariants-audit.integration.test.js"
+    "tests/contracts/invariants-audit.test.ts",
+    "tests/e2e/invariants-audit.spec.ts"
   ],
   "acceptance_criteria": [
     "AC1: Skill file exists at skills/invariants-audit/SKILL.md following size budget (<=120 prose lines, sibling refs via [See reference:] convention, stop conditions footer required)",
@@ -22,15 +19,13 @@
     "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions (workflow logic, state transitions, safety checks, test architecture changes)"
   ],
   "verification_commands": [
-    "node --test tests/node/command-skill-wiring.test.js",
-    "node --test tests/node/core-skill-contracts.test.js",
-    "node --test tests/integration/invariants-audit.integration.test.js"
+    "npm test"
   ],
   "known_risks": [
     "M2 category-2 heading regex uses a complex co-occurrence pattern; if the implementer writes a heading with only one of the four category-2 terms the test will still fail correctly, but the regex is harder to read. Review if it causes confusion during GREEN phase.",
     "L2 checklist tests fail at the section-not-found guard (correct RED), but will need the section to also contain a '- ' list item after the Apply when: trigger — implementer must add at least one list item, not just the trigger line."
   ],
   "source_spec": "docs/features/invariants-audit/prd.md",
-  "produced_by": "qa",
-  "timestamp": "2026-04-16T20:20:00Z"
+  "produced_by": "security-reviewer",
+  "timestamp": "2026-04-16T20:25:00Z"
 }
