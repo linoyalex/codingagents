@@ -1,5 +1,5 @@
 ## Architecture: Invariants-Audit Skill for Cross-Layer Semantic Review
-**Generated:** 2026-04-16T21:30:00Z
+**Generated:** 2026-04-16T22:00:00Z
 **ADR:** ADR-invariants-audit | Date: 2026-04-16
 **Source PRD:** docs/features/invariants-audit/prd.md
 
@@ -158,7 +158,19 @@ Per PRD AC6, this is the single named suite for all wiring verification:
 | `## Invariant Checks` missing from reviewer | Contract test fails | Codex reviewer skips invariant thinking |
 | Installed copy stale or missing | Byte-identity sync test fails | Runtime skill load fails |
 | Over-application to non-workflow changes | Mitigated by trigger conditions (AC7) | Token waste, no correctness impact |
+| Under-application on matching reviews | See mitigation below | Invariant bugs escape review — the primary defect class this skill targets |
 | Sibling reference broken | Contract test checks link resolution | Reviewer gets partial methodology |
+
+**Under-application mitigation:** Wiring tests prove the skill and checklists are
+present but cannot enforce invocation. To create an observable signal: when a command
+loads the invariants-audit skill and the review artifact covers a feature whose PRD
+or architecture mentions state machines, workflow gates, or cross-layer contracts, the
+reviewer should include an `### Invariant Analysis` section in the review artifact
+(either findings or "No invariant mismatches identified"). This is a methodology
+convention, not a runtime gate — Codex reviewers and human reviewers can check for
+the section's presence as a second-order signal that the skill was applied. If repeated
+under-application is observed, escalate to ISS-060/ISS-061 review gates or ISS-053
+adversarial review council for enforcement.
 
 ### Fitness Functions
 
