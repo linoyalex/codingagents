@@ -893,8 +893,11 @@ test('AC5 (invariants-audit): codex/reviewers/review-test-design.md Invariant Ch
 });
 
 // ---------------------------------------------------------------------------
-// invariants-audit: AC5 / AC6 — ### Invariant Analysis marker inside Invariant Checks
-// Negative-pattern: marker must appear INSIDE the section, not floating elsewhere
+// invariants-audit: AC5 / AC6 — ### Invariant Analysis output instruction inside Invariant Checks
+// Each reviewer's ## Invariant Checks section must instruct the reviewer to emit
+// `### Invariant Analysis` in the review output when triggers match.
+// Regex /emit.*###.*Invariant Analysis/i confirms the prose instruction is present,
+// not just the backtick-quoted marker text.
 // ---------------------------------------------------------------------------
 
 test('AC6 (invariants-audit): codex/reviewers/review-code.md Invariant Checks references ### Invariant Analysis marker', () => {
@@ -906,8 +909,8 @@ test('AC6 (invariants-audit): codex/reviewers/review-code.md Invariant Checks re
   );
   assert.match(
     section,
-    /###\s+Invariant Analysis/,
-    'The ### Invariant Analysis marker must be referenced inside ## Invariant Checks in review-code.md (AC6 structural anchor, not floating)'
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-code.md)'
   );
 });
 
@@ -920,8 +923,8 @@ test('AC6 (invariants-audit): codex/reviewers/review-prd.md Invariant Checks ref
   );
   assert.match(
     section,
-    /###\s+Invariant Analysis/,
-    'The ### Invariant Analysis marker must be referenced inside ## Invariant Checks in review-prd.md (AC6 structural anchor, not floating)'
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-prd.md)'
   );
 });
 
@@ -934,8 +937,8 @@ test('AC6 (invariants-audit): codex/reviewers/review-architecture.md Invariant C
   );
   assert.match(
     section,
-    /###\s+Invariant Analysis/,
-    'The ### Invariant Analysis marker must be referenced inside ## Invariant Checks in review-architecture.md (AC6 structural anchor, not floating)'
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-architecture.md)'
   );
 });
 
@@ -948,8 +951,8 @@ test('AC6 (invariants-audit): codex/reviewers/review-test-design.md Invariant Ch
   );
   assert.match(
     section,
-    /###\s+Invariant Analysis/,
-    'The ### Invariant Analysis marker must be referenced inside ## Invariant Checks in review-test-design.md (AC6 structural anchor, not floating)'
+    /emit.*###.*Invariant Analysis/i,
+    'reviewer is instructed to emit `### Invariant Analysis` marker in output (AC6 output-instruction check, review-test-design.md)'
   );
 });
 
