@@ -5,7 +5,8 @@
   "scope": "Phase 6 review only",
   "relevant_files": [
     "docs/features/invariants-audit/architecture.md",
-    "docs/features/invariants-audit/prd.md"
+    "docs/features/invariants-audit/prd.md",
+    "docs/features/invariants-audit/review.md"
   ],
   "acceptance_criteria": [
     "AC1: skills/invariants-audit/SKILL.md exists, <=120 prose lines, sibling refs via [See reference:] convention, stop conditions footer required",
@@ -19,9 +20,10 @@
   ],
   "verification_commands": [
     "git diff main...HEAD",
-    "ls docs/features/invariants-audit/review.md"
+    "ls docs/features/invariants-audit/review.md",
+    "node --test tests/contracts/"
   ],
   "source_spec": "docs/features/invariants-audit/prd.md",
   "produced_by": "developer",
-  "timestamp": "2026-04-16T23:10:00Z"
+  "timestamp": "2026-04-16T23:55:00Z"
 }
