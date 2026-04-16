@@ -1,5 +1,5 @@
 ## Feature: Invariants-Audit Skill for Cross-Layer Semantic Review
-**Generated:** 2026-04-16T18:00:00Z
+**Generated:** 2026-04-16T20:30:00Z
 **Phase:** Specify | Date: 2026-04-16
 **Source ticket:** ISS-001
 
@@ -15,6 +15,13 @@ so that I catch contradictions between spec, implementation, hooks, and tests th
   When the invariants-audit skill is created,
   Then a new skill file exists at `skills/invariants-audit/SKILL.md` following the skill size budget (SKILL.md <=120 prose lines, sibling reference files as needed, stop conditions footer required),
   and if the skill is split into sibling reference files, SKILL.md links each sibling using the `[See reference: .claude/skills/invariants-audit/<reference>.md]` convention.
+
+- [ ] **AC1a (Installer/sync coverage):**
+  Given the source skill exists at `skills/invariants-audit/SKILL.md`,
+  When `init.sh` or `upgrade.sh` runs on a target project,
+  Then the skill is installed to `.claude/skills/invariants-audit/SKILL.md` (and any sibling reference files),
+  and a byte-identity sync test verifies source and installed copies remain identical,
+  and reviewer commands that load the skill from `.claude/skills/` can resolve the installed path at runtime.
 
 - [ ] **AC2 (Review categories):**
   Given the invariants-audit skill is loaded by a reviewer,
@@ -57,7 +64,10 @@ so that I catch contradictions between spec, implementation, hooks, and tests th
 - [ ] **AC6 (Regression test):**
   Given the skill is installed,
   When the test suite runs,
-  Then the wiring contract test suite (`tests/node/command-skill-wiring.test.js`) verifies that every declared consumer (AC4 commands and AC5 reviewer prompts) references the invariants-audit skill or its structural marker, and structural anchor tests verify the skill's required sections exist.
+  Then the wiring contract test suite (`tests/node/command-skill-wiring.test.js`) verifies:
+    - **Claude commands (AC4):** each command's `## Skill References` table contains a row with `invariants-audit` and the correct source path `skills/invariants-audit/SKILL.md`
+    - **Codex reviewers (AC5):** each reviewer file contains a `## Invariant Checks` section with an `**Apply when:**` trigger line and at least one checklist item derived from the review categories (AC2)
+    - **Structural anchors:** the skill file contains required section headings (`## Review Categories`, `## Invariant Review Method`, `## When to Use`) without asserting exact prose wording
 
 - [ ] **AC7 (Usage guidance):**
   Given a reviewer needs to decide which review method to use,
@@ -73,6 +83,8 @@ so that I catch contradictions between spec, implementation, hooks, and tests th
 | Permission denied | N/A | N/A | Skill file located but not readable — command reports permission error with path | Command cannot proceed; reports permission error | N/A |
 | Partial integration | N/A | N/A | Some consumers load the skill, others do not reference it | Wiring contract test fails, naming the non-compliant consumer(s) | All declared consumers pass wiring check |
 | Broken sibling ref | N/A | N/A | SKILL.md exists but a `[See reference: ...]` link points to a missing sibling file | Command reports broken reference with expected path | All sibling references resolve to existing files |
+| Installed-but-stale | N/A | N/A | Source skill updated but `.claude/skills/invariants-audit/` copy is outdated or missing | Sync test fails, reporting byte-identity mismatch between source and installed paths | Sync test passes; source and installed copies are identical |
+| Upgrade path failure | N/A | N/A | Fresh `init.sh` installs skill correctly | `upgrade.sh` misses new skill files — installed copy absent or incomplete; sync test fails | Both `init.sh` and `upgrade.sh` produce identical installed copies |
 
 ### Out of Scope
 
@@ -88,6 +100,7 @@ so that I catch contradictions between spec, implementation, hooks, and tests th
 - **Assumption (qa inclusion):** Ticket says "optionally qa" for AC4. This PRD includes qa (`commands/test-design.md`) because QA agents benefit from invariant thinking when designing tests for workflow logic. If this is unwanted, remove the qa line from AC4.
 - **Skill size budget:** If the review categories (AC2) and method (AC3) plus usage guidance (AC7) exceed 120 prose lines, content must be split into sibling reference files per the convention in `docs/CLAUDE.md`.
 - **Wiring contract:** Consuming commands must have a `## Skill References` table entry. The skill must have a `## Required Artifacts` table if it produces named artifacts.
+- **Installer coverage (AC1a):** `init.sh` and `upgrade.sh` must copy `skills/invariants-audit/` to `.claude/skills/invariants-audit/` including all sibling reference files. Byte-identity sync tests (established by ISS-009) must cover the new skill.
 - **AC5 reviewer list (diverges from ticket):** The original ticket referenced `codex/reviewers/review-security.md`, which does not exist. This PRD substitutes `codex/reviewers/review-prd.md`. If a dedicated security reviewer prompt is needed, create it as a separate ticket.
 
 ### RICE Score
@@ -98,4 +111,5 @@ Reach: High (all reviewers) | Impact: High (catches defect class that survives t
 - QA signed off
 - No P1/P2 bugs open
 - Wiring contract tests pass for all consuming commands
-- Source/installed sync tests pass for the new skill
+- Source/installed sync tests pass for the new skill (byte-identity between `skills/` and `.claude/skills/`)
+- `init.sh` and `upgrade.sh` both install the skill and its sibling reference files

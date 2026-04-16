@@ -5,16 +5,17 @@
   "scope": "Phase 2 architecture only",
   "relevant_files": ["docs/features/invariants-audit/prd.md"],
   "acceptance_criteria": [
-    "AC1: Skill file at skills/invariants-audit/SKILL.md (<=120 prose lines, stop conditions footer)",
+    "AC1: Skill file at skills/invariants-audit/SKILL.md (<=120 prose lines, stop conditions footer, sibling files linked via [See reference:] convention)",
+    "AC1a: Installer/sync coverage — init.sh and upgrade.sh install to .claude/skills/invariants-audit/ with byte-identity sync tests",
     "AC2: Teaches 5 review categories (state-machine, blocked paths, spec contradictions, fixture mismatches, syntax-not-behavior tests)",
     "AC3: 5-step invariant review method (identify, encoded, enforced, tested, failure paths)",
     "AC4: Claude commands reference skill (review, architect, security-gate, test-design)",
-    "AC5: Codex reviewers incorporate invariant behavior (4 review prompts)",
-    "AC6: At least one deterministic regression test (wiring + structural)",
+    "AC5: Codex reviewers contain ## Invariant Checks section with Apply when: trigger (review-code, review-prd, review-architecture, review-test-design)",
+    "AC6: Wiring contract tests verify: Claude commands have Skill References table row for invariants-audit; Codex reviewers have ## Invariant Checks section with Apply when: trigger; structural anchor tests for required section headings",
     "AC7: Usage guidance with trigger conditions vs normal review"
   ],
   "verification_commands": ["ls docs/features/invariants-audit/architecture.md"],
   "source_spec": "docs/features/invariants-audit/prd.md",
   "produced_by": "product-owner",
-  "timestamp": "2026-04-16T12:00:00Z"
+  "timestamp": "2026-04-16T20:30:00Z"
 }
