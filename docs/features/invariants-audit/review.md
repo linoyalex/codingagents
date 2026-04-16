@@ -198,3 +198,13 @@ matches. This is exactly the "tests prove behavior, not syntax" discipline the s
 - [x] Source/installed copies are byte-identical for all new skill files
 - [x] Commit messages follow format (feat:, fix:, chore:, security:)
 - [ ] Uncommitted working-tree changes to specify.md and codex/reviewers/README.md should be staged (HIGH)
+
+---
+
+## Resolution Notes
+
+- [ADDRESSED] BLOCKING: `tests/contracts/review-feedback-loop.test.js` untracked — committed in `2d10313` (`chore(invariants-audit): commit missed review-feedback-loop tests and working-tree changes`). File is now version-controlled and will run in CI.
+- [ADDRESSED] HIGH: `commands/specify.md`, `.claude/commands/specify.md`, `codex/reviewers/README.md` unstaged — all three staged and committed in `2d10313`. Contract tests now pass against HEAD, not just working tree.
+- [ADDRESSED] HIGH: `### Invariant Analysis` wiring tests prove string presence, not output-instruction intent — regex changed from `/###\s+Invariant Analysis/` to `/emit.*###.*Invariant Analysis/i` in all 4 AC6 tests in `tests/node/command-skill-wiring.test.js`; block comment and assertion messages updated. Committed in `e396bcf` (`test(invariants-audit): tighten ### Invariant Analysis wiring assertion`).
+- [ADDRESSED] MEDIUM: `skills/prd-writing/SKILL.md` sibling reference not covered by tests — replaced the invariants-audit-specific `[See reference:]` resolution test with a generalized test that auto-discovers all `skills/*/SKILL.md` files. Now covers prd-writing, code-review, tdd, verification-gate, and invariants-audit. Committed in `6f6ff4e` (`test(invariants-audit): generalize sibling-reference resolution test to all skills`).
+- [ADDRESSED] LOW: `upgrade.sh` dry-run echo listed only three `.cjs` hook files — added `resolve-feature.cjs` to the echo line so the printed plan matches the actual copy commands. Committed in `3e32394` (`fix(upgrade.sh): include resolve-feature.cjs in dry-run echo`).
