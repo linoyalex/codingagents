@@ -6,7 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.js');
+const CHECKPOINT_SCRIPT = path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs');
 const VALID_HANDOFF = path.join(ROOT_DIR, 'tests', 'fixtures', 'handoff', 'valid.json');
 const UNEXPECTED_HANDOFF = path.join(ROOT_DIR, 'tests', 'fixtures', 'handoff', 'unexpected-property.json');
 const CHECKPOINT_PENDING_HANDOFF = path.join(ROOT_DIR, 'tests', 'fixtures', 'handoff', 'checkpoint-pending.json');
@@ -194,13 +194,13 @@ test('validateHandoff rejects non-existent source_spec for architecture-review c
 });
 
 // ---------------------------------------------------------------------------
-// Source/installed sync for checkpoint.js
+// Source/installed sync for checkpoint.cjs
 // ---------------------------------------------------------------------------
 
-test('Sync: hooks/checkpoint.js matches .claude/helpers/checkpoint.js', () => {
-  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'checkpoint.js'), 'utf8');
-  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.js'), 'utf8');
-  assert.equal(source, installed, 'Source and installed copies of checkpoint.js must be byte-identical');
+test('Sync: hooks/checkpoint.cjs matches .claude/helpers/checkpoint.cjs', () => {
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'hooks', 'checkpoint.cjs'), 'utf8');
+  const installed = fs.readFileSync(path.join(ROOT_DIR, '.claude', 'helpers', 'checkpoint.cjs'), 'utf8');
+  assert.equal(source, installed, 'Source and installed copies of checkpoint.cjs must be byte-identical');
 });
 
 // ---------------------------------------------------------------------------

@@ -135,10 +135,10 @@ fi
 
 # --- Copy hooks and config ---
 echo "[5/7] Copying hooks and configuration..."
-cp "$SCRIPT_DIR/hooks/checkpoint.js" "$TARGET_DIR/.claude/helpers/checkpoint.js"
-cp "$SCRIPT_DIR/hooks/archive-context.js" "$TARGET_DIR/.claude/helpers/archive-context.js"
-cp "$SCRIPT_DIR/hooks/restore-context.js" "$TARGET_DIR/.claude/helpers/restore-context.js"
-cp "$SCRIPT_DIR/hooks/resolve-feature.js" "$TARGET_DIR/.claude/helpers/resolve-feature.js"
+cp "$SCRIPT_DIR/hooks/checkpoint.cjs" "$TARGET_DIR/.claude/helpers/checkpoint.cjs"
+cp "$SCRIPT_DIR/hooks/archive-context.cjs" "$TARGET_DIR/.claude/helpers/archive-context.cjs"
+cp "$SCRIPT_DIR/hooks/restore-context.cjs" "$TARGET_DIR/.claude/helpers/restore-context.cjs"
+cp "$SCRIPT_DIR/hooks/resolve-feature.cjs" "$TARGET_DIR/.claude/helpers/resolve-feature.cjs"
 cp "$SCRIPT_DIR/hooks/settings.json" "$TARGET_DIR/.claude/settings.json"
 
 # Copy schemas

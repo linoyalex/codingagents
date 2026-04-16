@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * archive-context.js
+ * archive-context.cjs
  * Runs via PreCompact hook before Claude auto-compacts the context window.
  * Scores and saves the highest-value conversation turns to a JSON archive.
  * Logs a token usage snapshot before compaction.
  *
- * Install: place at .claude/helpers/archive-context.js
+ * Install: place at .claude/helpers/archive-context.cjs
  */
 
 const fs = require('fs');

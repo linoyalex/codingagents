@@ -132,7 +132,7 @@ if [ "$CORE_NEEDS_UPGRADE" = true ] || [ "$CODEX_NEEDS_INSTALL" = true ]; then
   if [ "$CORE_NEEDS_UPGRADE" = true ]; then
     echo "  [core] Upgrade $CURRENT_CORE → $NEW_VERSION"
     echo "    - Back up .claude/ to .claude.backup-$CURRENT_CORE/"
-    echo "    - Replace hook files (checkpoint.js, restore-context.js, archive-context.js)"
+    echo "    - Replace hook files (checkpoint.cjs, restore-context.cjs, archive-context.cjs)"
     echo "    - Replace role files in .claude/agents/"
     echo "    - Replace skill files in .claude/skills/"
     echo "    - Add schemas/ directory"
@@ -191,10 +191,16 @@ if [ "$CORE_NEEDS_UPGRADE" = true ]; then
 
   # --- Replace framework files ---
   echo "[3/4] Updating hooks, roles, skills, and schemas..."
-  cp "$SCRIPT_DIR/hooks/checkpoint.js" "$TARGET_DIR/.claude/helpers/checkpoint.js"
-  cp "$SCRIPT_DIR/hooks/archive-context.js" "$TARGET_DIR/.claude/helpers/archive-context.js"
-  cp "$SCRIPT_DIR/hooks/restore-context.js" "$TARGET_DIR/.claude/helpers/restore-context.js"
-  cp "$SCRIPT_DIR/hooks/resolve-feature.js" "$TARGET_DIR/.claude/helpers/resolve-feature.js"
+  cp "$SCRIPT_DIR/hooks/checkpoint.cjs" "$TARGET_DIR/.claude/helpers/checkpoint.cjs"
+  cp "$SCRIPT_DIR/hooks/archive-context.cjs" "$TARGET_DIR/.claude/helpers/archive-context.cjs"
+  cp "$SCRIPT_DIR/hooks/restore-context.cjs" "$TARGET_DIR/.claude/helpers/restore-context.cjs"
+  cp "$SCRIPT_DIR/hooks/resolve-feature.cjs" "$TARGET_DIR/.claude/helpers/resolve-feature.cjs"
+  # Remove legacy .js helpers from prior installs (hygiene; .cjs replaces them and
+  # settings.json no longer references the .js paths).
+  rm -f "$TARGET_DIR/.claude/helpers/checkpoint.js" \
+        "$TARGET_DIR/.claude/helpers/archive-context.js" \
+        "$TARGET_DIR/.claude/helpers/restore-context.js" \
+        "$TARGET_DIR/.claude/helpers/resolve-feature.js"
   cp "$SCRIPT_DIR/hooks/settings.json" "$TARGET_DIR/.claude/settings.json"
 
   # Roles

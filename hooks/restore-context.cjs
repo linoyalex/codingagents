@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * restore-context.js
+ * restore-context.cjs
  * Runs via SessionStart hook. Loads handoff.json as primary context if available,
  * falls back to archived turns. Records session start time for token tracking.
  *
- * Install: place at .claude/helpers/restore-context.js
+ * Install: place at .claude/helpers/restore-context.cjs
  */
 
 const fs = require('fs');

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * resolve-feature.js
+ * resolve-feature.cjs
  * Resolves the target feature for a pipeline command. Fails closed when
  * command arguments are malformed, ambiguous, or conflict with a valid handoff.
  *
- * Install: place at .claude/helpers/resolve-feature.js
+ * Install: place at .claude/helpers/resolve-feature.cjs
  */
 
-const { validateHandoff } = require('./checkpoint.js');
+const { validateHandoff } = require('./checkpoint.cjs');
 
 const FEATURE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
