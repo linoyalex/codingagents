@@ -1,29 +1,22 @@
 {
   "feature": "invariants-audit",
-  "phase": 5,
-  "goal": "Diff-based code review in fresh context",
-  "scope": "Phase 6 review only",
+  "phase": 6,
+  "goal": "Post-merge documentation update",
+  "scope": "Phase 7 documentation only",
   "relevant_files": [
-    "docs/features/invariants-audit/architecture.md",
     "docs/features/invariants-audit/prd.md",
-    "docs/features/invariants-audit/review.md"
+    "CHANGELOG.md",
+    "CLAUDE.md"
   ],
   "acceptance_criteria": [
-    "AC1: skills/invariants-audit/SKILL.md exists, <=120 prose lines, sibling refs via [See reference:] convention, stop conditions footer required",
-    "AC1a: init.sh and upgrade.sh install to .claude/skills/invariants-audit/ with byte-identity sync tests verifying source/installed parity for SKILL.md and review-categories.md",
-    "AC2: Skill teaches 5 review categories — state-machine and transition bugs, blocked/rejected/retry/stale-state paths, spec vs implementation vs tests vs hooks contradictions, fixture-template-validator mismatches, tests that prove syntax/structure but not behavior",
-    "AC3: Skill guides 5-step invariant analysis — (1) identify invariant, (2) where encoded, (3) where enforced, (4) where tested, (5) failure paths",
-    "AC4: Claude commands reference the skill — review.md, architect.md, security-gate.md, test-design.md each have Skill References table row for invariants-audit pointing to skills/invariants-audit/SKILL.md",
-    "AC5: Codex reviewer prompts contain ## Invariant Checks section with **Apply when:** trigger and at least one checklist item — review-code.md, review-prd.md, review-architecture.md, review-test-design.md",
-    "AC6: Wiring contract tests verify: Claude command Skill References rows for invariants-audit; Codex reviewer ## Invariant Checks sections; Apply when: triggers; ### Invariant Analysis output-instruction (emit.*###.*Invariant Analysis) inside each Invariant Checks section; SKILL.md structural anchors (## Review Categories, ## Invariant Review Method, ## When to Use); stop conditions footer; sibling reference resolution for all skills",
-    "AC7: Skill documents when to use invariants-audit vs normal review with clear trigger conditions (workflow logic, state transitions, safety checks, test architecture changes)"
+    "CHANGELOG.md updated",
+    "CLAUDE.md timestamp updated"
   ],
   "verification_commands": [
-    "git diff main...HEAD",
-    "ls docs/features/invariants-audit/review.md",
-    "node --test tests/contracts/"
+    "head -20 CHANGELOG.md",
+    "grep -i 'last updated' CLAUDE.md"
   ],
   "source_spec": "docs/features/invariants-audit/prd.md",
-  "produced_by": "developer",
-  "timestamp": "2026-04-16T23:55:00Z"
+  "produced_by": "code-reviewer",
+  "timestamp": "2026-04-16T23:59:00Z"
 }

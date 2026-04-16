@@ -35,6 +35,8 @@
 | 16 | [ISS-037](tickets/ISS-037.md) | P2 — Medium | Feature | — | Make review artifacts additive and expose the latest review state clearly |
 | 16 | [ISS-034](tickets/ISS-034.md) | P2 — Medium | Feature | ISS-046 | Make backlog management skill configurable for different backlog systems |
 | 17 | [ISS-025](tickets/ISS-025.md) | P2 — Medium | Feature | ISS-013 | Add adversarial self-review checkpoint to Phase 5 verification |
+| 17 | [ISS-062](tickets/ISS-062.md) | P2 — Medium | Feature | — | In-flight phase-progress notes for interrupt recovery |
+| 17 | [ISS-063](tickets/ISS-063.md) | P2 — Medium | Feature | ISS-062 | Unattended end-to-end pipeline mode with bounded review-feedback loop |
 | 17 | [ISS-038](tickets/ISS-038.md) | P2 — Medium | Architecture | ISS-046 | Support Codex, Gemini, and other LLMs as first-class coding agents |
 | 18 | [ISS-015](tickets/ISS-015.md) | P2 — Medium | Feature | — | Add first-class post-implementation QA verification stage |
 | 19 | [ISS-060](tickets/ISS-060.md) | P2 — Medium | Feature | — | Add PRD review gate between Phase 1 and Phase 2 |

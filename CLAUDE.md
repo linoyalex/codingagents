@@ -96,12 +96,13 @@ Feature request
 - **Review artifact freshness check** — when a phase consumes a review artifact, re-read the file from disk at phase start and echo the current `**Generated:**` line before acting on its findings.
 - **Separate context for gate phases** — Phase 4 (security gate) and Phase 6 (code review) must run in separate agent sessions from authoring phases (1–3, 5). Enforced via `produced_by` check.
 - **Handoff source_spec is required** — all handoffs must include a resolvable `source_spec` pointing to the originating PRD or ticket. Reviewers load source_spec before reading diff.
-- **Skill size budget** — SKILL.md ≤120 prose lines with sibling reference files. Stop conditions footer required for pipeline-gating skills.
-- **Sibling reference files must document their purpose boundary** — state what content belongs and when to split (e.g., at ~80 lines or off-purpose content).
+- **Commands that load skills must have a `## Skill References` table** — structural `| Skill | Source path |` table in the command file. Fail-closed: commands with skill-loading prose (`skills/` or `.claude/skills/`) but no table will fail the wiring contract test.
+- **Skill size budget** — inline skills: ~150 lines instructional prose (templates/tables/examples excluded), 250 total lines triggers split. Progressive disclosure skills: SKILL.md ≤120 prose lines with sibling reference files at `skills/<name>/<reference>.md`. Link format: `[See reference: .claude/skills/<name>/<reference>.md]`. Worked example: `verification-gate` (per-phase reference files). Stop conditions footer rule: pipeline-gating skills (verification-gate, security-audit, tdd, code-review) must end with `**STOP CONDITIONS (end of file):**` — reviewer may skim; footer prevents missing hard constraints.
+- **Sibling reference files must document their purpose boundary** — each sibling reference file must state what content belongs in the file and when it should be split into focused siblings (e.g., at ~80 lines or when off-purpose content is added). This prevents combined sibling files from becoming undifferentiated dumping grounds as the skill grows.
+- **Skills that require named artifacts must have a `## Required Artifacts` table** — 4-column format: `| Artifact | Pattern | Path | Condition |`. The wiring contract test validates that the invoking command's Output section references both the Pattern and Path for each declared artifact.
 - **Tests must use structural anchors** (heading names, template field labels), not phrase-binding.
 - **Guidance must be stack-agnostic** — include "adapt to your stack" language with multiple toolchain examples.
 - **Source and installed copies must be kept in sync** — byte-identical between `skills/`, `commands/`, `hooks/` and their `.claude/` counterparts.
-- **Commands must have a `## Skill References` table** and **skills must have a `## Required Artifacts` table** — wiring contract tests enforce both.
 - Shell scripts use `set -euo pipefail`
 - All JSON schemas use draft-07 with `additionalProperties: false`
 - No hardcoded absolute paths — use relative paths from project root
@@ -141,4 +142,4 @@ See `docs/CLAUDE.md` for full architecture notes including:
 ---
 
 *Last updated: 2026-04-16*
-*Updated by: manual optimization — removed template placeholders and sections covered by installed skills*
+*Updated by: documentation-specialist (phase 7 — invariants-audit)*

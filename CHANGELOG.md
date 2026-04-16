@@ -10,22 +10,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Symmetric testing instruction in test-design command (AC1, AC3)** — QA agents now receive explicit guidance to test ALL enumerated components when the architecture lists multiple items receiving the same treatment, not just one representative
-- **Symmetric coverage entry in TDD skill What to Test First list (AC2, AC3a)** — `[symmetric-coverage]` labeled entry at position 8 ensures symmetric requirements are checked across all TDD skill consumers
-- **Behavioral binding instruction (AC4)** — QA agents are instructed to bind test assertions to specific behavior the PRD requires, not just keyword presence in a file
-- **Negative-pattern testing instruction (AC5)** — when an AC specifies a "must not" property, QA agents must write a negative-pattern assertion that fails if the forbidden pattern is present
-- **Adversarial contract testing instruction (AC6, AC8)** — QA agents now test that safety contracts cannot be trivially satisfied by commented-out code, escape hatches, or string matches hitting dead code
-- **Contract robustness entry in TDD skill What to Test First list (AC7, AC8a)** — `[contract-robustness]` labeled entry at position 9 ensures adversarial contract testing is checked across all TDD skill consumers
-- **Structural vs fixture-driven testing guidance (AC9)** — new `## Structural vs Fixture-Driven Testing` section in sibling reference file distinguishes when to use structural checks (declarative artifacts) vs fixture-driven behavioral tests (executable code)
-- **3-way artifact-type test strategy routing (AC10, AC11, AC11a)** — new decision table routes QA to the appropriate test pattern: declarative → structural, executable → fixture-driven, config → schema validation, hybrid → executable precedence
-- **Stack-agnostic toolchain examples (AC13)** — all guidance includes `node --test` + `pytest` examples with "adapt to your stack" language
-- **New sibling reference file `skills/tdd/test-quality-rules.md`** — progressive disclosure split keeps SKILL.md under the 120-line budget while providing expanded test quality guidance; linked via `[See reference:]` convention (AC14, AC14a)
-- **48 new tests across 3 layers** — 37 contract tests (structural anchors for all 18 ACs + drift sync + error states), 6 integration tests (command → skill → sibling chain wiring), 5 E2E tests (full convention chain + sync verification)
-- **Runtime regression check (AC12)** — AC12 test now dynamically discovers and executes all pre-existing test suites across 4 test directories via `execFileSync`, catching regressions that skip-marker scans cannot detect
+- **Invariants-audit skill for cross-layer semantic review (ISS-001)** — new reusable skill teaches reviewers to detect contradictions between spec, implementation, hooks, and tests that survive passing test suites
+- **5-step invariant review method** — skill guides detection of state-machine bugs, blocked/rejected paths, spec-vs-impl contradictions, fixture-template mismatches, and test-behavior gaps via systematic 5-step analysis
+- **Sibling reference pattern for invariants-audit** — new `skills/invariants-audit/review-categories.md` demonstrates progressive disclosure pattern for skill content, keeping core SKILL.md at 64 lines (under 120-line budget)
+- **Invariants-audit integration into 4 Claude commands** — `commands/review.md`, `commands/architect.md`, `commands/security-gate.md`, `commands/test-design.md` now reference invariants-audit skill in their `## Skill References` tables
+- **Invariants-audit integration into 4 Codex reviewers** — `codex/reviewers/review-code.md`, `codex/reviewers/review-prd.md`, `codex/reviewers/review-architecture.md`, `codex/reviewers/review-test-design.md` now include dedicated `## Invariant Checks` sections with `**Apply when:**` trigger conditions
+- **Wiring contract tests for invariants-audit** — new test cases verify skill file structure (stop conditions footer), sibling reference resolution, and all consumer integrations (Claude commands + Codex reviewers)
+- **Installer coverage for invariants-audit** — `init.sh` and `upgrade.sh` now install the skill and its sibling reference file to target projects; byte-identity sync tests confirm source/installed copies remain identical
+- **Usage guidance for invariants-audit application** — skill documents when to use invariants-audit versus normal code review, distinguishing trigger conditions: workflow logic, state transitions, safety-critical checks, test-architecture changes
+- **Extended test suite for invariants-audit** — 50+ new contract, integration, and E2E tests verify skill wiring, installer coverage, sibling reference resolution, and command/reviewer integration; includes regression tests for prior findings
 
 ### Changed
-- **`commands/test-design.md` expanded with Test Quality Rules section** — 5 new subsections (Symmetric Testing, Behavioral Binding, Negative-Pattern Testing, Adversarial Contract Testing, Artifact-Type Test Strategy) under a new `## Test Quality Rules` heading
-- **`skills/tdd/SKILL.md` expanded with 2 new What to Test First entries** — skill stays at ~118 lines (under 120-line budget) with new entries for symmetric coverage and contract robustness
+- **`commands/review.md` expanded with Invariant Checks section** — adds 5 invariant categories derived from skill's review method as a checklist for code reviewers
+- **`commands/architect.md` expanded with Invariant Checks section** — guides architects to verify invariants are reflected in architecture
+- **`commands/security-gate.md` expanded with Invariant Checks section** — adds state-machine and safety-boundary checks to security review
+- **`commands/test-design.md` expanded with Invariant Checks section** — ensures QA includes invariant failure paths in test shells
+- **All 4 Codex reviewer prompts updated** — each now includes a dedicated `## Invariant Checks` section with checklist derived from skill
+- **Root CLAUDE.md skill-size convention expanded** — documented the full ~150 lines prose / 250 total inline rule with progressive disclosure pattern, matching docs/CLAUDE.md guidance
+- **docs/CLAUDE.md updated by documentation-specialist** — timestamp and "Updated by" line refreshed to reflect phase 7 (invariants-audit)
+
+### Fixed
+- No bug fixes in this release
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
 
 ---
 
@@ -131,9 +145,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Codex review expectations updated in process docs (AC5)** — `docs/memory/codex-rules.md` updated with a "Review Method Rules" section summarizing all four new rules; `docs/memory/review-process.md` defers to `codex-rules.md` as the canonical source of truth
 - **Structural anchor tests for review method rules (AC6)** — 19 deterministic tests verify each of the four new rules exists in `review-code.md` via heading-level regex anchors and keyword presence, plus section-scoped AC5 tests and an integration cohesion test
 - **Mechanism-agnostic installer coverage contract test (AC7)** — 24 tests verify every source file (`skills/*/SKILL.md`, `commands/*.md`, `hooks/*.js`) is operationalized by `init.sh` and `upgrade.sh` via any mechanism; includes `activeLines()` comment filter, `isInertLine()` false-positive guard, exclusion cap (5 per script), and phantom-exclusion detection
-- **Known-risks verification instruction in /implement command** — Phase 5 developers now receive explicit guidance to read and verify `known_risks` from `.claude/handoff.json` before committing GREEN, addressing each risk by either implementing a fix, documenting the implementation addresses it, or deferring with rationale
-- **TDD skill known-risks checklist item** — GREEN phase checklist now includes an item to verify handoff `known_risks` are addressed or deferred, ensuring developers actively engage with prior phase findings before code lock
-- **Contract test for known-risks instruction** — new regression test validates that both the /implement command instruction and TDD skill checklist item are present and discoverable using structural anchors, preventing accidental removal
 
 ### Changed
 - **docs/memory/review-process.md deduplicated** — removed duplicated file-ownership table; now defers to `codex-rules.md` as the single source of truth for Codex review conventions
