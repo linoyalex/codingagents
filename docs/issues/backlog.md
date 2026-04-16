@@ -44,7 +44,7 @@
 | 24 | [ISS-011](tickets/ISS-011.md) | P3 — Low | Feature | — | Add shell script wrappers for Codex reviewer workflows |
 | 25 | [ISS-016](tickets/ISS-016.md) | P3 — Low | Architecture | — | Document intentional divergence from Anthropic slash command guidance |
 | 26 | [ISS-018](tickets/ISS-018.md) | P3 — Low | Architecture | — | Standardize skill naming on gerund form |
-| 27 | [ISS-020](tickets/ISS-020.md) | P3 — Low | Architecture | — | Prefix generated PRD filenames with the feature slug |
+| 27 | [ISS-058](tickets/ISS-058.md) | P2 — Medium | Architecture | — | Unified artifact naming rubric across all pipeline-generated files (supersedes ISS-020) |
 | 28 | [ISS-021](tickets/ISS-021.md) | P3 — Low | Feature | — | Add first-class command entry points for Codex reviewer prompts |
 | 29 | [ISS-056](tickets/ISS-056.md) | P3 — Low | Feature | ISS-007 | Auto-migrate handoff.json on upgrade when required fields are missing |
 | 29 | [ISS-031](tickets/ISS-031.md) | P2 — Medium | Feature | — | Extend `/document` to update README and other project documentation artifacts |
@@ -211,7 +211,7 @@ Tickets grouped by theme. Within a wave, tickets are ordered by dependency but c
 - **Wave 7 — Architecture, history, and QA loop (13–19):** Strengthen architecture docs, ADR practice, review history, additive review artifacts, self-review, post-implementation QA, and adversarial review council. ISS-054 added alongside ISS-023 — both modify the architect skill and can share a branch. ISS-053 supersedes ISS-012 with multi-agent council, auto-trigger, and configurable blocking. **Remaining:** ISS-023, ISS-054, ISS-006, ISS-037, ISS-025, ISS-015, ISS-053, ISS-057.
 - **Wave 8 — Skill polish (20–21):** `allowed-tools` frontmatter and stop-conditions footers. Small, scoped skill improvements. **Remaining:** ISS-019, ISS-017.
 - **Wave 9 — Install ergonomics:** ISS-008 accelerated to Wave 3 / Batch 2.5. ISS-007 accelerated to Wave 3 (Order 9). **No remaining tickets — wave complete.**
-- **Wave 10 — Documentation polish and low-priority fixes (24–31):** Low-priority DX, documentation, and deferred automation. ISS-056 (auto-migrate handoff on upgrade) deferred here — ISS-007's warning is sufficient for now. **Remaining:** ISS-011, ISS-016, ISS-018, ISS-020, ISS-021, ISS-031, ISS-056.
+- **Wave 10 — Documentation polish and low-priority fixes (24–31):** Low-priority DX, documentation, and deferred automation. ISS-056 (auto-migrate handoff on upgrade) deferred here — ISS-007's warning is sufficient for now. **Remaining:** ISS-011, ISS-016, ISS-018, ISS-058, ISS-021, ISS-031, ISS-056.
 
 ## Sequencing Notes
 
