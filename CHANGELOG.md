@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Nothing pending._
+
+---
+
+## [5.11.0] — 2026-04-16
+
 ### Added
 - **Invariants-audit skill for cross-layer semantic review (ISS-001)** — new reusable skill teaches reviewers to detect contradictions between spec, implementation, hooks, and tests that survive passing test suites
 - **5-step invariant review method** — skill guides detection of state-machine bugs, blocked/rejected paths, spec-vs-impl contradictions, fixture-template mismatches, and test-behavior gaps via systematic 5-step analysis
@@ -30,7 +36,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs/CLAUDE.md updated by documentation-specialist** — timestamp and "Updated by" line refreshed to reflect phase 7 (invariants-audit)
 
 ### Fixed
-- No bug fixes in this release
+- **Hook scripts renamed `.js` → `.cjs` for ESM project compatibility (ISS-055)** — all four helpers (`checkpoint`, `resolve-feature`, `archive-context`, `restore-context`) now use the `.cjs` extension so they continue to load via `require()` even when the consumer project sets `"type": "module"` in `package.json`. `upgrade.sh` removes the legacy `.js` files automatically and rewrites `.claude/settings.json` to point at the `.cjs` paths.
+
+### Security
+- No security changes in this release
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+---
+
+## [5.10.0] — 2026-04-16
+
+### Added
+- **Symmetric Testing rule in `commands/test-design.md` (ISS-043)** — QA agents are instructed to test ALL enumerated components when the architecture lists multiple items, not just one representative
+- **`[symmetric-coverage]` entry in TDD skill** — appears in the "What to Test First" list to remind QA to check symmetric requirements across all consumers
+- **Adversarial Contract Testing rule (ISS-045)** — QA agents now test that safety contracts cannot be trivially evaded (commented-out code, escape hatches, string matches on dead code)
+- **`[contract-robustness]` entry in TDD skill** — appears in the "What to Test First" list for adversarial contract checks
+- **Artifact-Type Test Strategy in `commands/test-design.md` (ISS-049)** — three-way routing: declarative artifacts → structural checks; executable code → fixture-driven behavioral tests; config → schema validation. Hybrid artifacts route by precedence (behavioral first)
+- **Sibling reference `skills/tdd/test-quality-rules.md`** — holds expanded guidance for the new test-quality methodology, keeping `SKILL.md` under the 120-line budget. Follows the progressive-disclosure pattern established by the code-review skill (ISS-039)
+- **Behavioral Binding and Negative-Pattern Testing rules** — added to `commands/test-design.md` alongside the three feature-driven rules
+- **48 new tests across 3 layers** — 37 contract tests, 6 integration tests, 5 E2E tests covering the new test-quality rules and their wiring through the TDD skill
+
+### Changed
+- **`commands/test-design.md` gains a `## Test Quality Rules` section** — five subsections (Symmetric Testing, Behavioral Binding, Negative-Pattern Testing, Adversarial Contract Testing, Artifact-Type Test Strategy)
+- **TDD skill expanded with progressive disclosure** — adds two new "What to Test First" entries plus a `[See reference:]` link to the new sibling
 
 ### Security
 - No security changes in this release

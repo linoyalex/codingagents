@@ -1,6 +1,6 @@
 # codingagents
 
-A token-efficient, phase-gated multi-agent development pipeline for Claude Code, with optional Codex review integration. Eight specialised role definitions, eight reusable skills, nine slash commands, lifecycle hooks with token tracking, structured handoffs, and deployment tooling that reduce token usage by ~3-4x compared to unstructured single-session coding.
+A token-efficient, phase-gated multi-agent development pipeline for Claude Code, with optional Codex review integration. Eight specialised role definitions, ten reusable skills, nine slash commands, lifecycle hooks with token tracking, structured handoffs, and deployment tooling that reduce token usage by ~3-4x compared to unstructured single-session coding.
 
 ---
 
@@ -22,12 +22,15 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 ---
 
-## What's new in v5.9
+## What's new in v5.11
 
-- **CLAUDE.md section-level sync** — new `--sync-claude-md` flag for `init.sh` and `upgrade.sh`. Syncs framework-owned sections from `docs/CLAUDE.md` into the consumer's root `CLAUDE.md` using managed HTML comment markers. Fail-closed allowlist limits which sections sync downstream. Legacy files without markers are migrated automatically. Pre-sync backup protects existing content.
+- **Invariants-audit skill** — new reusable skill for cross-layer semantic review. Teaches reviewers to detect contradictions between spec, implementation, hooks, and tests that survive passing test suites. Five-step invariant analysis method covering state-machine bugs, blocked/rejected/retry paths, fixture-template-validator mismatches, and tests that prove syntax but not behavior. Wired into 4 Claude commands (`/review`, `/architect`, `/security-gate`, `/test-design`) and 4 Codex reviewer prompts.
+- **Hook scripts renamed `.js` → `.cjs`** — `checkpoint`, `resolve-feature`, `archive-context`, and `restore-context` now use the `.cjs` extension. Fixes a hard failure in consumer projects that have `"type": "module"` in `package.json` (Node treated `.js` as ESM and `require()` crashed). `upgrade.sh` cleans up legacy `.js` copies automatically.
 
 ### Earlier in v5
 
+- **QA test quality hardening (v5.10)** — `commands/test-design.md` adds a `## Test Quality Rules` section with five subsections: Symmetric Testing, Behavioral Binding, Negative-Pattern Testing, Adversarial Contract Testing, and Artifact-Type Test Strategy. New `[symmetric-coverage]` and `[contract-robustness]` entries in the TDD skill. Sibling `skills/tdd/test-quality-rules.md` holds expanded guidance. Targets the ~50% rework cost from Phase 3 review feedback observed in earlier features.
+- **CLAUDE.md section-level sync (v5.9)** — `--sync-claude-md` flag for `init.sh` and `upgrade.sh`. Syncs framework-owned sections from `docs/CLAUDE.md` into the consumer's root `CLAUDE.md` using managed HTML comment markers. Fail-closed allowlist limits which sections sync downstream. Legacy files without markers are migrated automatically. Pre-sync backup protects existing content.
 - **Code review skill hardening (v5.8)** — four new methodology sections: schema impact tracing, source/installed drift check, test suite execution, and finding reproduction requirement. Symmetric gate enforcement ensures `review.md` and `security-gate.md` stay in sync. Three sibling reference files added via progressive disclosure.
 - **Command↔skill wiring verification (v5.7)** — new `lib/wiring-check.js` verifies every artifact type declared in a skill's `## Required Artifacts` table has a corresponding output slot in the invoking command. Two new structural conventions: `## Skill References` tables in commands, `## Required Artifacts` tables in skills.
 - **Codex review hardening + known-risks (v5.6)** — four new Codex review-method rules (install-path tracing, test-truthfulness, parser edge-cases, unchanged-file scope expansion). `/implement` now instructs developers to verify handoff `known_risks` before committing GREEN. Mechanism-agnostic installer coverage contract tests.
@@ -36,7 +39,7 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 - **Token usage tracking** — all sessions log to `.claude/token-usage.jsonl` with per-phase, per-iteration, per-agent attribution.
 - **Memory governance** — explicit rules for what belongs in CLAUDE.md vs skills vs handoff packets, with line limits.
 - **Deployment tooling** — `init.sh` and `upgrade.sh` with version tracking via `.claude/.codingagents-version`.
-- **Fail-closed phase commands** — Phases 2-7 resolve the feature through `resolve-feature.js` and stop on malformed args or mismatches.
+- **Fail-closed phase commands** — Phases 2-7 resolve the feature through `resolve-feature.cjs` and stop on malformed args or mismatches.
 - **Codex review layer** (optional) — independent cross-model review at four pipeline checkpoints.
 - **Baseline metrics** — budget targets per phase with reporting script.
 
@@ -44,11 +47,11 @@ Phase 7  DOCUMENT       documentation-specialist       → CHANGELOG + release-n
 
 - Canonical major line: `5.x`
 - Generation baseline: `5.0.0` from `version5-codex+token-governance`
-- Current published release: `5.9.0`
+- Current published release: `5.11.0`
 
-`5.9.0` adds opt-in section-level CLAUDE.md sync via `--sync-claude-md` for both `init.sh` and `upgrade.sh`. Framework-owned sections are injected and updated using managed HTML comment markers, with a fail-closed allowlist controlling which sections propagate downstream. Legacy files without markers are migrated automatically. Pre-sync backup protects existing user content.
+`5.11.0` adds the new `invariants-audit` skill for cross-layer semantic review and renames the four hook helpers from `.js` to `.cjs` so they work in consumer projects with `"type": "module"`. `5.10.0` (immediately prior) hardened Phase 3 test-design quality with five new test-quality rules.
 
-**Upgrade warning:** `5.9.0` changes install/upgrade behavior when the `--sync-claude-md` flag is used. Without the flag, behavior is unchanged. If you use `--sync-claude-md` on an existing project for the first time, the legacy migration will insert managed markers into your `CLAUDE.md` — review the result to ensure user-added content was preserved correctly. As always, upgrading in the middle of an active feature cycle is discouraged when gates or required artifacts change.
+**Upgrade warning:** `5.11.0` renames installed hook helpers from `.js` to `.cjs`. `upgrade.sh` removes the legacy `.js` files automatically and rewrites `.claude/settings.json` to point at `.cjs`. After upgrading, verify `.claude/helpers/` contains only `.cjs` files and that `.claude/settings.json` references match. As always, upgrading in the middle of an active feature cycle is discouraged when gates or required artifacts change.
 
 See [RELEASE.md](RELEASE.md) for the canonical `5.x` mapping and release-process rules, and [QUICKSTART.md](QUICKSTART.md) for operator-safe upgrade guidance.
 
@@ -71,6 +74,8 @@ This copies all roles, commands, skills, hooks, schemas, shared `docs/design` an
 
 After running, edit `CLAUDE.md` to fill in your project-specific sections.
 
+**Note:** Hook helpers ship with the `.cjs` extension as of v5.11 — they work in both ESM (`"type": "module"`) and CommonJS projects without further configuration.
+
 ### Upgrading from v4.1
 
 ```bash
@@ -81,7 +86,7 @@ bash /path/to/codingagents/upgrade.sh --sync-claude-md  # sync managed CLAUDE.md
 
 This backs up `.claude/` before replacing framework files. It also refreshes the shared `docs/design/` and `docs/memory/` files used by fresh sessions. `CLAUDE.md` is not touched — review it manually for new sections (Phase Handoff Protocol, Memory & Instruction Governance).
 
-Before upgrading, check whether you are in the middle of an active feature cycle. Releases that add gates or required artifacts can invalidate in-flight outputs. The current example is `5.9.0`, which changes install behavior when `--sync-claude-md` is used.
+Before upgrading, check whether you are in the middle of an active feature cycle. Releases that add gates or required artifacts can invalidate in-flight outputs. The current example is `5.11.0`, which renames hook helpers from `.js` to `.cjs` and updates `.claude/settings.json` to match.
 
 ### Manual setup
 
@@ -144,7 +149,7 @@ Every advancing phase writes `.claude/handoff.json` at the end of its phase with
 | `produced_by` | No | Agent role that produced this handoff |
 | `timestamp` | No | ISO 8601 timestamp |
 
-The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js` Stop hook performs full schema validation (type checks, range constraints, unexpected property rejection) and exits with a non-zero code if validation fails. Phase 4 with `BLOCKING` findings and Phase 6 with `REQUEST_CHANGES` intentionally keep the previous handoff in place so the pipeline cannot advance past a failed gate.
+The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.cjs` Stop hook performs full schema validation (type checks, range constraints, unexpected property rejection) and exits with a non-zero code if validation fails. Phase 4 with `BLOCKING` findings and Phase 6 with `REQUEST_CHANGES` intentionally keep the previous handoff in place so the pipeline cannot advance past a failed gate.
 
 ---
 
@@ -213,11 +218,13 @@ Skills are a key architectural concept (introduced in v4, extended in v5). Each 
 |-------|-----------|-----------------|
 | `prd-writing` | specify | Story format, acceptance criteria template, RICE prioritisation, screen states |
 | `architecture-decision` | architect | ADR template, ARCH template, fitness functions, decision framework, tech radar |
-| `tdd` | implement | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, property-based testing, coverage thresholds |
+| `tdd` | implement, test-design | RED/GREEN/REFACTOR cycle, Arrange/Act/Assert, property-based testing, symmetric coverage, contract robustness (v5.10) |
 | `security-audit` | security-gate | OWASP Top 10 checklist, serverless threat vectors, auth verification, severity levels |
 | `structured-logging` | implement, security-gate | Structured log format, log levels, PII scrubbing, security event requirements |
 | `code-review` | review | Reviewer Independence, source-spec-first verification, schema impact tracing, drift check, test execution, reproduction requirement, symmetric gate enforcement, conventional comments, finding cap |
+| `invariants-audit` | review, architect, security-gate, test-design | Cross-layer semantic review (v5.11) — 5-step invariant analysis, 5 review categories, sibling reference for category detail |
 | `release-docs` | document | Changelog format, release notes template, process learnings, CLAUDE.md updates |
+| `backlog-management` | all phases | Backlog ticket format, ordering, lifecycle conventions (open → in-progress → closed) |
 | `verification-gate` | all phases | Phase-specific verification, handoff validation, universal checklist, no-go criteria, retrospective protocol |
 
 ---
@@ -301,11 +308,13 @@ Keep each Codex run scoped to one artifact and one review file. If findings flow
 
 The three hook scripts in `hooks/` handle context preservation, structured handoffs, and token tracking.
 
-**`restore-context.js`** (SessionStart hook) — loads `.claude/handoff.json` as primary context if available (feature, goal, scope, files to read, acceptance criteria). Falls back to archived turns when no handoff exists. Records session start time and feature for token tracking.
+**`restore-context.cjs`** (SessionStart hook) — loads `.claude/handoff.json` as primary context if available (feature, goal, scope, files to read, acceptance criteria). Falls back to archived turns when no handoff exists. Records session start time and feature for token tracking.
 
-**`archive-context.js`** (PreCompact hook) — fires before Claude auto-compacts the context. Scores each conversation turn for importance (architecture decisions, errors, constraints score higher), saves the top 50 turns to `.claude/context-archive/turns.json`. Logs a token usage snapshot before compaction.
+**`archive-context.cjs`** (PreCompact hook) — fires before Claude auto-compacts the context. Scores each conversation turn for importance (architecture decisions, errors, constraints score higher), saves the top 50 turns to `.claude/context-archive/turns.json`. Logs a token usage snapshot before compaction.
 
-**`checkpoint.js`** (Stop hook) — fires when a session ends. Validates `.claude/handoff.json` as a **blocking gate** (exits with error if missing or invalid). It detects the completed phase from pipeline artifacts, uses handoff metadata for feature and agent attribution, logs token usage with iteration counting, and writes `.claude/pipeline-checkpoint.json` with the next recommended action.
+**`checkpoint.cjs`** (Stop hook) — fires when a session ends. Validates `.claude/handoff.json` as a **blocking gate** (exits with error if missing or invalid). It detects the completed phase from pipeline artifacts, uses handoff metadata for feature and agent attribution, logs token usage with iteration counting, and writes `.claude/pipeline-checkpoint.json` with the next recommended action.
+
+(All four hooks use the `.cjs` extension as of v5.11 — see [Versioning](#versioning) below.)
 
 ---
 
@@ -415,10 +424,10 @@ Rules:
 │
 ├── hooks/                           ← Lifecycle hooks
 │   ├── settings.json                ← Claude Code hook config (copy to .claude/)
-│   ├── archive-context.js           ← PreCompact: archives turns + logs token snapshot
-│   ├── restore-context.js           ← SessionStart: loads handoff.json or archived turns
-│   ├── checkpoint.js                ← Stop: validates handoff (blocking), logs tokens, detects phase
-│   └── resolve-feature.js           ← Helper for Phases 2-7: resolves feature slug safely from args/handoff
+│   ├── archive-context.cjs          ← PreCompact: archives turns + logs token snapshot
+│   ├── restore-context.cjs          ← SessionStart: loads handoff.json or archived turns
+│   ├── checkpoint.cjs               ← Stop: validates handoff (blocking), logs tokens, detects phase
+│   └── resolve-feature.cjs          ← Helper for Phases 2-7: resolves feature slug safely from args/handoff
 │
 ├── lib/                             ← Shared library modules
 │   ├── wiring-check.js              ← Command↔skill artifact wiring verification (v5.7)
@@ -472,7 +481,7 @@ Rules:
 - **v3** — phase-gated pipeline, model tier assignments, slash commands, lifecycle hooks, token budget documentation
 - **v4** — extracted skills from roles (separation of concerns), YAML frontmatter on all commands for VS Code, standardised output paths (`docs/reviews/`, `docs/security/`), release notes generation in documentation phase, verification-gate skill for all phases
 - **v4.1** — new structured-logging skill (cross-cutting: architect, security, developer, reviewer), retrospective protocol for self-improving feedback loops, conventional comments format in code-review, property-based testing in TDD, architectural fitness functions, serverless/edge threat vectors in security-audit, process learnings in release-docs
-- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs. v5.2+ added artifact timestamps. v5.3 added skill size convention with progressive disclosure. v5.4 added three-level test coverage (unit/integration/E2E). v5.5 added reviewer independence, adversarial gate roles, separate-context enforcement, and source_spec-anchored reviews. v5.6 hardened Codex review methods and added known-risks verification in `/implement`. v5.7 added command↔skill wiring verification with `lib/wiring-check.js`. v5.8 hardened code-review skill with schema impact tracing, drift checks, reproduction requirements, and symmetric gate enforcement. v5.9 added CLAUDE.md section-level sync via `--sync-claude-md` flag.
+- **v5 (current)** — structured handoff.json with schema validation (blocking gate), token usage tracking with JSONL logging and iteration awareness, memory governance rules, deployment tooling (`init.sh`/`upgrade.sh` with v4.1 migration), optional Codex review layer with shared metrics, baseline metrics and budget targets in `PIPELINE.md`, artifact-based phase detection, and improved agent/model attribution in token logs. v5.2+ added artifact timestamps. v5.3 added skill size convention with progressive disclosure. v5.4 added three-level test coverage (unit/integration/E2E). v5.5 added reviewer independence, adversarial gate roles, separate-context enforcement, and source_spec-anchored reviews. v5.6 hardened Codex review methods and added known-risks verification in `/implement`. v5.7 added command↔skill wiring verification with `lib/wiring-check.js`. v5.8 hardened code-review skill with schema impact tracing, drift checks, reproduction requirements, and symmetric gate enforcement. v5.9 added CLAUDE.md section-level sync via `--sync-claude-md` flag. v5.10 added the QA test quality rules (symmetric testing, behavioral binding, negative-pattern testing, adversarial contract testing, artifact-type test strategy) and `[symmetric-coverage]` / `[contract-robustness]` entries in the TDD skill. v5.11 added the `invariants-audit` skill for cross-layer semantic review and renamed all hook helpers from `.js` to `.cjs` (ISS-055) for ESM-project compatibility.
 
 ---
 

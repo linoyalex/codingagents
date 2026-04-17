@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-> **Current as of:** v5.9.0 (2026-04-15)
+> **Current as of:** v5.11.0 (2026-04-16)
 
 This is the operator guide for adopting `codingagents` in a project and running the pipeline safely. Use:
 
@@ -36,14 +36,14 @@ bash /path/to/codingagents/upgrade.sh --codex
 ## Upgrade safety
 
 - Strongly avoid upgrading in the middle of an active feature cycle when a release changes gates, handoff requirements, command contracts, or required artifacts.
-- The current published example is `5.9.0`, which adds a `--sync-claude-md` flag to `init.sh` and `upgrade.sh`. Without the flag, behavior is unchanged. If used on a legacy project, managed markers are inserted into CLAUDE.md — review the result to verify user content was preserved.
+- The current published release is `5.11.0`, which renames the four hook helpers from `.js` to `.cjs` (so they work in projects with `"type": "module"` in `package.json`). `upgrade.sh` removes the legacy `.js` files automatically and updates `.claude/settings.json` to reference `.cjs`. After upgrading, verify `.claude/helpers/` contains only `.cjs` files. v5.10 (immediately prior) added the Test Quality Rules section to `commands/test-design.md` — re-running `/test-design` for an in-flight feature will produce a higher-quality test plan but won't invalidate older outputs.
 - Safest path: finish the current feature before upgrade.
 - If you already upgraded mid-cycle, run `/status` first and resume from the last stable phase whose outputs satisfy the new release requirements.
 
 ### Known mid-cycle upgrade hazards
 
 - **Handoff field mismatch:** If your current handoff was written before `source_spec` became required (v5.5+), the review command will halt. Fix: add `"source_spec": "docs/features/<feature>/<prd-file>.md"` to `.claude/handoff.json` manually.
-- **ESM project incompatibility:** Hook scripts use CommonJS (`require()`). If your project has `"type": "module"` in `package.json`, hooks will fail. Fix: rename `.claude/helpers/*.js` to `.cjs`, or wait for ISS-055 which ships this fix.
+- **ESM project incompatibility (RESOLVED in v5.11):** Hook helpers ship as `.cjs` (CommonJS) and work in both ESM and CommonJS projects. If you upgraded from v5.10 or earlier and still see `.js` hook files in `.claude/helpers/`, re-run `upgrade.sh` — it now removes the legacy `.js` copies and rewrites `.claude/settings.json` to reference the `.cjs` files. (Tracked as ISS-055 — closed.)
 - **Version detection gap:** `upgrade.sh` currently uses major-only version tracking (`v5`). If you previously upgraded to any v5.x, subsequent minor releases are silently skipped. Workaround: `echo "core=v4.1" > .claude/.codingagents-version` then re-run `upgrade.sh`. ISS-007 (`--force` flag) will fix this permanently.
 
 After install or upgrade:
@@ -67,10 +67,10 @@ cp commands/*.md .claude/commands/
 
 # 3. Helpers
 mkdir -p .claude/helpers
-cp hooks/archive-context.js .claude/helpers/
-cp hooks/restore-context.js .claude/helpers/
-cp hooks/checkpoint.js .claude/helpers/
-cp hooks/resolve-feature.js .claude/helpers/
+cp hooks/archive-context.cjs .claude/helpers/
+cp hooks/restore-context.cjs .claude/helpers/
+cp hooks/checkpoint.cjs .claude/helpers/
+cp hooks/resolve-feature.cjs .claude/helpers/
 
 # 4. Skills
 mkdir -p .claude/skills
@@ -111,7 +111,7 @@ Do not do this:
 /review user-auth and check the latest fixes
 ```
 
-Phases 2-7 use `.claude/helpers/resolve-feature.js` and fail closed on malformed args, mismatched slug vs handoff, or stale empty-arg fallback.
+Phases 2-7 use `.claude/helpers/resolve-feature.cjs` and fail closed on malformed args, mismatched slug vs handoff, or stale empty-arg fallback.
 
 ## First feature cycle
 

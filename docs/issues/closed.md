@@ -5,6 +5,7 @@
 
 | ID | Priority | Type | Title | Closed | Resolution |
 |----|----------|------|-------|--------|------------|
+| [ISS-001](tickets/ISS-001.md) | P1 — High | Feature | Add invariants-audit skill for cross-layer semantic review | 2026-04-16 | New `skills/invariants-audit/` with 5 review categories and 5-step invariant analysis method; wired into 4 Claude commands (review/architect/security-gate/test-design) and 4 Codex reviewer prompts; 50+ contract/integration/e2e tests; shipped as v5.11.0 |
 | [ISS-055](tickets/ISS-055.md) | P1 — High | Bug | Rename hook scripts to .cjs for ESM project compatibility | 2026-04-16 | Renamed all 4 hooks (`checkpoint`, `resolve-feature`, `archive-context`, `restore-context`) from `.js` to `.cjs`; updated settings.json, init.sh, upgrade.sh, command files, and tests; verified in synthetic ESM project |
 | [ISS-002](tickets/ISS-002.md) | P1 — High | Bug | Phase 6 writes forward handoff on REQUEST_CHANGES | 2026-04-06 | Fixed in `commands/review.md`; regression test added |
 | [ISS-003](tickets/ISS-003.md) | P1 — High | Bug | Phase 4 writes handoff on BLOCKING security findings | 2026-04-06 | Fixed in `commands/security-gate.md`; regression test added |

@@ -11,8 +11,8 @@ conversation history costs 100K+.
 
 The canonical handoff artifact is `.claude/handoff.json` — a machine-readable contract
 between phases. Each advancing phase writes it at the end of its phase; the next agent reads it at
-session start. The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.js`
-Stop hook validates its presence, and `restore-context.js` loads it as primary context for
+session start. The schema is defined in `schemas/handoff.schema.json`. The `checkpoint.cjs`
+Stop hook validates its presence, and `restore-context.cjs` loads it as primary context for
 fresh sessions.
 
 Not every phase result advances the pipeline. When a gate fails, the current phase artifact
@@ -53,7 +53,7 @@ every artifact for a feature in one browsable location.
 - `/specify` accepts natural language and creates the feature slug.
 - Phases 2-7 should be invoked with only the feature slug, e.g. `/implement user-auth`.
 - If you want to add extra context after Phase 1, give it in a normal chat message and then run the slash command separately.
-- Phases 2-7 resolve the feature through `.claude/helpers/resolve-feature.js`, which fails closed on malformed args, slug/handoff mismatches, or invalid fallback state.
+- Phases 2-7 resolve the feature through `.claude/helpers/resolve-feature.cjs`, which fails closed on malformed args, slug/handoff mismatches, or invalid fallback state.
 - Empty args are allowed only as an explicit handoff-based resume when the handoff is valid and comes from the immediately previous phase.
 
 **Models by phase:**
@@ -413,14 +413,14 @@ The initial Codex budget is ~4-6K (code review only). The full ceiling applies o
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "node .claude/helpers/archive-context.js"
+        "command": "node .claude/helpers/archive-context.cjs"
       }]
     }],
     "SessionStart": [{
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "node .claude/helpers/restore-context.js"
+        "command": "node .claude/helpers/restore-context.cjs"
       }]
     }]
   }

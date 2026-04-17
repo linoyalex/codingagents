@@ -20,8 +20,10 @@ This document is the canonical release-process guide for `codingagents` until th
 | — | `5.7.0` | `ISS-036` command↔skill wiring verification |
 | — | `5.8.0` | `ISS-039` code review skill hardening |
 | — | `5.9.0` | `ISS-008` CLAUDE.md section-level sync |
+| — | `5.10.0` | `ISS-043`, `ISS-045`, `ISS-049` QA test quality hardening |
+| — | `5.11.0` | `ISS-001` invariants-audit skill + `ISS-055` hook `.cjs` rename |
 
-Current published release: `5.9.0`.
+Current published release: `5.11.0`.
 
 Some canonical `5.1.x` artifacts preserve the dates from when that work was authored on the v5 branch line, so the historical dates do not map perfectly to the later normalized `5.0.0` baseline entry. This is intentional and should be documented rather than hidden.
 
@@ -63,12 +65,13 @@ Recommended current roadmap:
 | `5.7.0` | `ISS-036` — command↔skill wiring verification | **Shipped 2026-04-14** |
 | `5.8.0` | `ISS-039` — code review skill hardening | **Shipped 2026-04-14** |
 | `5.9.0` | `ISS-008` — CLAUDE.md section-level sync | **Shipped 2026-04-15** |
-| `5.10.0` | `ISS-043`, `ISS-045`, `ISS-049` — QA test quality hardening (Batch 2.75) | Planned |
-| `5.10.1` | `ISS-007` — force upgrade + clean reinstall (accelerated from Wave 9) | Planned |
-| `5.11.0` | `ISS-044`, `ISS-001` — scope control + invariants audit (Batch 3) | Planned |
-| `5.12.0` | `ISS-052`, `ISS-028`, `ISS-032`, `ISS-050` — branch management, ticket-aware selection, auto-status, per-command effort/plan-mode (Wave 4) | Planned |
-| `5.13.0` | `ISS-030`, `ISS-051` — semver policy + release-manager skill (Wave 5) | Planned |
-| `5.14.0+` | `ISS-031`, `ISS-034`, `ISS-038` — doc artifact registry, backlog configurability, multi-agent routing (Wave 9) | Planned |
+| `5.10.0` | `ISS-043`, `ISS-045`, `ISS-049` — QA test quality hardening (Batch 2.75) | **Shipped 2026-04-16** |
+| `5.11.0` | `ISS-001` — invariants-audit skill (Batch 3 partial) + `ISS-055` — hook `.cjs` rename for ESM compatibility | **Shipped 2026-04-16** |
+| `5.11.1` | `ISS-007` — force upgrade + clean reinstall (accelerated from Wave 9) | Planned |
+| `5.12.0` | `ISS-044` — scope control during post-review rework (remaining Batch 3 ticket) + `ISS-059` — separate root CLAUDE.md template | Planned |
+| `5.13.0` | `ISS-052`, `ISS-028`, `ISS-032`, `ISS-050` — branch management, ticket-aware selection, auto-status, per-command effort/plan-mode (Wave 4) | Planned |
+| `5.14.0` | `ISS-030`, `ISS-051` — semver policy + release-manager skill (Wave 5) | Planned |
+| `5.15.0+` | `ISS-031`, `ISS-034`, `ISS-038`, `ISS-062`, `ISS-063` — doc artifact registry, backlog configurability, multi-agent routing, in-flight progress notes, unattended pipeline mode (Wave 9+) | Planned |
 
 Patch rule:
 
@@ -98,7 +101,7 @@ Default recovery guidance:
 3. Re-run from the last stable phase whose outputs satisfy the new gate or contract.
 4. Regenerate artifacts rather than trying to force old outputs through new gates.
 
-Current example: `5.9.0` introduces the `--sync-claude-md` flag which modifies CLAUDE.md using managed markers on first use. Without the flag, upgrade behavior is unchanged. If you use `--sync-claude-md` on a legacy file, review the migrated CLAUDE.md to verify user content was preserved.
+Current example: `5.11.0` renames the four hook helpers from `.js` to `.cjs`. `upgrade.sh` automatically removes the legacy `.js` files and updates `.claude/settings.json` to reference the `.cjs` paths. After upgrading, verify that `.claude/helpers/` contains only `.cjs` files. The earlier `5.9.0` `--sync-claude-md` flag is also still operator-facing — review the migrated CLAUDE.md after first use to verify user content was preserved.
 
 ## Manual release checklist
 
